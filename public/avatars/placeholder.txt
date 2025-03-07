@@ -1,0 +1,5 @@
+This directory will contain avatar images for the carousel.
+Please add your avatar images here with the following naming convention:
+- avatar1.jpg to avatar6.jpg for student avatars
+- teacher1.jpg to teacher6.jpg for teacher avatars
+- course1.jpg to course6.jpg for course avatars 

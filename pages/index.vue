@@ -1,8 +1,11 @@
+<script setup>
+// Redirect to login page
+const router = useRouter();
+router.push("/login");
+</script>
+
 <template>
-  <div class="container">
-    <h1>Welcome to Nuxt 3!</h1>
-    <p>This is the home page of your Nuxt 3 application.</p>
-  </div>
+  <div>Redirecting to login...</div>
 </template>
 
 <style scoped>
