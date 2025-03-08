@@ -2,7 +2,7 @@
   <div class="sidebar" :class="{ 'sidebar-collapsed': isCollapsed }">
     <!-- Logo -->
     <div class="logo-container">
-      <Logo />
+      <Logo type="full" />
     </div>
 
     <!-- Navigation Links -->
@@ -13,7 +13,7 @@
         :class="{ active: currentPath === '/dashboard' }"
       >
         <span class="icon">
-          <HomeIcon />
+          <IconsHomeIcon />
         </span>
         <span class="label">Dashboard</span>
       </NuxtLink>
@@ -24,7 +24,7 @@
         :class="{ active: currentPath === '/registrars' }"
       >
         <span class="icon">
-          <UsersIcon />
+          <IconsUsersIcon />
         </span>
         <span class="label">Registrars</span>
       </NuxtLink>
@@ -35,7 +35,7 @@
         :class="{ active: currentPath === '/enrollments' }"
       >
         <span class="icon">
-          <EnrollmentIcon />
+          <IconsEnrollmentIcon />
         </span>
         <span class="label">Enrollments</span>
       </NuxtLink>
@@ -46,7 +46,7 @@
         :class="{ active: currentPath === '/programmes' }"
       >
         <span class="icon">
-          <BookOpenIcon />
+          <IconsBookOpenIcon />
         </span>
         <span class="label">Programmes</span>
       </NuxtLink>
@@ -57,7 +57,7 @@
         :class="{ active: currentPath === '/courses' }"
       >
         <span class="icon">
-          <DocumentIcon />
+          <IconsDocumentIcon />
         </span>
         <span class="label">Courses</span>
       </NuxtLink>
@@ -68,7 +68,7 @@
         :class="{ active: currentPath === '/sessions' }"
       >
         <span class="icon">
-          <CalendarIcon />
+          <IconsCalendarIcon />
         </span>
         <span class="label">Sessions</span>
       </NuxtLink>
@@ -79,7 +79,7 @@
         :class="{ active: currentPath === '/students' }"
       >
         <span class="icon">
-          <AcademicCapIcon />
+          <IconsAcademicCapIcon />
         </span>
         <span class="label">Students</span>
       </NuxtLink>
@@ -90,7 +90,7 @@
       <div class="help-section">
         <NuxtLink to="/help" class="nav-item">
           <span class="icon">
-            <HelpIcon />
+            <IconsHelpIcon />
           </span>
           <span class="label">Get help</span>
         </NuxtLink>
@@ -99,7 +99,7 @@
       <div class="settings-section">
         <NuxtLink to="/settings" class="nav-item">
           <span class="icon">
-            <SettingsIcon />
+            <IconsSettingsIcon />
           </span>
           <span class="label">Settings</span>
         </NuxtLink>
@@ -108,17 +108,7 @@
   </div>
 </template>
 
-<script setup>
-import HomeIcon from "~/components/icons/HomeIcon.vue";
-import UsersIcon from "~/components/icons/UsersIcon.vue";
-import EnrollmentIcon from "~/components/icons/EnrollmentIcon.vue";
-import BookOpenIcon from "~/components/icons/BookOpenIcon.vue";
-import DocumentIcon from "~/components/icons/DocumentIcon.vue";
-import CalendarIcon from "~/components/icons/CalendarIcon.vue";
-import AcademicCapIcon from "~/components/icons/AcademicCapIcon.vue";
-import HelpIcon from "~/components/icons/HelpIcon.vue";
-import SettingsIcon from "~/components/icons/SettingsIcon.vue";
-
+<script setup lang="ts">
 const route = useRoute();
 const currentPath = computed(() => route.path);
 const isCollapsed = ref(false);
@@ -129,89 +119,91 @@ function toggleSidebar() {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .sidebar {
   width: 250px;
   height: 100vh;
-  background-color: white;
+  background-color: $white;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid #e5e7eb;
+  border-right: 1px solid $gray-200;
   transition: width 0.3s ease;
   overflow-y: auto;
   position: fixed;
   left: 0;
   top: 0;
   z-index: 10;
-}
 
-.sidebar-collapsed {
-  width: 70px;
-}
+  &.sidebar-collapsed {
+    width: 70px;
 
-.logo-container {
-  padding: 1.5rem 1rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.navigation {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 1rem 0;
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  padding: 0.75rem 1.5rem;
-  color: #4b5563;
-  text-decoration: none;
-  transition: background-color 0.2s, color 0.2s;
-  margin-bottom: 0.5rem;
-  border-radius: 0.375rem;
-  margin-left: 0.75rem;
-  margin-right: 0.75rem;
-}
-
-.nav-item:hover {
-  background-color: #f3f4f6;
-  color: #1f2937;
-}
-
-.nav-item.active {
-  background-color: #eef2ff;
-  color: #4f46e5;
-  font-weight: 500;
-}
-
-.icon {
-  width: 24px;
-  height: 24px;
-  margin-right: 12px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.sidebar-collapsed .label {
-  display: none;
-}
-
-.sidebar-bottom {
-  padding: 1rem 0;
-  border-top: 1px solid #e5e7eb;
-}
-
-@media (max-width: 768px) {
-  .sidebar {
-    transform: translateX(-100%);
+    .label {
+      display: none;
+    }
   }
 
-  .sidebar.active {
-    transform: translateX(0);
+  .logo-container {
+    padding: $spacing-4 $spacing-8;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    border-bottom: 1px solid $gray-200;
+  }
+
+  .navigation {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: $spacing-4 $spacing-3;
+    gap: $spacing-2;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    padding: $spacing-3 $spacing-6;
+    color: $gray-600;
+    text-decoration: none;
+    transition: background-color 0.2s, color 0.2s;
+    border-radius: 8px;
+    font-size: $text-sm;
+    font-family: $font-family;
+
+    &:hover {
+      background-color: $gray-100;
+      color: $gray-900;
+    }
+
+    &.active {
+      background-color: $primary-color-50;
+      color: $primary-color-700;
+      font-weight: 600;
+    }
+
+    .icon {
+      width: 24px;
+      height: 24px;
+      margin-right: $spacing-3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+
+  .sidebar-bottom {
+    border-top: 1px solid $gray-200;
+    display: flex;
+    flex-direction: column;
+    padding: $spacing-4 $spacing-3;
+    gap: $spacing-2;
+  }
+
+  @media (max-width: $breakpoint-md) {
+    transform: translateX(-100%);
+
+    &.active {
+      transform: translateX(0);
+    }
   }
 }
 </style>

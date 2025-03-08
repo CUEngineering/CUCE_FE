@@ -317,7 +317,7 @@ const pendingInvites = ref<Invite[]>([
 
   @media (max-width: 768px) {
     .page-header {
-      flex-direction: column;
+      // flex-direction: column;
       align-items: flex-start;
 
       .search-add-section {
