@@ -200,7 +200,7 @@ const handleLogin = async () => {
 }
 
 .feature-content {
-  background: #2563eb; // Vibrant blue
+  background: #1e40af; // Darker blue from the design
   display: flex;
   align-items: center;
   justify-content: center;
@@ -211,41 +211,100 @@ const handleLogin = async () => {
 .gradient-blur {
   position: absolute;
   inset: 0;
-  opacity: 0.8;
-  background: linear-gradient(
-      35deg,
-      rgba(56, 189, 248, 0.25) 0%,
-      transparent 20%
+  opacity: 0.9;
+  background: radial-gradient(
+      circle at 75% 25%,
+      rgba(96, 165, 250, 0.15) 0%,
+      transparent 50%
     ),
-    linear-gradient(145deg, rgba(59, 130, 246, 0.25) 0%, transparent 30%),
-    linear-gradient(215deg, rgba(99, 102, 241, 0.25) 0%, transparent 40%),
-    linear-gradient(285deg, rgba(139, 92, 246, 0.25) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.2) 100%),
+    radial-gradient(
+      circle at 25% 75%,
+      rgba(96, 165, 250, 0.15) 0%,
+      transparent 50%
+    ),
+    linear-gradient(35deg, rgba(37, 99, 235, 0.3) 0%, transparent 50%),
+    linear-gradient(215deg, rgba(37, 99, 235, 0.3) 0%, transparent 50%),
     repeating-linear-gradient(
-      45deg,
-      rgba(255, 255, 255, 0.05) 0%,
-      rgba(255, 255, 255, 0.05) 1px,
-      transparent 1px,
-      transparent 4px
+      to right,
+      transparent 0px,
+      transparent 100px,
+      rgba(255, 255, 255, 0.03) 100px,
+      rgba(255, 255, 255, 0.03) 102px
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 100px,
+      rgba(255, 255, 255, 0.03) 100px,
+      rgba(255, 255, 255, 0.03) 102px
     );
-  mix-blend-mode: overlay;
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+
+.gradient-blur::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+      circle at 80% 20%,
+      rgba(255, 255, 255, 0.1) 0%,
+      transparent 25%
+    ),
+    radial-gradient(
+      circle at 20% 80%,
+      rgba(255, 255, 255, 0.1) 0%,
+      transparent 25%
+    );
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.gradient-blur::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+      circle at 70% 30%,
+      rgba(255, 255, 255, 0.08) 0%,
+      transparent 8px
+    ),
+    radial-gradient(
+      circle at 30% 70%,
+      rgba(255, 255, 255, 0.08) 0%,
+      transparent 8px
+    ),
+    radial-gradient(
+      circle at 40% 40%,
+      rgba(255, 255, 255, 0.08) 0%,
+      transparent 8px
+    ),
+    radial-gradient(
+      circle at 60% 60%,
+      rgba(255, 255, 255, 0.08) 0%,
+      transparent 8px
+    );
+  background-size: 300px 300px;
+  background-position: 0 0, 0 0, 150px 150px, 150px 150px;
+  background-repeat: repeat;
+  opacity: 0.5;
   pointer-events: none;
 }
 
 @keyframes pulse {
   0% {
-    opacity: 0.7;
+    opacity: 0.8;
   }
   50% {
-    opacity: 0.9;
+    opacity: 1;
   }
   100% {
-    opacity: 0.7;
+    opacity: 0.8;
   }
 }
 
 .gradient-blur {
-  animation: pulse 8s ease-in-out infinite;
+  animation: pulse 12s ease-in-out infinite;
 }
 
 .toggle-password {
