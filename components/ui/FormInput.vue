@@ -34,8 +34,6 @@ defineEmits<{
 </script>
 
 <style lang="scss" scoped>
-@use "@/assets/scss/main" as *;
-
 .form-field {
   width: 100%;
 }

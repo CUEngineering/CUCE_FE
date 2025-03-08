@@ -40,8 +40,8 @@
                   class="toggle-password"
                   @click="showPassword = !showPassword"
                 >
-                  <span v-if="showPassword">Hide</span>
-                  <span v-else>Show</span>
+                  <EyeIcon v-if="showPassword" />
+                  <EyeOffIcon v-else />
                 </button>
               </template>
             </FormInput>
@@ -54,9 +54,9 @@
               <a href="#" class="forgot-password">Forgot Password?</a>
             </div>
 
-            <button type="submit" class="sign-in-button" :disabled="loading">
+            <Button type="submit" variant="primary" :loading="loading">
               {{ loading ? "Signing in..." : "Sign In" }}
-            </button>
+            </Button>
           </form>
         </div>
 
@@ -68,9 +68,7 @@
 
       <!-- Right Side Content -->
       <div class="feature-content">
-        <div class="gradient-blur gradient-blur-1"></div>
-        <div class="gradient-blur gradient-blur-2"></div>
-        <div class="gradient-blur gradient-blur-3"></div>
+        <div class="gradient-blur"></div>
         <Carousel />
       </div>
     </div>
@@ -82,6 +80,9 @@ import { ref } from "vue";
 import Logo from "~/components/Logo.vue";
 import FormInput from "~/components/ui/FormInput.vue";
 import Carousel from "~/components/ui/Carousel.vue";
+import EyeIcon from "~/components/icons/EyeIcon.vue";
+import EyeOffIcon from "~/components/icons/EyeOffIcon.vue";
+import Button from "~/components/ui/Button.vue";
 
 const email = ref("");
 const password = ref("");
@@ -102,8 +103,6 @@ const handleLogin = async () => {
 </script>
 
 <style lang="scss" scoped>
-@use "@/assets/scss/main" as *;
-
 .login-page {
   height: 100vh;
   width: 100%;
@@ -146,14 +145,14 @@ const handleLogin = async () => {
 .welcome-text {
   margin-bottom: 2rem;
   h1 {
-    font-family: "Plus Jakarta Sans", sans-serif;
+    font-family: $font-family-heading;
     font-size: 2rem;
     font-weight: 600;
     color: $text-color;
     margin-bottom: 0.5rem;
   }
   p {
-    font-family: "DM Sans", sans-serif;
+    font-family: $font-family-body;
     color: #6b7280;
   }
 }
@@ -173,7 +172,7 @@ const handleLogin = async () => {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-family: "DM Sans", sans-serif;
+    font-family: $font-family-body;
 
     input[type="checkbox"] {
       width: auto;
@@ -181,7 +180,7 @@ const handleLogin = async () => {
   }
 
   .forgot-password {
-    font-family: "DM Sans", sans-serif;
+    font-family: $font-family-body;
     color: $primary-color;
     text-decoration: none;
     font-size: 0.875rem;
@@ -191,31 +190,17 @@ const handleLogin = async () => {
   }
 }
 
-.sign-in-button {
-  width: 100%;
-  padding: 0.875rem;
-  background-color: $primary-color;
-  color: white;
-  font-family: "DM Sans", sans-serif;
-  font-weight: 500;
-  border-radius: 0.5rem;
-
-  &:hover:not(:disabled) {
-    background-color: darken-color($primary-color, 5%);
-  }
-}
-
 .copyright {
   flex-shrink: 0;
   text-align: center;
   color: #6b7280;
-  font-family: "DM Sans", sans-serif;
+  font-family: $font-family-body;
   font-size: 0.875rem;
   padding-bottom: 2rem;
 }
 
 .feature-content {
-  background: #1a365d; // Darker blue base
+  background: #2563eb; // Vibrant blue
   display: flex;
   align-items: center;
   justify-content: center;
@@ -225,52 +210,55 @@ const handleLogin = async () => {
 
 .gradient-blur {
   position: absolute;
-  z-index: 0;
-}
-
-.gradient-blur-1 {
-  width: 120%;
-  height: 120%;
-  background: radial-gradient(
-    circle at top right,
-    rgba(147, 197, 253, 0.5),
-    // Bright blue
-    transparent 70%
-  );
-  top: -10%;
-  right: -10%;
-  transform: rotate(-15deg);
+  inset: 0;
   opacity: 0.8;
+  background: linear-gradient(
+      35deg,
+      rgba(56, 189, 248, 0.25) 0%,
+      transparent 20%
+    ),
+    linear-gradient(145deg, rgba(59, 130, 246, 0.25) 0%, transparent 30%),
+    linear-gradient(215deg, rgba(99, 102, 241, 0.25) 0%, transparent 40%),
+    linear-gradient(285deg, rgba(139, 92, 246, 0.25) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.2) 100%),
+    repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.05) 0%,
+      rgba(255, 255, 255, 0.05) 1px,
+      transparent 1px,
+      transparent 4px
+    );
+  mix-blend-mode: overlay;
+  pointer-events: none;
 }
 
-.gradient-blur-2 {
-  width: 120%;
-  height: 120%;
-  background: radial-gradient(
-    circle at bottom left,
-    rgba(249, 168, 212, 0.4),
-    // Pink
-    transparent 70%
-  );
-  bottom: -10%;
-  left: -10%;
-  transform: rotate(15deg);
-  opacity: 0.7;
+@keyframes pulse {
+  0% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0.7;
+  }
 }
 
-.gradient-blur-3 {
-  width: 150%;
-  height: 150%;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(124, 58, 237, 0.3),
-    // Purple
-    transparent 70%
-  );
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  opacity: 0.6;
+.gradient-blur {
+  animation: pulse 8s ease-in-out infinite;
+}
+
+.toggle-password {
+  color: #6b7280;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+
+  &:hover {
+    color: $text-color;
+  }
 }
 
 @media (max-width: $breakpoint-lg) {

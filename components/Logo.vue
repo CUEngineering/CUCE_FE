@@ -16,8 +16,6 @@
 </template>
 
 <style lang="scss" scoped>
-@use "@/assets/scss/main" as *;
-
 .logo {
   display: flex;
   align-items: center;
