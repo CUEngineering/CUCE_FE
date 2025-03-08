@@ -118,15 +118,15 @@ onUnmounted(() => {
   }
 
   h2 {
-    font-family: "Plus Jakarta Sans", sans-serif;
-    font-size: 1.875rem;
-    font-weight: 600;
+    font-family: $font-family-heading;
+    font-size: $text-3xl;
+    font-weight: 700;
     margin-bottom: 1rem;
     color: white;
   }
 
   p {
-    font-family: "DM Sans", sans-serif;
+    font-family: $font-family;
     margin-bottom: 2rem;
     opacity: 0.9;
     color: white;

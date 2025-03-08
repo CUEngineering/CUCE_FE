@@ -13,7 +13,10 @@
         :required="required"
         class="form-input"
       />
-      <slot name="button"></slot>
+
+      <div class="form-icon" v-if="$slots.button">
+        <slot name="button"></slot>
+      </div>
     </div>
   </div>
 </template>
@@ -36,36 +39,51 @@ defineEmits<{
 <style lang="scss" scoped>
 .form-field {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .form-label {
   display: block;
-  margin-bottom: 0.5rem;
-  font-family: "DM Sans", sans-serif;
+  font-family: $font-family;
   font-weight: 500;
   color: $text-color;
+  font-size: $text-sm;
 }
 
 .input-wrapper {
   position: relative;
+}
 
-  &.with-button {
-    display: flex;
-    align-items: center;
+.form-icon {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  // width: 1.5rem;
+  // height: 1.5rem;
+  // color: #9ca3af;
+  // cursor: pointer;
+  // background: none;
+  // border: none;
+  // padding: 0;
+  // display: flex;
+  // align-items: center;
+  // justify-content: center;
 
-    .form-input {
-      padding-right: 4rem;
-    }
-  }
+  // &:hover {
+  //   color: $primary-color;
+  // }
 }
 
 .form-input {
   width: 100%;
   padding: 0.875rem 1rem;
   border: 1px solid $border-color;
-  border-radius: 0.5rem;
-  font-family: "DM Sans", sans-serif;
-  font-size: 1rem;
+  border-radius: 12px;
+  font-family: $font-family;
+  font-size: $text-base;
   color: $text-color;
   transition: all 0.2s ease;
   background-color: white;

@@ -70,6 +70,8 @@
       <div class="feature-content">
         <div class="gradient-blur"></div>
         <Carousel />
+        <div class="circles top-left-circle"></div>
+        <div class="circles bottom-right-circle"></div>
       </div>
     </div>
   </div>
@@ -124,7 +126,7 @@ const handleLogin = async () => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  max-width: 480px;
+  max-width: 560px;
   margin: 0 auto;
   width: 100%;
 }
@@ -146,13 +148,13 @@ const handleLogin = async () => {
   margin-bottom: 2rem;
   h1 {
     font-family: $font-family-heading;
-    font-size: 2rem;
-    font-weight: 600;
+    font-size: $text-4xl;
+    font-weight: 700;
     color: $text-color;
     margin-bottom: 0.5rem;
   }
   p {
-    font-family: $font-family-body;
+    font-family: $font-family;
     color: #6b7280;
   }
 }
@@ -172,18 +174,19 @@ const handleLogin = async () => {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-family: $font-family-body;
-
+    font-family: $font-family;
+    font-size: $text-sm;
     input[type="checkbox"] {
       width: auto;
     }
   }
 
   .forgot-password {
-    font-family: $font-family-body;
+    font-family: $font-family;
     color: $primary-color;
     text-decoration: none;
-    font-size: 0.875rem;
+    font-size: $text-sm;
+    font-weight: 600;
     &:hover {
       text-decoration: underline;
     }
@@ -194,117 +197,62 @@ const handleLogin = async () => {
   flex-shrink: 0;
   text-align: center;
   color: #6b7280;
-  font-family: $font-family-body;
-  font-size: 0.875rem;
+  font-family: $font-family;
+  font-size: $text-sm;
   padding-bottom: 2rem;
 }
 
 .feature-content {
-  background: #1e40af; // Darker blue from the design
+  background: #1e3a8a;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
+  margin: 20px;
+  border-radius: 40px;
+
+  .circles {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #ffffff;
+    z-index: 1;
+
+    &.top-left-circle {
+      top: 10%;
+      left: -40px;
+    }
+    &.bottom-right-circle {
+      bottom: 10%;
+      right: -40px;
+    }
+  }
 }
 
 .gradient-blur {
   position: absolute;
   inset: 0;
-  opacity: 0.9;
-  background: radial-gradient(
-      circle at 75% 25%,
-      rgba(96, 165, 250, 0.15) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      circle at 25% 75%,
-      rgba(96, 165, 250, 0.15) 0%,
-      transparent 50%
-    ),
-    linear-gradient(35deg, rgba(37, 99, 235, 0.3) 0%, transparent 50%),
-    linear-gradient(215deg, rgba(37, 99, 235, 0.3) 0%, transparent 50%),
-    repeating-linear-gradient(
-      to right,
-      transparent 0px,
-      transparent 100px,
-      rgba(255, 255, 255, 0.03) 100px,
-      rgba(255, 255, 255, 0.03) 102px
-    ),
-    repeating-linear-gradient(
-      to bottom,
-      transparent 0px,
-      transparent 100px,
-      rgba(255, 255, 255, 0.03) 100px,
-      rgba(255, 255, 255, 0.03) 102px
-    );
-  mix-blend-mode: soft-light;
+  opacity: 0.95;
+  background: url("@/assets/images/BG_Image.png") center/cover no-repeat;
+  mix-blend-mode: normal;
   pointer-events: none;
+  filter: contrast(1.1) blur(20px);
+  transform-origin: center;
+  animation: float 0.8s ease-in-out infinite;
 }
 
-.gradient-blur::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-      circle at 80% 20%,
-      rgba(255, 255, 255, 0.1) 0%,
-      transparent 25%
-    ),
-    radial-gradient(
-      circle at 20% 80%,
-      rgba(255, 255, 255, 0.1) 0%,
-      transparent 25%
-    );
-  opacity: 0.7;
-  pointer-events: none;
-}
-
-.gradient-blur::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(
-      circle at 70% 30%,
-      rgba(255, 255, 255, 0.08) 0%,
-      transparent 8px
-    ),
-    radial-gradient(
-      circle at 30% 70%,
-      rgba(255, 255, 255, 0.08) 0%,
-      transparent 8px
-    ),
-    radial-gradient(
-      circle at 40% 40%,
-      rgba(255, 255, 255, 0.08) 0%,
-      transparent 8px
-    ),
-    radial-gradient(
-      circle at 60% 60%,
-      rgba(255, 255, 255, 0.08) 0%,
-      transparent 8px
-    );
-  background-size: 300px 300px;
-  background-position: 0 0, 0 0, 150px 150px, 150px 150px;
-  background-repeat: repeat;
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-@keyframes pulse {
+@keyframes float {
   0% {
-    opacity: 0.8;
+    transform: translateY(0) scale(1) rotate(0deg);
   }
   50% {
-    opacity: 1;
+    transform: translateY(-8px) scale(1.01) rotate(1deg);
   }
   100% {
-    opacity: 0.8;
+    transform: translateY(0) scale(1) rotate(0deg);
   }
-}
-
-.gradient-blur {
-  animation: pulse 12s ease-in-out infinite;
 }
 
 .toggle-password {

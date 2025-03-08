@@ -10,6 +10,9 @@
     @click="$emit('click', $event)"
   >
     <span v-if="loading" class="loading-spinner"></span>
+    <span v-if="$slots.icon" class="button-icon">
+      <slot name="icon" />
+    </span>
     <span :class="{ 'opacity-0': loading }">
       <slot />
     </span>
@@ -34,10 +37,10 @@ defineEmits<{
 .base-button {
   cursor: pointer;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: 12px;
   font-weight: 500;
-  font-family: $font-family-body;
-  padding: 0.875rem;
+  font-family: $font-family;
+  padding: 16px 24px;
   transition: all 0.2s ease;
   position: relative;
   display: inline-flex;
@@ -78,6 +81,19 @@ defineEmits<{
   &:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+  }
+}
+
+.button-icon {
+  display: inline-flex;
+  margin-right: 0.5rem;
+  width: 1rem;
+  height: 1rem;
+  align-items: center;
+
+  svg {
+    width: 100%;
+    height: 100%;
   }
 }
 
