@@ -110,8 +110,12 @@ onUnmounted(() => {
 
 .carousel-slide {
   min-width: 100%;
-  padding: 2rem;
+  padding: 4rem;
   text-align: center;
+
+  @media (min-width: $breakpoint-xl) {
+    padding: 8rem;
+  }
 
   h2 {
     font-family: "Plus Jakarta Sans", sans-serif;
