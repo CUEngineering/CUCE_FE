@@ -1,11 +1,11 @@
 <script setup>
-// Redirect to login page
+// Redirect to dashboard page
 const router = useRouter();
-router.push("/login");
+router.push("/dashboard");
 </script>
 
 <template>
-  <div>Redirecting to login...</div>
+  <div>Redirecting to dashboard...</div>
 </template>
 
 <style scoped>

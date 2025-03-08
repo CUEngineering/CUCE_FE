@@ -55,3 +55,29 @@ button {
 .mb-8 {
   margin-bottom: 2rem;
 }
+
+.dashlet-wrapper {
+  border-radius: 12px;
+  border: 1px solid $gray-200;
+  background: $gray-50;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .dashlet {
+    background: $white;
+    border-radius: 12px;
+    border: 1px solid $gray-200;
+  }
+}
+
+.pill-grey {
+  background-color: $gray-100;
+  color: $gray-800;
+  padding: 2px 12px;
+  border-radius: 16px;
+  font-size: $text-xs;
+  border: 1px solid $gray-200;
+  font-weight: 500;
+}

@@ -78,13 +78,13 @@ const cardClass = computed(() => {
 });
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .registrar-card {
-  background-color: #f4f8ff;
+  background-color: $primary-color-25;
   border-radius: 12px;
   padding: 16px;
   box-shadow: none;
-  border: 1px solid #c0dcfd;
+  border: 1px solid $primary-color-200;
   position: relative;
   width: 100%;
   /* max-width: 400px; */
@@ -93,14 +93,14 @@ const cardClass = computed(() => {
 
 /* Card states */
 .card-deactivated {
-  background-color: #ffffff;
-  border-color: #eaecf0;
+  background-color: $white;
+  border-color: $gray-200;
   opacity: 0.8;
 }
 
 .card-suspended {
-  background-color: #ffffff;
-  border-color: #eaecf0;
+  background-color: $white;
+  border-color: $gray-200;
 }
 
 .registrar-header {
@@ -120,16 +120,16 @@ const cardClass = computed(() => {
   height: 48px;
   border-radius: 32px;
   object-fit: cover;
-  border: 1px solid #62a8f8;
+  border: 1px solid $primary-color-400;
   transition: all 0.2s ease-in-out;
 }
 
 .card-suspended .registrar-avatar img {
-  border-color: #f79009;
+  border-color: $warning-500;
 }
 
 .card-deactivated .registrar-avatar img {
-  border-color: #98a2b3;
+  border-color: $gray-400;
   opacity: 0.5;
 }
 
@@ -146,23 +146,21 @@ const cardClass = computed(() => {
 }
 
 .registrar-name {
-  font-family: "DM Sans", sans-serif;
   font-weight: 600;
-  font-size: 14px;
+  font-size: $text-sm;
   line-height: 1.43;
   margin: 0;
-  color: #000000;
+  color: $black;
 }
 
 .card-deactivated .registrar-name {
-  color: #d0d5dd;
+  color: $gray-400;
 }
 
 .registrar-email {
-  font-family: "DM Sans", sans-serif;
-  font-size: 12px;
+  font-size: $text-xs;
   line-height: 1.5;
-  color: #667085;
+  color: $gray-500;
   margin: 4px 0 0;
   white-space: nowrap;
   overflow: hidden;
@@ -170,7 +168,7 @@ const cardClass = computed(() => {
 }
 
 .card-deactivated .registrar-email {
-  color: #d0d5dd;
+  color: $gray-400;
 }
 
 .registrar-actions {
@@ -180,7 +178,7 @@ const cardClass = computed(() => {
 .action-button {
   background: none;
   border: none;
-  color: #344054;
+  color: $gray-500;
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
@@ -192,7 +190,7 @@ const cardClass = computed(() => {
 }
 
 .card-deactivated .action-button {
-  color: #d0d5dd;
+  color: $gray-400;
 }
 
 .registrar-stats {
@@ -216,16 +214,16 @@ const cardClass = computed(() => {
 .stat-divider {
   width: 2px;
   height: 24px;
-  background-color: #c0dcfd;
+  background-color: $primary-color-200;
   transition: background-color 0.2s ease;
 }
 
 .card-suspended .stat-divider {
-  background-color: #eaecf0;
+  background-color: $gray-200;
 }
 
 .card-deactivated .stat-divider {
-  background-color: #d0d5dd;
+  background-color: $gray-200;
 }
 
 .stat-item {
@@ -234,10 +232,9 @@ const cardClass = computed(() => {
 }
 
 .stat-label {
-  font-family: "DM Sans", sans-serif;
-  font-size: 8px;
+  font-size: $text-xxs;
   line-height: 1.302;
-  color: #667085;
+  color: $gray-500;
   margin-bottom: 4px;
   white-space: nowrap;
   overflow: hidden;
@@ -245,22 +242,21 @@ const cardClass = computed(() => {
 }
 
 .card-deactivated .stat-label {
-  color: #d0d5dd;
+  color: $gray-400;
 }
 
 .stat-value {
-  font-family: "DM Sans", sans-serif;
   font-weight: 700;
-  font-size: 14px;
+  font-size: $text-sm;
   line-height: 1.43;
-  color: #000000;
+  color: $black;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .card-deactivated .stat-value {
-  color: #d0d5dd;
+  color: $gray-400;
 }
 
 .status-badge {
@@ -269,8 +265,7 @@ const cardClass = computed(() => {
   gap: 4px;
   padding: 1px 8px 1px 6px;
   border-radius: 16px;
-  font-family: "DM Sans", sans-serif;
-  font-size: 10px;
+  font-size: $text-xxs;
   font-weight: 500;
   line-height: 1.8;
   white-space: nowrap;
@@ -284,33 +279,33 @@ const cardClass = computed(() => {
 }
 
 .status-badge.active {
-  background-color: #ecfdf3;
-  color: #344054;
-  border: 1px solid #47cd89;
+  background-color: $success-50;
+  color: $gray-700;
+  border: 1px solid $success-400;
 }
 
 .status-badge.active .status-dot {
-  background-color: #47cd89;
+  background-color: $success-400;
 }
 
 .status-badge.suspended {
-  background-color: #fffaeb;
-  color: #344054;
-  border: 1px solid #f79009;
+  background-color: $warning-50;
+  color: $warning-500;
+  border: 1px solid $warning-500;
 }
 
 .status-badge.suspended .status-dot {
-  background-color: #f79009;
+  background-color: $warning-500;
 }
 
 .status-badge.deactivated {
-  background-color: #f9fafb;
-  color: #344054;
-  border: 1px solid #eaecf0;
+  background-color: $gray-50;
+  color: $gray-700;
+  border: 1px solid $gray-200;
 }
 
 .status-badge.deactivated .status-dot {
-  background-color: #667085;
+  background-color: $gray-400;
 }
 
 /* Responsive styles */
@@ -341,15 +336,15 @@ const cardClass = computed(() => {
   }
 
   .registrar-name {
-    font-size: 13px;
+    font-size: $text-sm;
   }
 
   .registrar-email {
-    font-size: 11px;
+    font-size: $text-xs;
   }
 
   .stat-value {
-    font-size: 13px;
+    font-size: $text-sm;
   }
 }
 </style>

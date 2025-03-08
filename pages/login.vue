@@ -110,7 +110,7 @@ const handleLogin = async () => {
   width: 100%;
   display: flex;
   align-items: stretch;
-  background-color: #f3f4f6;
+  background-color: $gray-100;
   overflow: hidden;
 }
 
@@ -155,7 +155,7 @@ const handleLogin = async () => {
   }
   p {
     font-family: $font-family;
-    color: #6b7280;
+    color: $gray-600;
   }
 }
 
@@ -196,14 +196,14 @@ const handleLogin = async () => {
 .copyright {
   flex-shrink: 0;
   text-align: center;
-  color: #6b7280;
+  color: $gray-600;
   font-family: $font-family;
   font-size: $text-sm;
   padding-bottom: 2rem;
 }
 
 .feature-content {
-  background: #1e3a8a;
+  background: $primary-color;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -217,7 +217,7 @@ const handleLogin = async () => {
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background: #ffffff;
+    background: $white;
     z-index: 1;
 
     &.top-left-circle {
@@ -256,7 +256,7 @@ const handleLogin = async () => {
 }
 
 .toggle-password {
-  color: #6b7280;
+  color: $gray-600;
   padding: 0.25rem;
   display: flex;
   align-items: center;
