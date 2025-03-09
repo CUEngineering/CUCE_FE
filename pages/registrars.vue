@@ -107,7 +107,7 @@
             v-for="(invite, index) in pendingInvites"
             :key="index"
             :invite="invite"
-            @cancel="handleCancelInvite"
+            @cancel="showCancelInviteDialog"
             @resend="handleResendInvite"
           />
         </template>
@@ -144,6 +144,17 @@
       :loading="isActionLoading"
       confirm-button-text="Suspend"
       @confirm="confirmSuspend"
+    />
+
+    <!-- Add Dialog for Cancelling Invite -->
+    <Dialog
+      v-model="showCancelInviteConfirm"
+      title="Cancel Invite?"
+      message="Are you sure you want to cancel this invite? The registrar will not be able to join your team."
+      variant="warning"
+      :loading="isActionLoading"
+      confirm-button-text="Cancel Invite"
+      @confirm="handleCancelInvite"
     />
   </div>
 </template>
@@ -195,6 +206,8 @@ const showDeleteConfirm = ref(false);
 const isInviteSending = ref(false);
 const isActionLoading = ref(false);
 const selectedRegistrar = ref<Registrar | null>(null);
+const showCancelInviteConfirm = ref(false);
+const selectedInvite = ref<Invite | null>(null);
 
 // Show dialogs
 const showDeactivateDialog = (registrar: Registrar) => {
@@ -341,20 +354,30 @@ const confirmDelete = async () => {
 };
 
 // Handle invite actions
-const handleCancelInvite = async (invite: Invite) => {
+const showCancelInviteDialog = (invite: Invite) => {
+  selectedInvite.value = invite;
+  showCancelInviteConfirm.value = true;
+};
+
+const handleCancelInvite = async () => {
+  if (!selectedInvite.value) return;
+
   try {
     // Simulating API call
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     // Remove from pending invites
     pendingInvites.value = pendingInvites.value.filter(
-      (i) => i.email !== invite.email
+      (i) => i.email !== selectedInvite.value?.email
     );
 
     // Show success toast
-    toast.success(`Invite to ${invite.email} has been cancelled`);
+    toast.success(`Invite to ${selectedInvite.value.email} has been cancelled`);
   } catch (error) {
     toast.error("Failed to cancel invite");
+  } finally {
+    showCancelInviteConfirm.value = false;
+    selectedInvite.value = null;
   }
 };
 

@@ -107,7 +107,7 @@ onMounted(() => {
   min-width: 300px;
   max-width: 450px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 16px;
   padding: 20px;
   border-radius: 12px;

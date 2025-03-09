@@ -18,7 +18,7 @@
                   class="dialog-icon"
                   :class="`dialog-icon-${variant}`"
                 >
-                  <component :is="getIconComponent" />
+                  <img :src="getIconComponent" :alt="`${variant} icon`" />
                 </div>
                 <h3 class="dialog-title">{{ title }}</h3>
                 <button
@@ -64,11 +64,11 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import Button from "./Button.vue";
-import SuccessIcon from "../icons/SuccessIcon.vue";
-import ErrorIcon from "../icons/ErrorIcon.vue";
-import InfoIcon from "../icons/InfoIcon.vue";
-import WarningIcon from "../icons/WarningIcon.vue";
-import CloseCircleIcon from "../icons/CloseCircleIcon.vue";
+import SuccessIcon from "~/assets/images/Dialog_Success.svg";
+import ErrorIcon from "~/assets/images/Dialog_Error.svg";
+import WarningIcon from "~/assets/images/Dialog_Warning.svg";
+import CloseCircleIcon from "~/components/icons/CloseCircleIcon.vue";
+
 interface Props {
   modelValue: boolean;
   title: string;
@@ -136,7 +136,7 @@ const getIconComponent = computed(() => {
       return WarningIcon;
     case "default":
     default:
-      return InfoIcon;
+      return ErrorIcon;
   }
 });
 
@@ -194,34 +194,6 @@ const confirmButtonVariant = computed(
   display: flex;
   flex-direction: column;
 
-  &.danger {
-    .dialog-icon-danger {
-      background-color: $error-50;
-      color: $error-500;
-    }
-  }
-
-  &.warning {
-    .dialog-icon-warning {
-      background-color: $warning-50;
-      color: $warning-500;
-    }
-  }
-
-  &.success {
-    .dialog-icon-success {
-      background-color: $success-50;
-      color: $success-500;
-    }
-  }
-
-  &.default {
-    .dialog-icon-default {
-      background-color: $primary-color-50;
-      color: $primary-color;
-    }
-  }
-
   .dialog-header {
     display: flex;
     flex-direction: column;
@@ -230,17 +202,17 @@ const confirmButtonVariant = computed(
     position: relative;
 
     .dialog-icon {
-      width: 56px;
-      height: 56px;
+      width: 100px;
+      height: 100px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       margin-bottom: 16px;
 
-      svg {
-        width: 28px;
-        height: 28px;
+      img {
+        width: auto;
+        height: 100px;
       }
     }
 
