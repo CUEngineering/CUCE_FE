@@ -17,7 +17,7 @@
       <div class="registrar-actions">
         <div class="dropdown">
           <button
-            @click="toggleDropdown"
+            @click.stop="toggleDropdown"
             class="action-button"
             aria-haspopup="true"
             :aria-expanded="dropdownOpen"
@@ -115,7 +115,8 @@ const emit = defineEmits<{
 const dropdownOpen = ref(false);
 
 // Toggle dropdown
-const toggleDropdown = () => {
+const toggleDropdown = (event: MouseEvent) => {
+  event.stopPropagation(); // Prevent event bubbling
   dropdownOpen.value = !dropdownOpen.value;
 };
 
@@ -167,9 +168,11 @@ const statusClass = computed(() => {
 
 // Card class based on status
 const cardClass = computed(() => {
+  const status = props.registrar.status.toLowerCase();
   return {
-    "is-suspended": props.registrar.status.toLowerCase() === "suspended",
-    "is-deactivated": props.registrar.status.toLowerCase() === "deactivated",
+    "card-suspended": status === "suspended",
+    "card-deactivated": status === "deactivated",
+    "card-active": status === "active",
   };
 });
 </script>
@@ -185,18 +188,22 @@ const cardClass = computed(() => {
   width: 100%;
   /* max-width: 400px; */
   transition: all 0.2s ease-in-out;
-}
 
-/* Card states */
-.card-deactivated {
-  background-color: $white;
-  border-color: $gray-200;
-  opacity: 0.8;
-}
+  &.card-active {
+    background-color: $primary-color-25;
+    border-color: $primary-color-200;
+  }
 
-.card-suspended {
-  background-color: $white;
-  border-color: $gray-200;
+  &.card-deactivated {
+    background-color: $white;
+    border-color: $gray-200;
+    opacity: 0.8;
+  }
+
+  &.card-suspended {
+    background-color: $white;
+    border-color: $warning-50;
+  }
 }
 
 .registrar-header {
@@ -269,6 +276,7 @@ const cardClass = computed(() => {
 
 .registrar-actions {
   flex-shrink: 0;
+  position: relative;
 }
 
 .action-button {
@@ -279,10 +287,10 @@ const cardClass = computed(() => {
   padding: 4px;
   border-radius: 4px;
   transition: background-color 0.2s ease;
-}
 
-.action-button:hover {
-  background-color: rgba(0, 0, 0, 0.04);
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
 }
 
 .card-deactivated .action-button {
@@ -374,34 +382,34 @@ const cardClass = computed(() => {
   display: inline-block;
 }
 
-.status-badge.active {
+.status-active {
   background-color: $success-50;
   color: $gray-700;
   border: 1px solid $success-400;
+
+  .status-dot {
+    background-color: $success-400;
+  }
 }
 
-.status-badge.active .status-dot {
-  background-color: $success-400;
-}
-
-.status-badge.suspended {
+.status-suspended {
   background-color: $warning-50;
   color: $warning-500;
   border: 1px solid $warning-500;
+
+  .status-dot {
+    background-color: $warning-500;
+  }
 }
 
-.status-badge.suspended .status-dot {
-  background-color: $warning-500;
-}
-
-.status-badge.deactivated {
+.status-deactivated {
   background-color: $gray-50;
   color: $gray-700;
   border: 1px solid $gray-200;
-}
 
-.status-badge.deactivated .status-dot {
-  background-color: $gray-400;
+  .status-dot {
+    background-color: $gray-400;
+  }
 }
 
 /* Responsive styles */
@@ -444,7 +452,7 @@ const cardClass = computed(() => {
   }
 }
 
-/* Add dropdown styles */
+/* Dropdown styles */
 .dropdown {
   position: relative;
 }

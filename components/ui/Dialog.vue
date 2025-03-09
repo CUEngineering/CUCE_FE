@@ -178,7 +178,8 @@ const confirmButtonVariant = computed(
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(16, 24, 40, 0.6);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -203,8 +204,7 @@ const confirmButtonVariant = computed(
   max-width: 480px;
   max-height: calc(100vh - 32px);
   overflow: auto;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0px 24px 48px -12px rgba(16, 24, 40, 0.18);
   display: flex;
   flex-direction: column;
 
@@ -244,8 +244,8 @@ const confirmButtonVariant = computed(
     position: relative;
 
     .dialog-icon {
-      width: 48px;
-      height: 48px;
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -253,8 +253,8 @@ const confirmButtonVariant = computed(
       margin-bottom: 16px;
 
       svg {
-        width: 24px;
-        height: 24px;
+        width: 28px;
+        height: 28px;
       }
     }
 
@@ -279,7 +279,8 @@ const confirmButtonVariant = computed(
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 4px;
+      border-radius: 50%;
+      transition: all 0.2s ease;
 
       &:hover {
         color: $gray-700;
@@ -298,7 +299,7 @@ const confirmButtonVariant = computed(
       color: $gray-600;
       text-align: center;
       margin: 0;
-      line-height: 1.5;
+      line-height: 1.6;
     }
   }
 
@@ -306,17 +307,22 @@ const confirmButtonVariant = computed(
     padding: 0 32px 32px;
     display: flex;
     justify-content: center;
-    gap: 12px;
+    gap: 16px;
 
     > * {
       flex: 1;
+      max-width: 200px;
+    }
+
+    button {
+      border-radius: 12px;
     }
   }
 }
 
 .dialog-fade-enter-active,
 .dialog-fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dialog-fade-enter-from,
@@ -326,12 +332,13 @@ const confirmButtonVariant = computed(
 
 .dialog-scale-enter-active,
 .dialog-scale-leave-active {
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dialog-scale-enter-from,
 .dialog-scale-leave-to {
-  transform: scale(0.9);
+  transform: scale(0.95);
   opacity: 0;
 }
 

@@ -235,7 +235,8 @@ watch(
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(16, 24, 40, 0.6);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -253,8 +254,7 @@ watch(
   background-color: $white;
   border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0px 24px 48px -12px rgba(16, 24, 40, 0.18);
 }
 
 .modal-header {
@@ -272,7 +272,7 @@ watch(
     font-weight: 700;
     font-size: $text-xl;
     color: $gray-800;
-    margin: 0 0 3px 0;
+    margin: 0 0 8px 0;
   }
 
   .modal-subtitle {
@@ -280,19 +280,21 @@ watch(
     font-size: $text-sm;
     color: $gray-600;
     margin: 0;
+    line-height: 1.5;
   }
 
   .close-button {
     background: none;
     border: none;
     color: $gray-500;
-    padding: 4px;
+    padding: 8px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
+    border-radius: 50%;
     margin-left: 16px;
+    transition: all 0.2s ease;
 
     &:hover {
       color: $gray-700;
@@ -307,7 +309,7 @@ watch(
   .form-field {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
   }
 
   .form-label {
@@ -320,24 +322,24 @@ watch(
   .email-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 8px;
     width: 100%;
   }
 
   .email-tag {
     display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 2px 4px 2px 5px;
-    background-color: $white;
-    border: 1px solid $gray-300;
-    border-radius: 6px;
+    gap: 6px;
+    padding: 4px 8px 4px 10px;
+    background-color: $primary-color-50;
+    border: 1px solid $primary-color-200;
+    border-radius: 20px;
     font-size: $text-sm;
     font-family: $font-family;
     font-weight: 500;
 
     .email-text {
-      color: $gray-800;
+      color: $primary-color-700;
     }
 
     .remove-tag {
@@ -346,17 +348,20 @@ watch(
       justify-content: center;
       background: none;
       border: none;
-      padding: 2px;
+      padding: 4px;
       cursor: pointer;
-      color: $gray-400;
+      color: $primary-color-400;
+      border-radius: 50%;
+      transition: all 0.2s ease;
 
       &:hover {
-        color: $gray-700;
+        color: $primary-color-700;
+        background-color: rgba($primary-color, 0.1);
       }
 
       svg {
-        width: 10px;
-        height: 10px;
+        width: 14px;
+        height: 14px;
       }
     }
   }
@@ -373,6 +378,7 @@ watch(
     font-family: $font-family;
     font-size: $text-base;
     color: $gray-800;
+    transition: all 0.2s ease;
 
     &:focus {
       outline: none;
@@ -390,6 +396,7 @@ watch(
     font-size: $text-sm;
     color: $gray-600;
     margin: 0;
+    line-height: 1.5;
   }
 }
 
@@ -397,11 +404,16 @@ watch(
   padding: 0 32px 32px;
   display: flex;
   justify-content: flex-end;
+
+  button {
+    min-width: 120px;
+    border-radius: 12px;
+  }
 }
 
 .modal-fade-enter-active,
 .modal-fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .modal-fade-enter-from,
