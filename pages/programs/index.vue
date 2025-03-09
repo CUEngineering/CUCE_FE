@@ -1,8 +1,15 @@
 <template>
-  <div class="programs-page">
-    <div class="page-header">
-      <h1>Programs</h1>
-      <div class="search-and-actions">
+  <div class="programs-page dashlet-wrapper">
+    <div class="page-header dashlet">
+      <div class="title-and-filter">
+        <h1>Programs</h1>
+        <div v-if="programs.length > 0" class="programs-filter">
+          <select v-model="filterType" class="filter-select">
+            <option value="all">All ({{ programs.length }})</option>
+          </select>
+        </div>
+      </div>
+      <div v-if="programs.length > 0" class="search-and-actions">
         <div class="search-container">
           <input
             type="text"
@@ -40,120 +47,53 @@
       </template>
     </EmptyState>
 
-    <!-- Programs list when programs exist -->
-    <div v-else class="programs-content">
-      <div class="programs-filter">
-        <div class="filter-section">
-          <span>Available Programs</span>
-          <select v-model="filterType" class="filter-select">
-            <option value="all">All ({{ programs.length }})</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Desktop view: Table -->
-      <div class="desktop-view">
-        <table class="programs-table">
-          <thead>
-            <tr>
-              <th>Program Name</th>
-              <th>Enrolled Students</th>
-              <th>
-                Courses associated
-                <InfoCircleIcon class="info-icon" />
-              </th>
-              <th>Program Type</th>
-              <th>Credits</th>
-              <th class="action-column">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="program in filteredPrograms"
-              :key="program.id"
-              @click="viewProgramDetails(program.id)"
+    <!-- Programs table when programs exist -->
+    <div v-else class="programs-content dashlet">
+      <table>
+        <thead>
+          <tr>
+            <th
+              v-for="header in table.getHeaderGroups()[0].headers"
+              :key="header.id"
+              @click="header.column.getToggleSortingHandler()"
             >
-              <td>{{ program.name }}</td>
-              <td>{{ program.enrolledStudents }}</td>
-              <td>
-                {{ program.courses }}
-                <span v-if="program.coreCount" class="core-tag"
-                  >+{{ program.coreCount }} core</span
-                >
-              </td>
-              <td>
-                <span :class="['program-type', program.type.toLowerCase()]">
-                  {{ program.type }}
-                </span>
-              </td>
-              <td>{{ program.credits }}</td>
-              <td class="action-column">
-                <button class="action-button" @click.stop>
-                  <DotsVerticalIcon />
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Mobile view: Card list -->
-      <div class="mobile-view">
-        <div
-          v-for="program in filteredPrograms"
-          :key="program.id"
-          class="program-card"
-          @click="viewProgramDetails(program.id)"
-        >
-          <div class="program-card-header">
-            <h3 class="program-name">{{ program.name }}</h3>
-            <button class="action-button" @click.stop>
-              <DotsVerticalIcon />
-            </button>
-          </div>
-          <div class="program-card-content">
-            <div class="program-stat">
-              <span class="stat-label">Enrolled Students</span>
-              <span class="stat-value">{{ program.enrolledStudents }}</span>
-            </div>
-            <div class="program-stat">
-              <span class="stat-label">Total Courses</span>
-              <span class="stat-value">{{ program.courses }}</span>
-            </div>
-            <div class="program-stat">
-              <span class="stat-label">Credits</span>
-              <span class="stat-value">{{ program.credits }}</span>
-            </div>
-            <div class="program-stat">
-              <span class="stat-label">Type</span>
-              <span :class="['program-type', program.type.toLowerCase()]">
-                {{ program.type }}
+              {{ header.column.columnDef.header }}
+              <span v-if="header.column.getIsSorted()">
+                {{ header.column.getIsSortedDesc() ? "▼" : "▲" }}
               </span>
-            </div>
-          </div>
-        </div>
-      </div>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="row in table.getRowModel().rows"
+            :key="row.id"
+            @click="viewProgramDetails(row.original.id)"
+          >
+            <td v-for="cell in row.getVisibleCells()" :key="cell.id">
+              <component
+                :is="cell.column.columnDef.cell"
+                :info="cell.getContext()"
+              />
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
       <!-- Pagination -->
       <div class="pagination">
-        <button class="pagination-button" :disabled="currentPage === 1">
+        <button
+          @click="table.previousPage()"
+          :disabled="!table.getCanPreviousPage()"
+        >
           Previous
         </button>
-        <div class="pagination-pages">
-          <button
-            v-for="page in totalPages"
-            :key="page"
-            class="page-number"
-            :class="{ active: currentPage === page }"
-            @click="currentPage = page"
-          >
-            {{ page }}
-          </button>
-        </div>
-        <button
-          class="pagination-button"
-          :disabled="currentPage === totalPages"
-        >
+        <span>
+          Page
+          {{ table.getState().pagination.pageIndex + 1 }} of
+          {{ table.getPageCount() }}
+        </span>
+        <button @click="table.nextPage()" :disabled="!table.getCanNextPage()">
           Next
         </button>
       </div>
@@ -172,7 +112,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, h, computed } from "vue";
+import {
+  useVueTable,
+  createColumnHelper,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+} from "@tanstack/vue-table";
+import type {
+  SortingState,
+  ColumnDef,
+  PaginationState,
+  ColumnSort,
+} from "@tanstack/vue-table";
 import Button from "~/components/ui/Button.vue";
 import EmptyState from "~/components/ui/EmptyState.vue";
 import PlusIcon from "~/components/icons/PlusIcon.vue";
@@ -180,8 +134,8 @@ import SearchIcon from "~/components/icons/SearchIcon.vue";
 import DocumentIcon from "~/components/icons/DocumentIcon.vue";
 import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
 import AddProgramModal from "~/components/AddProgramModal.vue";
-import InfoCircleIcon from "~/components/icons/InfoCircleIcon.vue";
 import ToastContainer from "~/components/ui/ToastContainer.vue";
+
 interface Program {
   id: number;
   name: string;
@@ -241,40 +195,81 @@ const programs = ref<Program[]>([
   },
 ]);
 
+const columnHelper = createColumnHelper<Program>();
+
+const columns = [
+  columnHelper.accessor("name", {
+    header: "Program Name",
+    cell: (info) => info.getValue(),
+  }),
+  columnHelper.accessor("enrolledStudents", {
+    header: "Enrolled Students",
+    cell: (info) => info.getValue(),
+  }),
+  columnHelper.accessor("courses", {
+    header: "Courses Associated",
+    cell: (info) =>
+      `${info.getValue()} ${
+        info.row.original.coreCount
+          ? `+${info.row.original.coreCount} core`
+          : ""
+      }`,
+  }),
+  columnHelper.accessor("type", {
+    header: "Program Type",
+    cell: (info) => {
+      const type = info.getValue().toLowerCase();
+      return h("span", { class: `program-type ${type}` }, info.getValue());
+    },
+  }),
+  columnHelper.accessor("credits", {
+    header: "Credits",
+    cell: (info) => info.getValue(),
+  }),
+  columnHelper.display({
+    id: "actions",
+    header: "Actions",
+    cell: (info) =>
+      h(
+        "button",
+        {
+          onClick: () => viewProgramDetails(info.row.original.id),
+          class: "action-button",
+        },
+        h(DotsVerticalIcon)
+      ),
+  }),
+];
+
 const searchQuery = ref("");
-const filterType = ref("all");
-const currentPage = ref(1);
-const pageSize = 10;
+const sorting = ref<ColumnSort[]>([]);
+const pagination = computed(() => ({
+  pageIndex: 0,
+  pageSize: 10,
+}));
+
+const table = useVueTable({
+  data: programs,
+  columns,
+  state: {
+    globalFilter: searchQuery,
+    sorting: sorting,
+    pagination: pagination.value,
+  },
+  onGlobalFilterChange: (updaterOrValue) => {
+    searchQuery.value =
+      typeof updaterOrValue === "function"
+        ? updaterOrValue(searchQuery.value)
+        : updaterOrValue;
+  },
+  getCoreRowModel: getCoreRowModel(),
+  getFilteredRowModel: getFilteredRowModel(),
+  getPaginationRowModel: getPaginationRowModel(),
+  getSortedRowModel: getSortedRowModel(),
+});
+
 const showAddProgramModal = ref(false);
 
-// Filtered and paginated programs
-const filteredPrograms = computed(() => {
-  let filtered = programs.value;
-
-  // Apply search filter
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase();
-    filtered = filtered.filter((program) =>
-      program.name.toLowerCase().includes(query)
-    );
-  }
-
-  // Apply type filter (if implemented)
-  if (filterType.value !== "all") {
-    filtered = filtered.filter(
-      (program) => program.type.toLowerCase() === filterType.value.toLowerCase()
-    );
-  }
-
-  return filtered;
-});
-
-// Total pages for pagination
-const totalPages = computed(() => {
-  return Math.ceil(filteredPrograms.value.length / pageSize);
-});
-
-// Methods
 const openAddProgramModal = () => {
   showAddProgramModal.value = true;
 };
@@ -285,19 +280,7 @@ const handleProgramAdded = (newProgram: Program) => {
 };
 
 const viewProgramDetails = (programId: number) => {
-  // Add more detailed console logging
-  console.log(`Attempting to navigate to program: ${programId}`);
-
-  // Use router push with explicit error handling
-  try {
-    return navigateTo(`/programs/${programId}`, {
-      replace: false,
-    });
-  } catch (error) {
-    console.error("Navigation error:", error);
-    // Fallback to window location if navigateTo fails
-    window.location.href = `/programs/${programId}`;
-  }
+  return navigateTo(`/programs/${programId}`);
 };
 
 // Define that this page uses the dashboard layout
@@ -308,29 +291,32 @@ definePageMeta({
 
 <style lang="scss" scoped>
 .programs-page {
-  padding: $spacing-6;
   max-width: 100%;
 
   .page-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: $spacing-6;
     flex-wrap: wrap;
     gap: $spacing-4;
 
     h1 {
       font-family: $font-family-heading;
-      font-size: $text-3xl;
+      font-size: $text-2xl;
       font-weight: 700;
       color: $gray-900;
       margin: 0;
     }
 
+    .title-and-filter {
+      display: flex;
+      align-items: center;
+      gap: $spacing-4;
+    }
+
     .search-and-actions {
       display: flex;
-      gap: $spacing-4;
-      flex-wrap: wrap;
+      gap: $spacing-2;
     }
 
     .search-container {
@@ -372,35 +358,23 @@ definePageMeta({
   }
 
   .programs-filter {
-    padding: $spacing-4;
-    border-bottom: 1px solid $gray-200;
     display: flex;
-    justify-content: space-between;
+    align-items: center;
+    gap: $spacing-4;
 
-    .filter-section {
-      display: flex;
-      align-items: center;
-      gap: $spacing-3;
+    .filter-select {
+      padding: $spacing-2 $spacing-4 $spacing-2 $spacing-1;
+      border-radius: 8px;
+      border: 1px solid $gray-300;
+      background-color: $white;
+      font-family: $font-family;
+      font-size: $text-xs;
+      font-weight: 500;
+      color: $gray-800;
 
-      span {
-        font-weight: 600;
-        color: $gray-700;
-        font-size: $text-sm;
-      }
-
-      .filter-select {
-        padding: $spacing-2 $spacing-3;
-        border-radius: 8px;
-        border: 1px solid $gray-300;
-        background-color: $white;
-        font-family: $font-family;
-        font-size: $text-sm;
-        color: $gray-800;
-
-        &:focus {
-          outline: none;
-          border-color: $primary-color;
-        }
+      &:focus {
+        outline: none;
+        border-color: $primary-color;
       }
     }
   }
