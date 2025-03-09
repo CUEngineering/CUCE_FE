@@ -111,7 +111,7 @@ const emit = defineEmits<{
 const emails = ref<string[]>([]);
 const currentEmail = ref("");
 const inputError = ref<string | undefined>(undefined);
-const emailInput = ref<HTMLInputElement | null>(null);
+const emailInput = ref<typeof FormInput | null>(null);
 
 const validateEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -393,55 +393,6 @@ watch(
         height: 14px;
       }
     }
-  }
-
-  .input-wrapper {
-    width: 100%;
-  }
-
-  .form-input {
-    width: 100%;
-    padding: 16px 14px;
-    border: 1px solid $gray-300;
-    border-radius: 16px;
-    font-family: $font-family;
-    font-size: $text-base;
-    color: $gray-800;
-    transition: all 0.2s ease;
-
-    &:focus {
-      outline: none;
-      border-color: $primary-color-400;
-      box-shadow: 0 0 0 4px rgba($primary-color, 0.1);
-    }
-
-    &::placeholder {
-      color: $gray-500;
-    }
-
-    &.has-error {
-      border-color: $error-500;
-
-      &:focus {
-        box-shadow: 0 0 0 4px rgba($error-500, 0.1);
-      }
-    }
-  }
-
-  .input-error {
-    font-family: $font-family;
-    font-size: $text-sm;
-    color: $error-500;
-    margin: 0;
-    line-height: 1.5;
-  }
-
-  .input-hint {
-    font-family: $font-family;
-    font-size: $text-sm;
-    color: $gray-600;
-    margin: 0;
-    line-height: 1.5;
   }
 }
 
