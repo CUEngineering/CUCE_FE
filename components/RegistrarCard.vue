@@ -15,9 +15,44 @@
         <p class="registrar-email">{{ registrar.email }}</p>
       </div>
       <div class="registrar-actions">
-        <button class="action-button">
-          <DotsVerticalIcon />
-        </button>
+        <div class="dropdown">
+          <button
+            @click="toggleDropdown"
+            class="action-button"
+            aria-haspopup="true"
+            :aria-expanded="dropdownOpen"
+          >
+            <DotsVerticalIcon />
+          </button>
+          <div v-if="dropdownOpen" class="dropdown-menu" @click.stop>
+            <button
+              v-if="registrar.status !== 'Suspended'"
+              class="dropdown-item"
+              @click="suspend"
+            >
+              <span class="dropdown-icon warning">
+                <PauseIcon />
+              </span>
+              Suspend
+            </button>
+            <button
+              v-if="registrar.status !== 'Deactivated'"
+              class="dropdown-item"
+              @click="deactivate"
+            >
+              <span class="dropdown-icon danger">
+                <StopIcon />
+              </span>
+              Deactivate
+            </button>
+            <button class="dropdown-item delete" @click="deleteRegistrar">
+              <span class="dropdown-icon danger">
+                <TrashIcon />
+              </span>
+              Delete
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -47,34 +82,95 @@
   </div>
 </template>
 
-<script setup>
-import { computed } from "vue";
-import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
+<script setup lang="ts">
+import { computed, ref, onMounted, onBeforeUnmount } from "vue";
+import DotsVerticalIcon from "./icons/DotsVerticalIcon.vue";
+import PauseIcon from "./icons/PauseIcon.vue";
+import StopIcon from "./icons/StopIcon.vue";
+import TrashIcon from "./icons/TrashIcon.vue";
 
-const props = defineProps({
-  registrar: {
-    type: Object,
-    required: true,
-    validator: (value) => {
-      return [
-        "name",
-        "email",
-        "avatar",
-        "status",
-        "enrollRequests",
-        "approvals",
-        "denials",
-      ].every((key) => key in value);
-    },
-  },
+interface Registrar {
+  name: string;
+  email: string;
+  avatar: string;
+  status: string;
+  enrollRequests: number;
+  approvals: number;
+  denials: number;
+}
+
+interface Props {
+  registrar: Registrar;
+}
+
+const props = defineProps<Props>();
+
+const emit = defineEmits<{
+  (e: "suspend", registrar: Registrar): void;
+  (e: "deactivate", registrar: Registrar): void;
+  (e: "delete", registrar: Registrar): void;
+}>();
+
+// Dropdown state
+const dropdownOpen = ref(false);
+
+// Toggle dropdown
+const toggleDropdown = () => {
+  dropdownOpen.value = !dropdownOpen.value;
+};
+
+// Close dropdown when clicking outside
+const closeDropdown = (event: MouseEvent) => {
+  if (dropdownOpen.value) {
+    dropdownOpen.value = false;
+  }
+};
+
+// Actions
+const suspend = () => {
+  emit("suspend", props.registrar);
+  dropdownOpen.value = false;
+};
+
+const deactivate = () => {
+  emit("deactivate", props.registrar);
+  dropdownOpen.value = false;
+};
+
+const deleteRegistrar = () => {
+  emit("delete", props.registrar);
+  dropdownOpen.value = false;
+};
+
+// Add and remove event listeners
+onMounted(() => {
+  document.addEventListener("click", closeDropdown);
 });
 
+onBeforeUnmount(() => {
+  document.removeEventListener("click", closeDropdown);
+});
+
+// Status classes
 const statusClass = computed(() => {
-  return props.registrar.status.toLowerCase();
+  switch (props.registrar.status.toLowerCase()) {
+    case "active":
+      return "status-active";
+    case "suspended":
+      return "status-suspended";
+    case "deactivated":
+      return "status-deactivated";
+    default:
+      return "";
+  }
 });
 
+// Card class based on status
 const cardClass = computed(() => {
-  return `card-${props.registrar.status.toLowerCase()}`;
+  return {
+    "is-suspended": props.registrar.status.toLowerCase() === "suspended",
+    "is-deactivated": props.registrar.status.toLowerCase() === "deactivated",
+  };
 });
 </script>
 
@@ -345,6 +441,66 @@ const cardClass = computed(() => {
 
   .stat-value {
     font-size: $text-sm;
+  }
+}
+
+/* Add dropdown styles */
+.dropdown {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  min-width: 180px;
+  background-color: $white;
+  border-radius: 8px;
+  box-shadow: 0px 12px 16px -4px rgba(16, 24, 40, 0.08),
+    0px 4px 6px -2px rgba(16, 24, 40, 0.03);
+  border: 1px solid $gray-200;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  text-align: left;
+  font-family: $font-family;
+  font-size: $text-sm;
+  color: $gray-700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: $gray-50;
+  }
+
+  &.delete {
+    color: $error-500;
+  }
+
+  .dropdown-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8px;
+    width: 16px;
+    height: 16px;
+
+    &.warning {
+      color: $warning-500;
+    }
+
+    &.danger {
+      color: $error-500;
+    }
   }
 }
 </style>

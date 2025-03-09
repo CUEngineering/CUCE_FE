@@ -50,7 +50,11 @@
             />
           </template>
           <template #action>
-            <Button variant="secondary" size="sm">
+            <Button
+              @click="showInviteModal = true"
+              variant="secondary"
+              size="sm"
+            >
               <template #icon>
                 <PlusIcon />
               </template>
@@ -65,6 +69,9 @@
           v-for="(registrar, index) in registrars"
           :key="index"
           :registrar="registrar"
+          @deactivate="showDeactivateDialog(registrar)"
+          @suspend="showSuspendDialog(registrar)"
+          @delete="showDeleteDialog(registrar)"
         />
       </div>
     </div>
@@ -74,7 +81,7 @@
     >
       <div class="invites-header dashlet">
         <h2 class="invites-title">Pending Invites</h2>
-        <button class="add-button">
+        <button class="add-button" @click="showInviteModal = true">
           <IconsPlusIcon />
         </button>
       </div>
@@ -87,7 +94,11 @@
           description="Invites you send to registrars will appear here."
         >
           <template #action>
-            <Button variant="secondary" size="sm">
+            <Button
+              @click="showInviteModal = true"
+              variant="secondary"
+              size="sm"
+            >
               <template #icon>
                 <PlusIcon />
               </template>
@@ -108,6 +119,47 @@
         </template>
       </div>
     </div>
+
+    <!-- Toast Container -->
+    <ToastContainer />
+
+    <!-- Modals -->
+    <InviteModal
+      v-model="showInviteModal"
+      :loading="isInviteSending"
+      @send="sendInvites"
+    />
+
+    <!-- Dialogs -->
+    <Dialog
+      v-model="showDeactivateConfirm"
+      title="Deactivate Registrar?"
+      message="This registrar will be deactivated. They will no longer be able to access the system until you reactivate their account."
+      variant="warning"
+      :loading="isActionLoading"
+      confirm-button-text="Deactivate"
+      @confirm="confirmDeactivate"
+    />
+
+    <Dialog
+      v-model="showSuspendConfirm"
+      title="Suspend Registrar?"
+      message="This registrar will be suspended temporarily. They will not be able to access the system until you remove the suspension."
+      variant="warning"
+      :loading="isActionLoading"
+      confirm-button-text="Suspend"
+      @confirm="confirmSuspend"
+    />
+
+    <Dialog
+      v-model="showDeleteConfirm"
+      title="Delete Registrar?"
+      message="This action cannot be undone. The registrar will be permanently deleted from the system along with all their data."
+      variant="danger"
+      :loading="isActionLoading"
+      confirm-button-text="Delete Permanently"
+      @confirm="confirmDelete"
+    />
   </div>
 </template>
 
@@ -119,6 +171,10 @@ import RegistrarCard from "~/components/RegistrarCard.vue";
 import InviteItem from "~/components/InviteItem.vue";
 import EmptyState from "~/components/ui/EmptyState.vue";
 import PlusIcon from "~/components/icons/PlusIcon.vue";
+import ToastContainer from "~/components/ui/ToastContainer.vue";
+import Dialog from "~/components/ui/Dialog.vue";
+import InviteModal from "~/components/InviteModal.vue";
+import { useToast } from "~/composables/useToast";
 
 interface Registrar {
   name: string;
@@ -140,17 +196,206 @@ definePageMeta({
 });
 
 const searchQuery = ref<string>("");
+const toast = useToast();
 
-// Handle cancel invite
-function handleCancelInvite(invite: Invite): void {
-  // In the future, this would call an API to cancel the invite
-  console.log("Cancel invite:", invite);
-}
+// Modal and dialog state
+const showInviteModal = ref(false);
+const showDeactivateConfirm = ref(false);
+const showSuspendConfirm = ref(false);
+const showDeleteConfirm = ref(false);
+const isInviteSending = ref(false);
+const isActionLoading = ref(false);
+const selectedRegistrar = ref<Registrar | null>(null);
 
-// Handle resend invite
-function handleResendInvite(invite: Invite): void {
-  // In the future, this would call an API to resend the invite
-  console.log("Resend invite:", invite);
+// Show dialogs
+const showDeactivateDialog = (registrar: Registrar) => {
+  selectedRegistrar.value = registrar;
+  showDeactivateConfirm.value = true;
+};
+
+const showSuspendDialog = (registrar: Registrar) => {
+  selectedRegistrar.value = registrar;
+  showSuspendConfirm.value = true;
+};
+
+const showDeleteDialog = (registrar: Registrar) => {
+  selectedRegistrar.value = registrar;
+  showDeleteConfirm.value = true;
+};
+
+// Confirm actions
+const confirmDeactivate = async () => {
+  if (!selectedRegistrar.value) return;
+
+  isActionLoading.value = true;
+  try {
+    // Simulating API call with timeout
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Success case
+    toast.success(`${selectedRegistrar.value.name} has been deactivated`);
+
+    // Update registrar status in the list
+    const index = registrars.value.findIndex(
+      (r) => r.email === selectedRegistrar.value?.email
+    );
+    if (index !== -1) {
+      registrars.value[index].status = "Deactivated";
+    }
+  } catch (error) {
+    // Error case
+    toast.error("Failed to deactivate registrar");
+  } finally {
+    isActionLoading.value = false;
+    showDeactivateConfirm.value = false;
+  }
+};
+
+const confirmSuspend = async () => {
+  if (!selectedRegistrar.value) return;
+
+  isActionLoading.value = true;
+  try {
+    // Simulating API call with timeout
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Success case
+    toast.success(`${selectedRegistrar.value.name} has been suspended`);
+
+    // Update registrar status in the list
+    const index = registrars.value.findIndex(
+      (r) => r.email === selectedRegistrar.value?.email
+    );
+    if (index !== -1) {
+      registrars.value[index].status = "Suspended";
+    }
+  } catch (error) {
+    // Error case
+    toast.error("Failed to suspend registrar");
+  } finally {
+    isActionLoading.value = false;
+    showSuspendConfirm.value = false;
+  }
+};
+
+const confirmDelete = async () => {
+  if (!selectedRegistrar.value) return;
+
+  isActionLoading.value = true;
+  try {
+    // Simulating API call with timeout
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Success case
+    toast.success(`${selectedRegistrar.value.name} has been deleted`);
+
+    // Remove registrar from the list
+    registrars.value = registrars.value.filter(
+      (r) => r.email !== selectedRegistrar.value?.email
+    );
+  } catch (error) {
+    // Error case
+    toast.error("Failed to delete registrar");
+  } finally {
+    isActionLoading.value = false;
+    showDeleteConfirm.value = false;
+  }
+};
+
+// Handle invite actions
+const handleCancelInvite = async (invite: Invite) => {
+  try {
+    // Simulating API call
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Remove from pending invites
+    pendingInvites.value = pendingInvites.value.filter(
+      (i) => i.email !== invite.email
+    );
+
+    // Show success toast
+    toast.success(`Invite to ${invite.email} has been cancelled`);
+  } catch (error) {
+    toast.error("Failed to cancel invite");
+  }
+};
+
+const handleResendInvite = async (invite: Invite) => {
+  try {
+    // Simulating API call
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Show success toast
+    toast.success(`Invite resent to ${invite.email}`);
+  } catch (error) {
+    toast.error("Failed to resend invite");
+  }
+};
+
+const sendInvites = async (emails: string[]) => {
+  isInviteSending.value = true;
+
+  try {
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    // Add new invites to the pending invites list
+    const today = new Date();
+    const formattedDate = `${today.getDate()}${getOrdinalSuffix(
+      today.getDate()
+    )} ${
+      [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ][today.getMonth()]
+    }, ${today.getFullYear()}`;
+
+    const newInvites = emails.map((email) => ({
+      email,
+      date: formattedDate,
+    }));
+
+    pendingInvites.value = [...pendingInvites.value, ...newInvites];
+
+    // Show success toast
+    if (emails.length === 1) {
+      toast.success(`Invite sent to ${emails[0]}`);
+    } else {
+      toast.success(`${emails.length} invites sent successfully`);
+    }
+
+    // Close the modal
+    showInviteModal.value = false;
+  } catch (error) {
+    toast.error("Failed to send invites");
+  } finally {
+    isInviteSending.value = false;
+  }
+};
+
+// Helper function for date formatting
+function getOrdinalSuffix(day: number): string {
+  if (day > 3 && day < 21) return "th";
+  switch (day % 10) {
+    case 1:
+      return "st";
+    case 2:
+      return "nd";
+    case 3:
+      return "rd";
+    default:
+      return "th";
+  }
 }
 
 // For testing empty states, you can toggle these between empty arrays and populated data
@@ -239,8 +484,8 @@ const pendingInvites = ref<Invite[]>([
 ]);
 
 // To test different empty states, uncomment these lines:
-registrars.value = []; // Empty registrars
-pendingInvites.value = []; // Empty invites
+// registrars.value = []; // Empty registrars
+// pendingInvites.value = []; // Empty invites
 </script>
 
 <style lang="scss" scoped>
