@@ -175,7 +175,6 @@ import EmptyState from "~/components/ui/EmptyState.vue";
 import PlusIcon from "~/components/icons/PlusIcon.vue";
 import SearchIcon from "~/components/icons/SearchIcon.vue";
 import DocumentIcon from "~/components/icons/DocumentIcon.vue";
-import InfoCircleIcon from "~/components/icons/InfoCircleIcon.vue";
 import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
 import AddProgramModal from "~/components/AddProgramModal.vue";
 
@@ -285,6 +284,11 @@ const viewProgramDetails = (programId: number) => {
   // Navigate to program details page
   navigateTo(`/programs/${programId}`);
 };
+
+// Define that this page uses the dashboard layout
+definePageMeta({
+  layout: "dashboard",
+});
 </script>
 
 <style lang="scss" scoped>

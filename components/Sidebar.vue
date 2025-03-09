@@ -41,9 +41,12 @@
       </NuxtLink>
 
       <NuxtLink
-        to="/programmes"
+        to="/programs"
         class="nav-item"
-        :class="{ active: currentPath === '/programmes' }"
+        :class="{
+          active:
+            currentPath === '/programs' || currentPath.startsWith('/programs/'),
+        }"
       >
         <span class="icon">
           <IconsBookOpenIcon />

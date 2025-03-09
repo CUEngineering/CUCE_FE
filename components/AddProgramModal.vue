@@ -1,6 +1,7 @@
 <template>
   <Dialog
-    v-model="modelValue"
+    :modelValue="modelValue"
+    @update:modelValue="$emit('update:modelValue', $event)"
     title="Add New Programme"
     :show-close-button="true"
     persistent
