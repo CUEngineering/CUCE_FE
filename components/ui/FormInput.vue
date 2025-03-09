@@ -12,13 +12,14 @@
         :placeholder="placeholder"
         :required="required"
         class="form-input"
-        :class="size"
+        :class="[size, { 'has-error': error }]"
       />
 
       <div class="form-icon" v-if="$slots.button">
         <slot name="button"></slot>
       </div>
     </div>
+    <p v-if="error" class="input-error">{{ error }}</p>
   </div>
 </template>
 
@@ -32,10 +33,12 @@ withDefaults(
     placeholder?: string;
     required?: boolean;
     size?: "sm" | "md";
+    error?: string;
   }>(),
   {
     type: "text",
     size: "md",
+    error: undefined,
   }
 );
 
@@ -90,6 +93,14 @@ defineEmits<{
     box-shadow: 0 0 0 2px rgba($primary-color, 0.1);
   }
 
+  &.has-error {
+    border-color: $error-500;
+
+    &:focus {
+      box-shadow: 0 0 0 2px rgba($error-500, 0.1);
+    }
+  }
+
   &.md {
     padding: 0.875rem 1rem;
     font-size: $text-base;
@@ -103,5 +114,13 @@ defineEmits<{
       font-size: $text-sm;
     }
   }
+}
+
+.input-error {
+  font-family: $font-family;
+  font-size: $text-sm;
+  color: $error-500;
+  margin: 0;
+  line-height: 1.5;
 }
 </style>

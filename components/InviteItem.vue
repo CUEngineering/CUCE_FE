@@ -73,7 +73,7 @@ defineEmits<{
 
     // Override Button component styles
     :deep(.base-button) {
-      padding: 0.5rem 1rem;
+      padding: 0.8rem 1rem;
       font-size: $text-xs;
       width: auto;
     }
@@ -81,11 +81,13 @@ defineEmits<{
     .cancel-button {
       color: $error-500 !important;
       border-color: transparent !important;
+      background-color: transparent !important;
     }
 
     .resend-button {
       color: $success-500 !important;
       border-color: transparent !important;
+      background-color: transparent !important;
     }
   }
 }

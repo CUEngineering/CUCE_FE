@@ -27,21 +27,7 @@
                   @click="close"
                   aria-label="Close dialog"
                 >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 14 14"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M13 1L1 13M1 1L13 13"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
+                  <CloseCircleIcon />
                 </button>
               </div>
 
@@ -53,7 +39,7 @@
               <div class="dialog-footer">
                 <Button
                   v-if="showCancelButton"
-                  :variant="variant === 'danger' ? 'outline' : 'secondary'"
+                  variant="outline"
                   @click="cancel"
                 >
                   {{ cancelButtonText }}
@@ -82,7 +68,7 @@ import SuccessIcon from "../icons/SuccessIcon.vue";
 import ErrorIcon from "../icons/ErrorIcon.vue";
 import InfoIcon from "../icons/InfoIcon.vue";
 import WarningIcon from "../icons/WarningIcon.vue";
-
+import CloseCircleIcon from "../icons/CloseCircleIcon.vue";
 interface Props {
   modelValue: boolean;
   title: string;
@@ -155,12 +141,12 @@ const getIconComponent = computed(() => {
 });
 
 const confirmButtonVariant = computed(
-  (): "primary" | "secondary" | "outline" => {
+  (): "primary" | "secondary" | "outline" | "danger" => {
     switch (props.variant) {
       case "danger":
-        return "primary";
+        return "danger";
       case "warning":
-        return "primary";
+        return "secondary";
       case "success":
         return "primary";
       case "default":
@@ -179,7 +165,7 @@ const confirmButtonVariant = computed(
   width: 100vw;
   height: 100vh;
   background-color: rgba(16, 24, 40, 0.6);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -199,7 +185,7 @@ const confirmButtonVariant = computed(
 
 .dialog {
   background-color: $white;
-  border-radius: 24px;
+  border-radius: 16px;
   width: 100%;
   max-width: 480px;
   max-height: calc(100vh - 32px);
@@ -269,7 +255,7 @@ const confirmButtonVariant = computed(
 
     .dialog-close {
       position: absolute;
-      top: 16px;
+      top: 20px;
       right: 16px;
       background: none;
       border: none;
@@ -283,8 +269,12 @@ const confirmButtonVariant = computed(
       transition: all 0.2s ease;
 
       &:hover {
-        color: $gray-700;
         background-color: $gray-100;
+      }
+
+      svg {
+        width: 20px;
+        height: 20px;
       }
     }
   }

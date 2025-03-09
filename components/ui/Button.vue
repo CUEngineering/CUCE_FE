@@ -23,7 +23,7 @@
 <script setup lang="ts">
 interface Props {
   type?: "button" | "submit" | "reset";
-  variant?: "primary" | "secondary" | "outline";
+  variant?: "primary" | "secondary" | "outline" | "danger";
   size?: "sm" | "md" | "lg";
   loading?: boolean;
   disabled?: boolean;
@@ -67,6 +67,17 @@ defineEmits<{
   }
 
   &.secondary {
+    background-color: $primary-color-50;
+    color: $primary-color-700;
+    border: 1px solid $primary-color-200;
+
+    &:hover:not(:disabled) {
+      background-color: $primary-color-100;
+      border-color: $primary-color-300;
+    }
+  }
+
+  &.outline {
     background-color: $white;
     color: $text-color;
     border: 1px solid $gray-300;
@@ -77,20 +88,20 @@ defineEmits<{
     }
   }
 
-  &.outline {
-    background-color: transparent;
-    border: 1px solid $border-color;
-    color: $text-color;
+  &.danger {
+    background-color: $error-100;
+    color: $error-700;
+    border: 1px solid $error-300;
 
     &:hover:not(:disabled) {
-      border-color: $primary-color;
-      color: $primary-color;
+      background-color: $error-50;
+      border-color: $error-200;
     }
   }
 
   &.is-disabled,
   &:disabled {
-    opacity: 0.7;
+    opacity: 0.5;
     cursor: not-allowed;
   }
 

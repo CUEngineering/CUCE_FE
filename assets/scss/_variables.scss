@@ -5,8 +5,10 @@ $black: #000000;
 //Primary Colors
 $primary-color: #2a50ad;
 $primary-color-25: #f4f8ff;
-$primary-color-50: #dbebfe;
+$primary-color-50: #edf5ff;
+$primary-color-100: #d7e8ff;
 $primary-color-200: #c0dcfd;
+$primary-color-300: #88c0ff;
 $primary-color-400: #62a8f8;
 $primary-color-700: #254383;
 
@@ -24,17 +26,23 @@ $gray-900: #101828;
 
 //Warning Colors
 $warning-50: #fffaeb;
+$warning-300: #fec84b;
 $warning-500: #f79009;
 
 //Success Colors
 $success-50: #ecfdf3;
+$success-300: #75e0a7;
 $success-400: #47cd89;
 $success-500: #17b26a;
 
 //Error Colors
 $error-50: #fef3f2;
+$error-100: #fee4e2;
+$error-200: #fecdca;
+$error-300: #fda29b;
 $error-400: #f43f5e;
 $error-500: #f04438;
+$error-700: #b42318;
 
 //Secondary Colors
 $secondary-color: #60a5fa;

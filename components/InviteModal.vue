@@ -12,30 +12,12 @@
                 </p>
               </div>
               <button class="close-button" @click="close" aria-label="Close">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M15 5L5 15M5 5L15 15"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
+                <CloseCircleIcon />
               </button>
             </div>
 
             <div class="modal-body">
               <div class="form-field">
-                <label for="registrar-email" class="form-label"
-                  >Registrar email address</label
-                >
-
                 <div class="email-tags" v-if="emails.length > 0">
                   <div
                     v-for="(email, index) in emails"
@@ -68,21 +50,17 @@
                     </button>
                   </div>
                 </div>
-
-                <div class="input-wrapper">
-                  <input
-                    id="registrar-email"
-                    ref="emailInput"
-                    v-model="currentEmail"
-                    type="text"
-                    class="form-input"
-                    placeholder="Enter email address(es)"
-                    @keydown="handleKeyDown"
-                    @paste="handlePaste"
-                  />
-                </div>
-
-                <p class="input-hint">
+                <FormInput
+                  id="registrar-email"
+                  ref="emailInput"
+                  label="Registrar email address"
+                  v-model="currentEmail"
+                  :error="inputError"
+                  placeholder="Enter email address(es)"
+                  @keydown="handleKeyDown"
+                  @paste="handlePaste"
+                />
+                <p v-if="!inputError" class="input-hint">
                   Invite multiple registrars by separating email addresses with
                   a comma.
                 </p>
@@ -109,16 +87,20 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import Button from "./ui/Button.vue";
+import CloseCircleIcon from "./icons/CloseCircleIcon.vue";
+import FormInput from "./ui/FormInput.vue";
 
 interface Props {
   modelValue: boolean;
   loading?: boolean;
   persistent?: boolean;
+  pendingInvites?: { email: string }[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
   loading: false,
   persistent: false,
+  pendingInvites: () => [],
 });
 
 const emit = defineEmits<{
@@ -128,6 +110,7 @@ const emit = defineEmits<{
 
 const emails = ref<string[]>([]);
 const currentEmail = ref("");
+const inputError = ref<string | undefined>(undefined);
 const emailInput = ref<HTMLInputElement | null>(null);
 
 const validateEmail = (email: string): boolean => {
@@ -135,13 +118,45 @@ const validateEmail = (email: string): boolean => {
   return emailRegex.test(email);
 };
 
+const isEmailInPendingInvites = (email: string): boolean => {
+  return props.pendingInvites.some(
+    (invite) => invite.email.toLowerCase() === email.toLowerCase()
+  );
+};
+
+const isEmailAlreadyAdded = (email: string): boolean => {
+  return emails.value.some(
+    (existingEmail) => existingEmail.toLowerCase() === email.toLowerCase()
+  );
+};
+
 const addEmail = (email: string) => {
   const trimmedEmail = email.trim();
   if (!trimmedEmail) return;
 
-  if (validateEmail(trimmedEmail) && !emails.value.includes(trimmedEmail)) {
-    emails.value.push(trimmedEmail);
+  // Clear previous error
+  inputError.value = undefined;
+
+  // Validate email format
+  if (!validateEmail(trimmedEmail)) {
+    inputError.value = `"${trimmedEmail}" is not a valid email address`;
+    return;
   }
+
+  // Check if already in pending invites
+  if (isEmailInPendingInvites(trimmedEmail)) {
+    inputError.value = `An invite has already been sent to "${trimmedEmail}"`;
+    return;
+  }
+
+  // Check if already added to the current list
+  if (isEmailAlreadyAdded(trimmedEmail)) {
+    inputError.value = `You've already added "${trimmedEmail}" to this invite`;
+    return;
+  }
+
+  // Add the email to the list
+  emails.value.push(trimmedEmail);
   currentEmail.value = "";
 };
 
@@ -150,6 +165,11 @@ const removeEmail = (index: number) => {
 };
 
 const handleKeyDown = (event: KeyboardEvent) => {
+  // Clear error on input
+  if (inputError.value) {
+    inputError.value = undefined;
+  }
+
   // Add email when comma or Enter is pressed
   if (event.key === "," || event.key === "Enter") {
     event.preventDefault();
@@ -196,6 +216,9 @@ const sendInvite = () => {
     addEmail(currentEmail.value);
   }
 
+  // Don't proceed if there was an error with the current email
+  if (inputError.value) return;
+
   if (emails.value.length > 0) {
     emit("send", emails.value);
   }
@@ -218,6 +241,7 @@ watch(
     if (!value) {
       emails.value = [];
       currentEmail.value = "";
+      inputError.value = undefined;
     } else {
       // Focus the input when modal opens
       setTimeout(() => {
@@ -297,8 +321,12 @@ watch(
     transition: all 0.2s ease;
 
     &:hover {
-      color: $gray-700;
       background-color: $gray-100;
+    }
+
+    svg {
+      width: 20px;
+      height: 20px;
     }
   }
 }
@@ -324,6 +352,7 @@ watch(
     flex-wrap: wrap;
     gap: 8px;
     width: 100%;
+    margin-bottom: 8px;
   }
 
   .email-tag {
@@ -389,6 +418,22 @@ watch(
     &::placeholder {
       color: $gray-500;
     }
+
+    &.has-error {
+      border-color: $error-500;
+
+      &:focus {
+        box-shadow: 0 0 0 4px rgba($error-500, 0.1);
+      }
+    }
+  }
+
+  .input-error {
+    font-family: $font-family;
+    font-size: $text-sm;
+    color: $error-500;
+    margin: 0;
+    line-height: 1.5;
   }
 
   .input-hint {

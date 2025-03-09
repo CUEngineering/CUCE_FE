@@ -1,12 +1,7 @@
 <template>
   <Teleport to="body">
     <Transition name="toast">
-      <div
-        v-if="visible"
-        class="toast"
-        :class="[type, { 'has-icon': icon }]"
-        role="alert"
-      >
+      <div v-if="visible" class="toast" :class="type" role="alert">
         <div v-if="icon" class="toast-icon">
           <component :is="getIconComponent" />
         </div>
@@ -107,74 +102,72 @@ onMounted(() => {
 <style lang="scss" scoped>
 .toast {
   position: fixed;
-  bottom: 24px;
+  top: 24px;
   right: 24px;
   min-width: 300px;
   max-width: 450px;
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 16px;
-  border-radius: 16px;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 12px;
   background-color: $white;
-  box-shadow: 0px 4px 24px rgba(16, 24, 40, 0.16),
-    0px 2px 8px rgba(16, 24, 40, 0.08);
+  box-shadow: 0px 4px 24px rgba(16, 24, 40, 0.12),
+    0px 2px 8px rgba(16, 24, 40, 0.06);
   z-index: 9999;
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-
-  &.has-icon {
-    padding-left: 16px;
-  }
+  border: 1px solid $gray-400;
 
   &.success {
-    border-left: 4px solid $success-500;
+    border-color: $success-300;
+
     .toast-icon {
       color: $success-500;
       background-color: $success-50;
       border-radius: 50%;
-      padding: 4px;
+      padding: 6px;
     }
   }
 
   &.error {
-    border-left: 4px solid $error-500;
+    border-color: $error-300;
+
     .toast-icon {
       color: $error-500;
       background-color: $error-50;
       border-radius: 50%;
-      padding: 4px;
+      padding: 6px;
     }
   }
 
   &.warning {
-    border-left: 4px solid $warning-500;
+    border-color: $warning-300;
+
     .toast-icon {
       color: $warning-500;
       background-color: $warning-50;
       border-radius: 50%;
-      padding: 4px;
+      padding: 6px;
     }
   }
 
   &.info {
-    border-left: 4px solid $primary-color;
+    border-color: $primary-color-300;
+
     .toast-icon {
       color: $primary-color;
       background-color: $primary-color-50;
       border-radius: 50%;
-      padding: 4px;
+      padding: 6px;
     }
   }
 
   .toast-icon {
     flex-shrink: 0;
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: 2px;
   }
 
   .toast-content {
@@ -187,7 +180,7 @@ onMounted(() => {
     font-weight: 600;
     font-size: $text-sm;
     color: $gray-800;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
   }
 
   .toast-message {

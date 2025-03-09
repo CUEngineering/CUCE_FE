@@ -21,37 +21,47 @@
             class="action-button"
             aria-haspopup="true"
             :aria-expanded="dropdownOpen"
+            :disabled="isDeactivated"
           >
-            <DotsVerticalIcon />
+            <DotsVerticalIcon :class="{ 'disabled-icon': isDeactivated }" />
           </button>
-          <div v-if="dropdownOpen" class="dropdown-menu" @click.stop>
-            <button
-              v-if="registrar.status !== 'Suspended'"
-              class="dropdown-item"
-              @click="suspend"
-            >
-              <span class="dropdown-icon warning">
-                <PauseIcon />
-              </span>
-              Suspend
-            </button>
-            <button
-              v-if="registrar.status !== 'Deactivated'"
-              class="dropdown-item"
-              @click="deactivate"
-            >
-              <span class="dropdown-icon danger">
-                <StopIcon />
-              </span>
-              Deactivate
-            </button>
-            <button class="dropdown-item delete" @click="deleteRegistrar">
-              <span class="dropdown-icon danger">
-                <TrashIcon />
-              </span>
-              Delete
-            </button>
-          </div>
+          <transition name="dropdown">
+            <div v-if="dropdownOpen" class="dropdown-menu" @click.stop>
+              <button
+                v-if="registrar.status === 'Active'"
+                class="dropdown-item"
+                @click="suspend"
+              >
+                <span class="dropdown-icon">
+                  <CloseCircleIcon />
+                </span>
+                Suspend user
+              </button>
+              <button
+                v-if="
+                  registrar.status === 'Active' ||
+                  registrar.status === 'Suspended'
+                "
+                class="dropdown-item"
+                @click="deactivate"
+              >
+                <span class="dropdown-icon">
+                  <MinusCircleIcon />
+                </span>
+                Remove user
+              </button>
+              <button
+                v-if="registrar.status === 'Suspended'"
+                class="dropdown-item"
+                @click="activate"
+              >
+                <span class="dropdown-icon">
+                  <PlusCircleIcon />
+                </span>
+                Activate user
+              </button>
+            </div>
+          </transition>
         </div>
       </div>
     </div>
@@ -83,11 +93,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onBeforeUnmount } from "vue";
-import DotsVerticalIcon from "./icons/DotsVerticalIcon.vue";
-import PauseIcon from "./icons/PauseIcon.vue";
-import StopIcon from "./icons/StopIcon.vue";
-import TrashIcon from "./icons/TrashIcon.vue";
+import {
+  computed,
+  ref,
+  onMounted,
+  onBeforeUnmount,
+  inject,
+  provide,
+} from "vue";
+import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
+import MinusCircleIcon from "~/components/icons/MinusCircleIcon.vue";
+import CloseCircleIcon from "./icons/CloseCircleIcon.vue";
+import PlusCircleIcon from "./icons/PlusCircleIcon.vue";
 
 interface Registrar {
   name: string;
@@ -109,10 +126,25 @@ const emit = defineEmits<{
   (e: "suspend", registrar: Registrar): void;
   (e: "deactivate", registrar: Registrar): void;
   (e: "delete", registrar: Registrar): void;
+  (e: "activate", registrar: Registrar): void;
+  (e: "unsuspend", registrar: Registrar): void;
 }>();
 
-// Dropdown state
-const dropdownOpen = ref(false);
+// Create a unique ID for this card instance
+const cardId = Symbol("registrar-card");
+
+// Global registry of open dropdowns
+const openDropdownId = inject<Ref<Symbol | null>>("openDropdownId", ref(null));
+const dropdownOpen = computed({
+  get: () => openDropdownId.value === cardId,
+  set: (value) => {
+    if (value) {
+      openDropdownId.value = cardId;
+    } else if (openDropdownId.value === cardId) {
+      openDropdownId.value = null;
+    }
+  },
+});
 
 // Toggle dropdown
 const toggleDropdown = (event: MouseEvent) => {
@@ -138,8 +170,8 @@ const deactivate = () => {
   dropdownOpen.value = false;
 };
 
-const deleteRegistrar = () => {
-  emit("delete", props.registrar);
+const activate = () => {
+  emit("activate", props.registrar);
   dropdownOpen.value = false;
 };
 
@@ -175,9 +207,17 @@ const cardClass = computed(() => {
     "card-active": status === "active",
   };
 });
+
+// Add computed property to check deactivated status
+const isDeactivated = computed(
+  () => props.registrar.status.toLowerCase() === "deactivated"
+);
 </script>
 
 <style lang="scss" scoped>
+/* ====================
+   Card Base Styles
+   ==================== */
 .registrar-card {
   background-color: $primary-color-25;
   border-radius: 12px;
@@ -202,10 +242,13 @@ const cardClass = computed(() => {
 
   &.card-suspended {
     background-color: $white;
-    border-color: $warning-50;
+    border-color: $gray-200;
   }
 }
 
+/* ====================
+   Header Section
+   ==================== */
 .registrar-header {
   display: flex;
   align-items: flex-start;
@@ -216,24 +259,24 @@ const cardClass = computed(() => {
 
 .registrar-avatar {
   flex-shrink: 0;
-}
 
-.registrar-avatar img {
-  width: 48px;
-  height: 48px;
-  border-radius: 32px;
-  object-fit: cover;
-  border: 1px solid $primary-color-400;
-  transition: all 0.2s ease-in-out;
-}
+  img {
+    width: 48px;
+    height: 48px;
+    border-radius: 32px;
+    object-fit: cover;
+    border: 1px solid $primary-color-400;
+    transition: all 0.2s ease-in-out;
 
-.card-suspended .registrar-avatar img {
-  border-color: $warning-500;
-}
+    .card-suspended & {
+      border-color: $warning-500;
+    }
 
-.card-deactivated .registrar-avatar img {
-  border-color: $gray-400;
-  opacity: 0.5;
+    .card-deactivated & {
+      border-color: $gray-400;
+      opacity: 0.5;
+    }
+  }
 }
 
 .registrar-info {
@@ -254,10 +297,10 @@ const cardClass = computed(() => {
   line-height: 1.43;
   margin: 0;
   color: $black;
-}
 
-.card-deactivated .registrar-name {
-  color: $gray-400;
+  .card-deactivated & {
+    color: $gray-400;
+  }
 }
 
 .registrar-email {
@@ -268,12 +311,15 @@ const cardClass = computed(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  .card-deactivated & {
+    color: $gray-400;
+  }
 }
 
-.card-deactivated .registrar-email {
-  color: $gray-400;
-}
-
+/* ====================
+   Actions Section
+   ==================== */
 .registrar-actions {
   flex-shrink: 0;
   position: relative;
@@ -291,12 +337,26 @@ const cardClass = computed(() => {
   &:hover {
     background-color: rgba(0, 0, 0, 0.04);
   }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .card-deactivated & {
+    color: $gray-400;
+  }
 }
 
-.card-deactivated .action-button {
+.disabled-icon {
   color: $gray-400;
+  cursor: not-allowed;
 }
 
+/* ====================
+   Stats Section
+   ==================== */
 .registrar-stats {
   display: flex;
   justify-content: space-between;
@@ -320,14 +380,11 @@ const cardClass = computed(() => {
   height: 24px;
   background-color: $primary-color-200;
   transition: background-color 0.2s ease;
-}
 
-.card-suspended .stat-divider {
-  background-color: $gray-200;
-}
-
-.card-deactivated .stat-divider {
-  background-color: $gray-200;
+  .card-suspended &,
+  .card-deactivated & {
+    background-color: $gray-200;
+  }
 }
 
 .stat-item {
@@ -343,10 +400,10 @@ const cardClass = computed(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
 
-.card-deactivated .stat-label {
-  color: $gray-400;
+  .card-deactivated & {
+    color: $gray-400;
+  }
 }
 
 .stat-value {
@@ -357,12 +414,15 @@ const cardClass = computed(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  .card-deactivated & {
+    color: $gray-400;
+  }
 }
 
-.card-deactivated .stat-value {
-  color: $gray-400;
-}
-
+/* ====================
+   Status Badge
+   ==================== */
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -412,7 +472,60 @@ const cardClass = computed(() => {
   }
 }
 
-/* Responsive styles */
+/* ====================
+   Dropdown Styles
+   ==================== */
+.dropdown {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  min-width: 180px;
+  background-color: $white;
+  border-radius: 8px;
+  box-shadow: 0px 12px 16px -4px rgba(16, 24, 40, 0.08),
+    0px 4px 6px -2px rgba(16, 24, 40, 0.03);
+  border: 1px solid $gray-200;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  text-align: left;
+  font-family: $font-family;
+  font-size: $text-sm;
+  color: $gray-700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: $gray-50;
+  }
+
+  .dropdown-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8px;
+    width: 16px;
+    height: 16px;
+    color: $gray-500;
+  }
+}
+
+/* ====================
+   Responsive Styles
+   ==================== */
 @media (max-width: 400px) {
   .registrar-card {
     padding: 12px;
@@ -452,63 +565,15 @@ const cardClass = computed(() => {
   }
 }
 
-/* Dropdown styles */
-.dropdown {
-  position: relative;
+/* Dropdown transition styles */
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
 }
 
-.dropdown-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 4px;
-  min-width: 180px;
-  background-color: $white;
-  border-radius: 8px;
-  box-shadow: 0px 12px 16px -4px rgba(16, 24, 40, 0.08),
-    0px 4px 6px -2px rgba(16, 24, 40, 0.03);
-  border: 1px solid $gray-200;
-  overflow: hidden;
-  z-index: 10;
-}
-
-.dropdown-item {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  padding: 10px 16px;
-  border: none;
-  background: none;
-  text-align: left;
-  font-family: $font-family;
-  font-size: $text-sm;
-  color: $gray-700;
-  cursor: pointer;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: $gray-50;
-  }
-
-  &.delete {
-    color: $error-500;
-  }
-
-  .dropdown-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 8px;
-    width: 16px;
-    height: 16px;
-
-    &.warning {
-      color: $warning-500;
-    }
-
-    &.danger {
-      color: $error-500;
-    }
-  }
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-15px);
 }
 </style>

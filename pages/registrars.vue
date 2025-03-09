@@ -50,11 +50,7 @@
             />
           </template>
           <template #action>
-            <Button
-              @click="showInviteModal = true"
-              variant="secondary"
-              size="sm"
-            >
+            <Button @click="showInviteModal = true" variant="outline" size="sm">
               <template #icon>
                 <PlusIcon />
               </template>
@@ -72,6 +68,8 @@
           @deactivate="showDeactivateDialog(registrar)"
           @suspend="showSuspendDialog(registrar)"
           @delete="showDeleteDialog(registrar)"
+          @activate="activateRegistrar(registrar)"
+          @unsuspend="unsuspendRegistrar(registrar)"
         />
       </div>
     </div>
@@ -94,11 +92,7 @@
           description="Invites you send to registrars will appear here."
         >
           <template #action>
-            <Button
-              @click="showInviteModal = true"
-              variant="secondary"
-              size="sm"
-            >
+            <Button @click="showInviteModal = true" variant="outline" size="sm">
               <template #icon>
                 <PlusIcon />
               </template>
@@ -127,17 +121,18 @@
     <InviteModal
       v-model="showInviteModal"
       :loading="isInviteSending"
+      :pendingInvites="pendingInvites"
       @send="sendInvites"
     />
 
     <!-- Dialogs -->
     <Dialog
       v-model="showDeactivateConfirm"
-      title="Deactivate Registrar?"
-      message="This registrar will be deactivated. They will no longer be able to access the system until you reactivate their account."
-      variant="warning"
+      title="Remove Registrar?"
+      message="This action cannot be undone. The registrar will be permanently removed from the system."
+      variant="danger"
       :loading="isActionLoading"
-      confirm-button-text="Deactivate"
+      confirm-button-text="Remove"
       @confirm="confirmDeactivate"
     />
 
@@ -150,21 +145,11 @@
       confirm-button-text="Suspend"
       @confirm="confirmSuspend"
     />
-
-    <Dialog
-      v-model="showDeleteConfirm"
-      title="Delete Registrar?"
-      message="This action cannot be undone. The registrar will be permanently deleted from the system along with all their data."
-      variant="danger"
-      :loading="isActionLoading"
-      confirm-button-text="Delete Permanently"
-      @confirm="confirmDelete"
-    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, provide } from "vue";
 import Button from "~/components/ui/Button.vue";
 import FormInput from "~/components/ui/FormInput.vue";
 import RegistrarCard from "~/components/RegistrarCard.vue";
@@ -195,6 +180,10 @@ definePageMeta({
   layout: "dashboard",
 });
 
+// Provide a global state for tracking the currently open dropdown
+const openDropdownId = ref<Symbol | null>(null);
+provide("openDropdownId", openDropdownId);
+
 const searchQuery = ref<string>("");
 const toast = useToast();
 
@@ -221,6 +210,55 @@ const showSuspendDialog = (registrar: Registrar) => {
 const showDeleteDialog = (registrar: Registrar) => {
   selectedRegistrar.value = registrar;
   showDeleteConfirm.value = true;
+};
+
+// Direct actions (no confirmation dialog)
+const activateRegistrar = async (registrar: Registrar) => {
+  isActionLoading.value = true;
+  try {
+    // Simulating API call with timeout
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Success case
+    toast.success(`${registrar.name} has been activated`);
+
+    // Update registrar status in the list
+    const index = registrars.value.findIndex(
+      (r) => r.email === registrar.email
+    );
+    if (index !== -1) {
+      registrars.value[index].status = "Active";
+    }
+  } catch (error) {
+    // Error case
+    toast.error("Failed to activate registrar");
+  } finally {
+    isActionLoading.value = false;
+  }
+};
+
+const unsuspendRegistrar = async (registrar: Registrar) => {
+  isActionLoading.value = true;
+  try {
+    // Simulating API call with timeout
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Success case
+    toast.success(`Suspension has been lifted for ${registrar.name}`);
+
+    // Update registrar status in the list
+    const index = registrars.value.findIndex(
+      (r) => r.email === registrar.email
+    );
+    if (index !== -1) {
+      registrars.value[index].status = "Active";
+    }
+  } catch (error) {
+    // Error case
+    toast.error("Failed to lift suspension");
+  } finally {
+    isActionLoading.value = false;
+  }
 };
 
 // Confirm actions
