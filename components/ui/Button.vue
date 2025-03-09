@@ -4,6 +4,7 @@
     :class="[
       'base-button',
       variant,
+      size,
       { 'is-loading': loading, 'is-disabled': disabled },
     ]"
     :disabled="disabled || loading"
@@ -23,11 +24,19 @@
 interface Props {
   type?: "button" | "submit" | "reset";
   variant?: "primary" | "secondary" | "outline";
+  size?: "sm" | "md" | "lg";
   loading?: boolean;
   disabled?: boolean;
 }
 
-defineProps<Props>();
+withDefaults(defineProps<Props>(), {
+  type: "button",
+  variant: "primary",
+  size: "md",
+  loading: false,
+  disabled: false,
+});
+
 defineEmits<{
   (e: "click", event: MouseEvent): void;
 }>();
@@ -58,11 +67,13 @@ defineEmits<{
   }
 
   &.secondary {
-    background-color: $secondary-color;
-    color: white;
+    background-color: $white;
+    color: $text-color;
+    border: 1px solid $gray-300;
 
     &:hover:not(:disabled) {
-      background-color: darken-color($secondary-color, 5%);
+      background-color: $primary-color-25;
+      border-color: $primary-color-400;
     }
   }
 
@@ -81,6 +92,29 @@ defineEmits<{
   &:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+  }
+
+  &.sm {
+    padding: 8px 16px;
+    font-size: 0.75rem;
+    border-radius: 8px;
+
+    .button-icon svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  &.md {
+    padding: 12px 20px;
+    font-size: 0.875rem;
+    border-radius: 10px;
+  }
+
+  &.lg {
+    padding: 16px 24px;
+    font-size: 0.875rem;
+    border-radius: 12px;
   }
 }
 

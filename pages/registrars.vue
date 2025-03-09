@@ -1,10 +1,19 @@
 <template>
   <div class="registrars-page">
-    <div class="content-container dashlet-wrapper">
+    <div
+      class="content-container dashlet-wrapper"
+      :class="{ 'is-empty': registrars.length === 0 }"
+    >
       <div class="page-header dashlet">
         <div class="title-section">
           <h1 class="page-title">Registrars</h1>
-          <div class="profile-count pill-grey">10 profiles</div>
+          <div class="profile-count pill-grey">
+            {{
+              registrars.length > 0
+                ? `${registrars.length} profiles`
+                : "No profiles"
+            }}
+          </div>
         </div>
         <div class="search-container">
           <FormInput
@@ -16,49 +25,100 @@
           >
             <template #button>
               <div class="search-icon">
-                <SearchIcon />
+                <IconsSearchIcon />
               </div>
             </template>
           </FormInput>
         </div>
       </div>
-      <div class="registrars-list dashlet">
+      <div
+        class="registrars-list dashlet"
+        :class="{ 'is-empty': registrars.length === 0 }"
+      >
+        <!-- Empty state for registrars -->
+        <EmptyState
+          v-if="registrars.length === 0"
+          class="empty-state"
+          title="No registrars yet"
+          description="Registrars will appear here once they are added to the system."
+        >
+          <template #icon>
+            <img
+              src="~/assets/images/EmptyUser.svg"
+              alt="Users Illustration"
+              class="empty-state-illustration"
+            />
+          </template>
+          <template #action>
+            <Button variant="secondary" size="sm">
+              <template #icon>
+                <PlusIcon />
+              </template>
+              Add Registrar
+            </Button>
+          </template>
+        </EmptyState>
+
         <!-- Registrar Cards -->
         <RegistrarCard
+          v-else
           v-for="(registrar, index) in registrars"
           :key="index"
           :registrar="registrar"
         />
       </div>
     </div>
-    <div class="pending-invites dashlet-wrapper">
+    <div
+      class="pending-invites dashlet-wrapper"
+      v-if="registrars.length > 0 || pendingInvites.length > 0"
+    >
       <div class="invites-header dashlet">
         <h2 class="invites-title">Pending Invites</h2>
         <button class="add-button">
-          <PlusIcon />
+          <IconsPlusIcon />
         </button>
       </div>
 
       <div class="invites-list dashlet">
-        <InviteItem
-          v-for="(invite, index) in pendingInvites"
-          :key="index"
-          :invite="invite"
-          @cancel="handleCancelInvite"
-          @resend="handleResendInvite"
-        />
+        <!-- Empty state for pending invites -->
+        <EmptyState
+          v-if="pendingInvites.length === 0"
+          title="No pending invites"
+          description="Invites you send to registrars will appear here."
+        >
+          <template #action>
+            <Button variant="secondary" size="sm">
+              <template #icon>
+                <PlusIcon />
+              </template>
+              Send Invite
+            </Button>
+          </template>
+        </EmptyState>
+
+        <!-- Invite Items -->
+        <template v-else>
+          <InviteItem
+            v-for="(invite, index) in pendingInvites"
+            :key="index"
+            :invite="invite"
+            @cancel="handleCancelInvite"
+            @resend="handleResendInvite"
+          />
+        </template>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import SearchIcon from "~/components/icons/SearchIcon.vue";
-import PlusIcon from "~/components/icons/PlusIcon.vue";
+import { ref } from "vue";
+import Button from "~/components/ui/Button.vue";
 import FormInput from "~/components/ui/FormInput.vue";
 import RegistrarCard from "~/components/RegistrarCard.vue";
 import InviteItem from "~/components/InviteItem.vue";
-import { ref } from "vue";
+import EmptyState from "~/components/ui/EmptyState.vue";
+import PlusIcon from "~/components/icons/PlusIcon.vue";
 
 interface Registrar {
   name: string;
@@ -93,7 +153,7 @@ function handleResendInvite(invite: Invite): void {
   console.log("Resend invite:", invite);
 }
 
-// Dummy data for registrars
+// For testing empty states, you can toggle these between empty arrays and populated data
 const registrars = ref<Registrar[]>([
   {
     name: "Lana Steiner",
@@ -151,7 +211,6 @@ const registrars = ref<Registrar[]>([
   },
 ]);
 
-// Dummy data for pending invites
 const pendingInvites = ref<Invite[]>([
   {
     email: "lanasteiner@charisma.edu.ng",
@@ -178,6 +237,10 @@ const pendingInvites = ref<Invite[]>([
     date: "25th Oct, 2024",
   },
 ]);
+
+// To test different empty states, uncomment these lines:
+registrars.value = []; // Empty registrars
+pendingInvites.value = []; // Empty invites
 </script>
 
 <style lang="scss" scoped>
@@ -190,6 +253,11 @@ const pendingInvites = ref<Invite[]>([
     flex: 1;
     min-height: 0; // Important for flex children to respect overflow
     align-self: start;
+    max-height: 100%;
+
+    &.is-empty {
+      align-self: auto;
+    }
 
     .page-header {
       display: flex;
@@ -243,6 +311,20 @@ const pendingInvites = ref<Invite[]>([
       overflow-y: auto;
       padding: 12px;
       border-radius: 16px;
+      min-height: 200px; // Add minimum height for empty state
+
+      &.is-empty {
+        flex: 1;
+      }
+
+      // New styles to make EmptyState occupy full width
+      > .empty-state {
+        grid-column: 1 / -1; // Span all columns
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+      }
     }
   }
 
@@ -250,7 +332,6 @@ const pendingInvites = ref<Invite[]>([
     width: 400px;
     max-width: 100%;
     flex: 0 0 auto;
-    overflow-y: auto;
     min-height: 0;
 
     .invites-header {
@@ -288,6 +369,9 @@ const pendingInvites = ref<Invite[]>([
       display: flex;
       flex-direction: column;
       padding: 24px;
+      overflow-y: auto;
+      height: 100%;
+      min-height: 200px; // Add minimum height for empty state
     }
   }
 
@@ -335,5 +419,11 @@ const pendingInvites = ref<Invite[]>([
       grid-template-columns: 1fr;
     }
   }
+}
+
+.empty-state-illustration {
+  width: 200px;
+  height: 200px;
+  margin-left: 1rem;
 }
 </style>
