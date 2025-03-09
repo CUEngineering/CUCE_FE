@@ -70,7 +70,7 @@
           </svg>
         </div>
         <div class="stat-content">
-          <h3 class="stat-title">Total Programmes</h3>
+          <h3 class="stat-title">Total Program</h3>
           <div class="stat-value">24</div>
         </div>
       </div>

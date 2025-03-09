@@ -14,7 +14,7 @@
     "postinstall": "nuxt prepare",
     "use-node": "nvm use",
     "setup": "nvm use && npm install",
-    "clean-start": "nvm use && rm -rf node_modules .nuxt && npm install && npm run dev"
+    "clean-start": "rm -rf node_modules .nuxt && npm install && npm run dev"
   },
   "dependencies": {
     "@tanstack/vue-table": "^8.21.2",

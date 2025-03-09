@@ -253,98 +253,11 @@ watch(
 </script>
 
 <style lang="scss" scoped>
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(16, 24, 40, 0.6);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  padding: 16px;
-}
-
-.modal-container {
-  max-width: 560px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-.modal {
-  background-color: $white;
-  border-radius: 24px;
-  overflow: hidden;
-  box-shadow: 0px 24px 48px -12px rgba(16, 24, 40, 0.18);
-}
-
-.modal-header {
-  padding: 32px 32px 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-
-  .header-content {
-    flex: 1;
-  }
-
-  .modal-title {
-    font-family: $font-family-heading;
-    font-weight: 700;
-    font-size: $text-xl;
-    color: $gray-800;
-    margin: 0 0 8px 0;
-  }
-
-  .modal-subtitle {
-    font-family: $font-family;
-    font-size: $text-sm;
-    color: $gray-600;
-    margin: 0;
-    line-height: 1.5;
-  }
-
-  .close-button {
-    background: none;
-    border: none;
-    color: $gray-500;
-    padding: 8px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    margin-left: 16px;
-    transition: all 0.2s ease;
-
-    &:hover {
-      background-color: $gray-100;
-    }
-
-    svg {
-      width: 20px;
-      height: 20px;
-    }
-  }
-}
-
 .modal-body {
-  padding: 32px;
-
   .form-field {
     display: flex;
     flex-direction: column;
     gap: 16px;
-  }
-
-  .form-label {
-    font-family: $font-family;
-    font-weight: 500;
-    font-size: $text-sm;
-    color: $gray-800;
   }
 
   .email-tags {
@@ -393,49 +306,6 @@ watch(
         height: 14px;
       }
     }
-  }
-}
-
-.modal-footer {
-  padding: 0 32px 32px;
-  display: flex;
-  justify-content: flex-end;
-
-  button {
-    min-width: 120px;
-    border-radius: 12px;
-  }
-}
-
-.modal-fade-enter-active,
-.modal-fade-leave-active {
-  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.modal-fade-enter-from,
-.modal-fade-leave-to {
-  opacity: 0;
-}
-
-@media (max-width: $breakpoint-md) {
-  .modal-container {
-    max-width: 100%;
-  }
-
-  .modal {
-    border-radius: 16px;
-  }
-
-  .modal-header {
-    padding: 24px 24px 0;
-  }
-
-  .modal-body {
-    padding: 24px;
-  }
-
-  .modal-footer {
-    padding: 0 24px 24px;
   }
 }
 </style>

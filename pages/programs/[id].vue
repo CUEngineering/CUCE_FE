@@ -1,5 +1,11 @@
 <template>
   <div class="program-detail-page">
+    <!-- Debugging info -->
+    <div v-if="!program" class="debugging-info">
+      <p>Loading program with ID: {{ programId }}</p>
+      <p>Route params: {{ JSON.stringify(route.params) }}</p>
+    </div>
+
     <!-- Back button header -->
     <div class="page-header">
       <button class="back-button" @click="navigateBack">
@@ -20,7 +26,7 @@
             />
           </svg>
         </span>
-        Programme Details
+        Program Details
       </button>
       <div class="header-actions">
         <Button variant="outline">
@@ -60,17 +66,15 @@
           <div class="stat-value">{{ program.enrolledStudents }}</div>
           <div class="stat-label">Total Students</div>
           <div class="stat-indicator">
-            <span class="new-students"
-              >+{{ program.newStudents || 35 }} new</span
-            >
+            <span class="new-students">+35 new</span>
           </div>
         </div>
 
         <div class="stat-card">
-          <div class="stat-value">{{ program.totalCourses || 24 }}</div>
+          <div class="stat-value">{{ program.courses }}</div>
           <div class="stat-label">Total Courses</div>
           <div class="stat-indicator">
-            <span class="core-count">+{{ program.coreCount || 14 }} core</span>
+            <span class="core-count">+{{ program.coreCount }} core</span>
           </div>
         </div>
 
@@ -284,17 +288,22 @@ definePageMeta({
 const route = useRoute();
 const programId = computed(() => route.params.id);
 
-// Mock program data (replace with API call)
-const program = ref<{
+// Add this for debugging - will show in server logs
+console.log("Route params:", route.params);
+
+// Add Program interface definition
+interface Program {
   id: number;
   name: string;
-  type: string;
   enrolledStudents: number;
-  newStudents?: number;
-  totalCourses?: number;
-  coreCount?: number;
+  courses: number;
+  coreCount: number;
+  type: string;
   credits: number;
-} | null>(null);
+}
+
+// Mock program data (replace with API call)
+const program = ref<Program | null>(null);
 
 // Tab state
 const activeTab = ref("students");
@@ -388,17 +397,80 @@ const courses = ref([
 
 // Fetch program details
 onMounted(async () => {
-  // Mock API call
-  program.value = {
-    id: Number(programId.value),
-    name: "Electrical Electronics & Computer Engineering",
-    type: "Undergraduate",
-    enrolledStudents: 64,
-    newStudents: 35,
-    totalCourses: 24,
-    coreCount: 14,
-    credits: 164,
-  };
+  console.log("Detail page mounted, program ID:", programId.value);
+  console.log("Full route:", route);
+  console.log("Route params:", route.params);
+  console.log("Route query:", route.query);
+  console.log("Current window location:", window.location.href);
+
+  try {
+    // Local mock data for programs
+    const mockPrograms: Program[] = [
+      {
+        id: 1,
+        name: "Master of Science in Psychology",
+        enrolledStudents: 36,
+        courses: 12,
+        coreCount: 14,
+        type: "Undergraduate",
+        credits: 64,
+      },
+      {
+        id: 2,
+        name: "MSc. Nursing: Entry Level Clinical Track",
+        enrolledStudents: 201,
+        courses: 15,
+        coreCount: 18,
+        type: "Undergraduate",
+        credits: 72,
+      },
+      {
+        id: 3,
+        name: "MSc. Nursing: Leadership and Management",
+        enrolledStudents: 117,
+        courses: 4,
+        coreCount: 6,
+        type: "Masters",
+        credits: 100,
+      },
+      {
+        id: 4,
+        name: "Master of Public Health",
+        enrolledStudents: 103,
+        courses: 3,
+        coreCount: 3,
+        type: "Doctorate",
+        credits: 46,
+      },
+      {
+        id: 5,
+        name: "Master of Physiotherapy",
+        enrolledStudents: 201,
+        courses: 3,
+        coreCount: 7,
+        type: "Masters",
+        credits: 75,
+      },
+    ];
+
+    // Find program by ID, ensuring type conversion
+    const selectedProgram = mockPrograms.find(
+      (p: Program) => p.id === Number(programId.value)
+    );
+
+    if (selectedProgram) {
+      program.value = selectedProgram;
+      console.log("Program found:", program.value);
+    } else {
+      console.error(`No program found with ID: ${programId.value}`);
+      // Redirect back to programs list if no program found
+      await navigateTo("/programs", { replace: true });
+    }
+  } catch (error) {
+    console.error("Error fetching program details:", error);
+    // Redirect back to programs list in case of any error
+    await navigateTo("/programs", { replace: true });
+  }
 });
 
 // Filter students by search query

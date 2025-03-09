@@ -119,6 +119,7 @@ onMounted(() => {
 
   &.success {
     border-color: $success-300;
+    background-color: $success-50;
 
     .toast-icon {
       color: $success-500;
@@ -130,7 +131,7 @@ onMounted(() => {
 
   &.error {
     border-color: $error-300;
-
+    background-color: $error-50;
     .toast-icon {
       color: $error-500;
       background-color: $error-50;
@@ -224,7 +225,7 @@ onMounted(() => {
 
 .toast-enter-from,
 .toast-leave-to {
-  transform: translateY(30px);
+  transform: translateY(-30px);
   opacity: 0;
 }
 </style>

@@ -1,94 +1,93 @@
 <template>
-  <Dialog
-    :modelValue="modelValue"
-    @update:modelValue="$emit('update:modelValue', $event)"
-    title="Add New Programme"
-    :show-close-button="true"
-    persistent
-    :loading="isLoading"
-    @confirm="handleSubmit"
-    confirm-button-text="Add Programme"
-  >
-    <div class="add-program-form">
-      <FormInput
-        id="program-name"
-        label="Programme Name"
-        v-model="formData.name"
-        placeholder="Enter programme name"
-        required
-        :error="errors.name"
-      />
+  <Teleport to="body">
+    <Transition name="modal-fade">
+      <div v-if="modelValue" class="modal-overlay" @click="onOverlayClick">
+        <div class="modal-container" @click.stop>
+          <div class="modal">
+            <div class="modal-header">
+              <div class="header-content">
+                <h2 class="modal-title">Program Details</h2>
+              </div>
+              <button class="close-button" @click="close" aria-label="Close">
+                <CloseCircleIcon />
+              </button>
+            </div>
 
-      <div class="form-row">
-        <FormInput
-          id="enrolled-students"
-          label="Enrolled Students"
-          v-model="formData.enrolledStudents"
-          type="number"
-          placeholder="0"
-          :error="errors.enrolledStudents"
-        />
+            <div class="modal-body">
+              <div class="form-section">
+                <div class="form-field">
+                  <label for="program-type" class="form-label"
+                    >Program Type</label
+                  >
+                  <div class="radio-group">
+                    <div
+                      v-for="option in programTypes"
+                      :key="option"
+                      class="radio-option"
+                      :class="{ selected: form.data.type === option }"
+                      @click="form.data.type = option"
+                    >
+                      <div class="radio">
+                        <div
+                          v-if="form.data.type === option"
+                          class="radio-indicator"
+                        ></div>
+                      </div>
+                      <span class="radio-label">{{ option }}</span>
+                    </div>
+                  </div>
+                  <p v-if="form.errors.type" class="input-error">
+                    {{ form.errors.type }}
+                  </p>
+                </div>
 
-        <FormInput
-          id="credits"
-          label="Total Credits"
-          v-model="formData.credits"
-          type="number"
-          placeholder="0"
-          :error="errors.credits"
-        />
+                <FormInput
+                  id="program-name"
+                  label="Program Name"
+                  v-model="form.data.name"
+                  placeholder="Enter program name"
+                  required
+                  :error="form.errors.name"
+                />
+
+                <FormInput
+                  id="credits"
+                  label="Total Credits"
+                  v-model="form.data.credits"
+                  type="number"
+                  placeholder="0"
+                  :error="form.errors.credits"
+                />
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <Button variant="secondary" @click="close"> Cancel </Button>
+              <Button
+                variant="primary"
+                :disabled="isLoading"
+                :loading="isLoading"
+                @click="handleSubmit"
+              >
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
-
-      <div class="form-row">
-        <FormInput
-          id="courses"
-          label="Total Courses"
-          v-model="formData.courses"
-          type="number"
-          placeholder="0"
-          :error="errors.courses"
-        />
-
-        <FormInput
-          id="core-count"
-          label="Core Courses"
-          v-model="formData.coreCount"
-          type="number"
-          placeholder="0"
-          :error="errors.coreCount"
-        />
-      </div>
-
-      <div class="form-field">
-        <label for="program-type" class="form-label">Programme Type</label>
-        <select
-          id="program-type"
-          v-model="formData.type"
-          class="form-select"
-          :class="{ 'has-error': errors.type }"
-        >
-          <option value="" disabled>Select programme type</option>
-          <option value="Undergraduate">Undergraduate</option>
-          <option value="Masters">Masters</option>
-          <option value="Doctorate">Doctorate</option>
-        </select>
-        <p v-if="errors.type" class="input-error">{{ errors.type }}</p>
-      </div>
-    </div>
-  </Dialog>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from "vue";
-import Dialog from "~/components/ui/Dialog.vue";
-import FormInput from "~/components/ui/FormInput.vue";
+import { ref, reactive, watch } from "vue";
+import Button from "./ui/Button.vue";
+import CloseCircleIcon from "./icons/CloseCircleIcon.vue";
+import FormInput from "./ui/FormInput.vue";
+import { useToast } from "~/composables/useToast";
 
 interface Program {
-  id?: number;
   name: string;
-  enrolledStudents: string;
-  courses: string;
-  coreCount: string;
   type: string;
   credits: string;
 }
@@ -96,66 +95,52 @@ interface Program {
 interface ProgramOutput {
   id: number;
   name: string;
-  enrolledStudents: number;
-  courses: number;
-  coreCount: number;
   type: string;
-  credits: number;
+  credits: string;
 }
 
 interface Errors {
   name?: string;
-  enrolledStudents?: string;
-  courses?: string;
-  coreCount?: string;
   type?: string;
   credits?: string;
 }
 
 interface Props {
   modelValue: boolean;
+  loading?: boolean;
+  persistent?: boolean;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  loading: false,
+  persistent: false,
+});
+
 const emit = defineEmits<{
   (e: "update:modelValue", value: boolean): void;
   (e: "program-added", program: ProgramOutput): void;
 }>();
 
 const isLoading = ref(false);
-const formData = reactive<Program>({
-  name: "",
-  enrolledStudents: "",
-  courses: "",
-  coreCount: "",
-  type: "",
-  credits: "",
+const programTypes = ["Undergraduate", "Masters", "Doctorate"];
+const toast = useToast();
+
+const form = reactive<{
+  data: Program;
+  errors: Errors;
+}>({
+  data: {
+    name: "",
+    type: "",
+    credits: "0",
+  },
+  errors: {},
 });
 
-const errors = reactive<Errors>({});
-
 const validateForm = (): boolean => {
-  errors.name = !formData.name ? "Programme name is required" : undefined;
-  errors.type = !formData.type ? "Programme type is required" : undefined;
-
-  // Convert string inputs to numbers for validation
-  if (formData.enrolledStudents && isNaN(Number(formData.enrolledStudents))) {
-    errors.enrolledStudents = "Must be a valid number";
-  }
-
-  if (formData.courses && isNaN(Number(formData.courses))) {
-    errors.courses = "Must be a valid number";
-  }
-
-  if (formData.coreCount && isNaN(Number(formData.coreCount))) {
-    errors.coreCount = "Must be a valid number";
-  }
-
-  if (formData.credits && isNaN(Number(formData.credits))) {
-    errors.credits = "Must be a valid number";
-  }
-
-  return !Object.values(errors).some((error) => error !== undefined);
+  form.errors.name = !form.data.name ? "Program name is required" : undefined;
+  form.errors.type = !form.data.type ? "Program type is required" : undefined;
+  return !Object.values(form.errors).some((error) => error !== undefined);
 };
 
 const handleSubmit = async () => {
@@ -172,104 +157,60 @@ const handleSubmit = async () => {
 
     const newProgram: ProgramOutput = {
       id: Math.floor(Math.random() * 1000), // Generate a random ID for demo purposes
-      name: formData.name,
-      enrolledStudents: Number(formData.enrolledStudents) || 0,
-      courses: Number(formData.courses) || 0,
-      coreCount: Number(formData.coreCount) || 0,
-      type: formData.type,
-      credits: Number(formData.credits) || 0,
+      name: form.data.name,
+      type: form.data.type,
+      credits: form.data.credits,
     };
 
     emit("program-added", newProgram);
-    resetForm();
+    close();
+    // Add success toast
+    toast.success(`Program "${form.data.name}" added successfully`);
   } catch (error) {
     console.error("Error adding program:", error);
+    // Add error toast
+    toast.error("Failed to add program. Please try again.");
   } finally {
     isLoading.value = false;
   }
 };
 
 const resetForm = () => {
-  formData.name = "";
-  formData.enrolledStudents = "";
-  formData.courses = "";
-  formData.coreCount = "";
-  formData.type = "";
-  formData.credits = "";
-
-  Object.keys(errors).forEach((key) => {
-    delete errors[key as keyof Errors];
-  });
+  form.data = {
+    name: "",
+    type: "",
+    credits: "0",
+  };
+  form.errors = {};
 };
+
+const close = () => {
+  emit("update:modelValue", false);
+};
+
+const onOverlayClick = () => {
+  if (!props.persistent && !isLoading.value) {
+    close();
+  }
+};
+
+// Reset form when modal is closed
+watch(
+  () => props.modelValue,
+  (value) => {
+    if (!value) {
+      resetForm();
+    }
+  }
+);
 </script>
 
 <style lang="scss" scoped>
-.add-program-form {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-6;
-  padding: $spacing-2 0;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: $spacing-4;
-
-  @media (max-width: $breakpoint-sm) {
-    grid-template-columns: 1fr;
+.modal-body {
+  .form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
   }
-}
-
-.form-field {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.form-label {
-  display: block;
-  font-family: $font-family;
-  font-weight: 500;
-  color: $text-color;
-  font-size: $text-sm;
-}
-
-.form-select {
-  width: 100%;
-  padding: 0.875rem 1rem;
-  border: 1px solid $border-color;
-  border-radius: 12px;
-  font-family: $font-family;
-  font-size: $text-base;
-  color: $text-color;
-  background-color: white;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M4 6L8 10L12 6' stroke='%23667085' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 1rem center;
-
-  &:focus {
-    outline: none;
-    border-color: $primary-color;
-    box-shadow: 0 0 0 2px rgba($primary-color, 0.1);
-  }
-
-  &.has-error {
-    border-color: $error-500;
-
-    &:focus {
-      box-shadow: 0 0 0 2px rgba($error-500, 0.1);
-    }
-  }
-}
-
-.input-error {
-  font-family: $font-family;
-  font-size: $text-sm;
-  color: $error-500;
-  margin: 0;
-  line-height: 1.5;
 }
 </style>

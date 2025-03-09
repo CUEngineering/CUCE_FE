@@ -51,7 +51,7 @@
         <span class="icon">
           <IconsBookOpenIcon />
         </span>
-        <span class="label">Programmes</span>
+        <span class="label">Programs</span>
       </NuxtLink>
 
       <NuxtLink

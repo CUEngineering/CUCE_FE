@@ -1,13 +1,13 @@
 <template>
   <div class="programs-page">
     <div class="page-header">
-      <h1>Programmes</h1>
+      <h1>Programs</h1>
       <div class="search-and-actions">
         <div class="search-container">
           <input
             type="text"
             class="search-input"
-            placeholder="Find a programme"
+            placeholder="Find a program"
             v-model="searchQuery"
           />
           <SearchIcon class="search-icon" />
@@ -16,7 +16,7 @@
           <template #icon>
             <PlusIcon />
           </template>
-          New Programme
+          New Program
         </Button>
       </div>
     </div>
@@ -24,8 +24,8 @@
     <!-- Empty state for when no programs exist -->
     <EmptyState
       v-if="!programs.length"
-      title="No programmes found"
-      description="Add your first programme to get started"
+      title="No programs found"
+      description="Add your first program to get started"
     >
       <template #icon>
         <DocumentIcon />
@@ -35,7 +35,7 @@
           <template #icon>
             <PlusIcon />
           </template>
-          Add a programme
+          Add a program
         </Button>
       </template>
     </EmptyState>
@@ -56,13 +56,13 @@
         <table class="programs-table">
           <thead>
             <tr>
-              <th>Programme Name</th>
+              <th>Program Name</th>
               <th>Enrolled Students</th>
               <th>
                 Courses associated
                 <InfoCircleIcon class="info-icon" />
               </th>
-              <th>Programme Type</th>
+              <th>Program Type</th>
               <th>Credits</th>
               <th class="action-column">Action</th>
             </tr>
@@ -165,6 +165,9 @@
       v-model="showAddProgramModal"
       @program-added="handleProgramAdded"
     />
+
+    <!-- Toast Container -->
+    <ToastContainer />
   </div>
 </template>
 
@@ -177,7 +180,8 @@ import SearchIcon from "~/components/icons/SearchIcon.vue";
 import DocumentIcon from "~/components/icons/DocumentIcon.vue";
 import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
 import AddProgramModal from "~/components/AddProgramModal.vue";
-
+import InfoCircleIcon from "~/components/icons/InfoCircleIcon.vue";
+import ToastContainer from "~/components/ui/ToastContainer.vue";
 interface Program {
   id: number;
   name: string;
@@ -281,8 +285,19 @@ const handleProgramAdded = (newProgram: Program) => {
 };
 
 const viewProgramDetails = (programId: number) => {
-  // Navigate to program details page
-  navigateTo(`/programs/${programId}`);
+  // Add more detailed console logging
+  console.log(`Attempting to navigate to program: ${programId}`);
+
+  // Use router push with explicit error handling
+  try {
+    return navigateTo(`/programs/${programId}`, {
+      replace: false,
+    });
+  } catch (error) {
+    console.error("Navigation error:", error);
+    // Fallback to window location if navigateTo fails
+    window.location.href = `/programs/${programId}`;
+  }
 };
 
 // Define that this page uses the dashboard layout

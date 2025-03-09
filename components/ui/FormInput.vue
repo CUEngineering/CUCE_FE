@@ -48,21 +48,6 @@ defineEmits<{
 </script>
 
 <style lang="scss" scoped>
-.form-field {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.form-label {
-  display: block;
-  font-family: $font-family;
-  font-weight: 500;
-  color: $text-color;
-  font-size: $text-sm;
-}
-
 .input-wrapper {
   position: relative;
 }
@@ -114,13 +99,5 @@ defineEmits<{
       font-size: $text-sm;
     }
   }
-}
-
-.input-error {
-  font-family: $font-family;
-  font-size: $text-sm;
-  color: $error-500;
-  margin: 0;
-  line-height: 1.5;
 }
 </style>
