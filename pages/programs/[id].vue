@@ -204,6 +204,15 @@
         </table>
       </div>
     </div>
+
+    <div v-if="isLoading" class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Loading program data...</p>
+    </div>
+
+    <div v-else class="program-content">
+      <!-- Existing program content -->
+    </div>
   </div>
 </template>
 
@@ -243,9 +252,6 @@ definePageMeta({
 const route = useRoute();
 const programId = computed(() => route.params.id);
 
-// Add this for debugging - will show in server logs
-console.log("Route params:", route.params);
-
 // Add Program interface definition
 interface Program {
   id: number;
@@ -274,54 +280,292 @@ interface Course {
   type: string;
 }
 
-// Mock data
-const mockPrograms: Program[] = [
-  {
-    id: 1,
+interface ProgramData {
+  students: Student[];
+  courses: Course[];
+  name: string;
+  type: string;
+  credits: number;
+}
+
+// Program-specific mock data
+const programData: Record<number, ProgramData> = {
+  1: {
+    // Psychology
+    students: [
+      {
+        id: 1,
+        name: "Alice Johnson",
+        email: "alice.johnson@psych.edu",
+        creditsCompleted: "30/64",
+        avatar: "/images/avatars/1.png",
+      },
+      {
+        id: 2,
+        name: "Bob Smith",
+        email: "bob.smith@psych.edu",
+        creditsCompleted: "45/64",
+        avatar: "/images/avatars/2.png",
+      },
+      {
+        id: 3,
+        name: "Charlie Brown",
+        email: "charlie.brown@psych.edu",
+        creditsCompleted: "60/64",
+        avatar: "/images/avatars/3.png",
+      },
+    ],
+    courses: [
+      {
+        id: 1,
+        title: "Introduction to Psychology",
+        code: "PSY101",
+        credits: 4,
+        duration: "12 weeks",
+        type: "Core",
+      },
+      {
+        id: 2,
+        title: "Developmental Psychology",
+        code: "PSY201",
+        credits: 3,
+        duration: "10 weeks",
+        type: "Core",
+      },
+      {
+        id: 3,
+        title: "Abnormal Psychology",
+        code: "PSY301",
+        credits: 4,
+        duration: "12 weeks",
+        type: "Elective",
+      },
+    ],
     name: "Master of Science in Psychology",
-    enrolledStudents: 36,
-    courses: 12,
-    coreCount: 14,
     type: "Undergraduate",
     credits: 64,
   },
-  {
-    id: 2,
+  2: {
+    // Nursing - Entry Level
+    students: [
+      {
+        id: 4,
+        name: "David Wilson",
+        email: "david.wilson@nursing.edu",
+        creditsCompleted: "50/72",
+        avatar: "/images/avatars/4.png",
+      },
+      {
+        id: 5,
+        name: "Eva Green",
+        email: "eva.green@nursing.edu",
+        creditsCompleted: "60/72",
+        avatar: "/images/avatars/5.png",
+      },
+      {
+        id: 6,
+        name: "Frank White",
+        email: "frank.white@nursing.edu",
+        creditsCompleted: "70/72",
+        avatar: "/images/avatars/6.png",
+      },
+    ],
+    courses: [
+      {
+        id: 4,
+        title: "Nursing Fundamentals",
+        code: "NUR101",
+        credits: 3,
+        duration: "10 weeks",
+        type: "Core",
+      },
+      {
+        id: 5,
+        title: "Anatomy & Physiology",
+        code: "NUR102",
+        credits: 4,
+        duration: "12 weeks",
+        type: "Core",
+      },
+      {
+        id: 6,
+        title: "Pharmacology Basics",
+        code: "NUR201",
+        credits: 3,
+        duration: "10 weeks",
+        type: "Core",
+      },
+    ],
     name: "MSc. Nursing: Entry Level Clinical Track",
-    enrolledStudents: 201,
-    courses: 15,
-    coreCount: 18,
     type: "Undergraduate",
     credits: 72,
   },
-  {
-    id: 3,
-    name: "MSc. Nursing: Leadership and Management",
-    enrolledStudents: 117,
-    courses: 4,
-    coreCount: 6,
-    type: "Masters",
+  3: {
+    // Nursing - Leadership
+    students: [
+      {
+        id: 7,
+        name: "Grace Lee",
+        email: "grace.lee@nursing.edu",
+        creditsCompleted: "80/100",
+        avatar: "/images/avatars/7.png",
+      },
+      {
+        id: 8,
+        name: "Henry Ford",
+        email: "henry.ford@nursing.edu",
+        creditsCompleted: "90/100",
+        avatar: "/images/avatars/8.png",
+      },
+      {
+        id: 9,
+        name: "Ivy Chen",
+        email: "ivy.chen@nursing.edu",
+        creditsCompleted: "100/100",
+        avatar: "/images/avatars/9.png",
+      },
+    ],
+    courses: [
+      {
+        id: 7,
+        title: "Leadership in Nursing",
+        code: "NUR301",
+        credits: 4,
+        duration: "12 weeks",
+        type: "Core",
+      },
+      {
+        id: 8,
+        title: "Healthcare Management",
+        code: "NUR302",
+        credits: 3,
+        duration: "10 weeks",
+        type: "Core",
+      },
+      {
+        id: 9,
+        title: "Advanced Pharmacology",
+        code: "NUR303",
+        credits: 4,
+        duration: "12 weeks",
+        type: "Elective",
+      },
+    ],
+    name: "MSc. Nursing: Leadership",
+    type: "Undergraduate",
     credits: 100,
   },
-  {
-    id: 4,
+  4: {
+    // Public Health
+    students: [
+      {
+        id: 10,
+        name: "Jack Black",
+        email: "jack.black@publichealth.edu",
+        creditsCompleted: "30/46",
+        avatar: "/images/avatars/10.png",
+      },
+      {
+        id: 11,
+        name: "Karen White",
+        email: "karen.white@publichealth.edu",
+        creditsCompleted: "40/46",
+        avatar: "/images/avatars/11.png",
+      },
+      {
+        id: 12,
+        name: "Leo Green",
+        email: "leo.green@publichealth.edu",
+        creditsCompleted: "46/46",
+        avatar: "/images/avatars/12.png",
+      },
+    ],
+    courses: [
+      {
+        id: 10,
+        title: "Epidemiology",
+        code: "PH101",
+        credits: 3,
+        duration: "10 weeks",
+        type: "Core",
+      },
+      {
+        id: 11,
+        title: "Biostatistics",
+        code: "PH102",
+        credits: 4,
+        duration: "12 weeks",
+        type: "Core",
+      },
+      {
+        id: 12,
+        title: "Health Policy",
+        code: "PH201",
+        credits: 3,
+        duration: "10 weeks",
+        type: "Elective",
+      },
+    ],
     name: "Master of Public Health",
-    enrolledStudents: 103,
-    courses: 3,
-    coreCount: 3,
-    type: "Doctorate",
+    type: "Postgraduate",
     credits: 46,
   },
-  {
-    id: 5,
+  5: {
+    // Physiotherapy
+    students: [
+      {
+        id: 13,
+        name: "Mia Brown",
+        email: "mia.brown@physio.edu",
+        creditsCompleted: "50/75",
+        avatar: "/images/avatars/13.png",
+      },
+      {
+        id: 14,
+        name: "Noah Smith",
+        email: "noah.smith@physio.edu",
+        creditsCompleted: "60/75",
+        avatar: "/images/avatars/14.png",
+      },
+      {
+        id: 15,
+        name: "Olivia Johnson",
+        email: "olivia.johnson@physio.edu",
+        creditsCompleted: "75/75",
+        avatar: "/images/avatars/15.png",
+      },
+    ],
+    courses: [
+      {
+        id: 13,
+        title: "Anatomy for Physiotherapy",
+        code: "PT101",
+        credits: 4,
+        duration: "12 weeks",
+        type: "Core",
+      },
+      {
+        id: 14,
+        title: "Exercise Physiology",
+        code: "PT102",
+        credits: 3,
+        duration: "10 weeks",
+        type: "Core",
+      },
+      {
+        id: 15,
+        title: "Clinical Practice",
+        code: "PT201",
+        credits: 4,
+        duration: "12 weeks",
+        type: "Core",
+      },
+    ],
     name: "Master of Physiotherapy",
-    enrolledStudents: 201,
-    courses: 3,
-    coreCount: 7,
-    type: "Masters",
+    type: "Postgraduate",
     credits: 75,
   },
-];
+};
 
 // Add loading states and data refs
 const isLoading = ref(true);
@@ -357,87 +601,10 @@ const courseTableState = reactive({
 });
 
 // Mock student data (replace with API call)
-const mockStudentData = ref<Student[]>([
-  {
-    id: 1,
-    name: "Lana Steiner",
-    email: "lanasteiner@charismauniversity.edu.eu",
-    creditsCompleted: "64/104",
-    avatar: "/images/avatars/avatar-1.png",
-  },
-  {
-    id: 2,
-    name: "Benjamin Cole",
-    email: "benjamincole@charismauniversity.edu.eu",
-    creditsCompleted: "72/96",
-    avatar: "/images/avatars/avatar-2.png",
-  },
-  {
-    id: 3,
-    name: "Fortune Cole",
-    email: "fortunecole@charismauniversity.edu.eu",
-    creditsCompleted: "100/104",
-    avatar: "/images/avatars/avatar-3.png",
-  },
-  {
-    id: 4,
-    name: "Phoenix Baker",
-    email: "phoenixbaker@charismauniversity.edu.eu",
-    creditsCompleted: "46/78",
-    avatar: "/images/avatars/avatar-4.png",
-  },
-  {
-    id: 5,
-    name: "Olivia Rhye",
-    email: "oliviarhye@charismauniversity.edu.eu",
-    creditsCompleted: "35/124",
-    avatar: "/images/avatars/avatar-5.png",
-  },
-]);
+const mockStudentData = ref<Student[]>([]);
 
 // Mock course data (replace with API call)
-const mockCourseData = ref<Course[]>([
-  {
-    id: 1,
-    title: "Introduction to Psychology",
-    code: "PSY101",
-    credits: 4,
-    duration: "12 weeks",
-    type: "Core",
-  },
-  {
-    id: 2,
-    title: "Developmental Psychology",
-    code: "PSY204",
-    credits: 3,
-    duration: "10 weeks",
-    type: "Core",
-  },
-  {
-    id: 3,
-    title: "Cognitive Psychology",
-    code: "PSY302",
-    credits: 4,
-    duration: "12 weeks",
-    type: "Core",
-  },
-  {
-    id: 4,
-    title: "Social Psychology",
-    code: "PSY205",
-    credits: 3,
-    duration: "10 weeks",
-    type: "Elective",
-  },
-  {
-    id: 5,
-    title: "Abnormal Psychology",
-    code: "PSY303",
-    credits: 4,
-    duration: "12 weeks",
-    type: "Elective",
-  },
-]);
+const mockCourseData = ref<Course[]>([]);
 
 // Student columns with proper typing
 const studentColumnHelper = createColumnHelper<Student>();
@@ -467,14 +634,16 @@ const studentColumns = [
   }),
 ];
 
-// Initialize table without computed()
-const studentTable = useVueTable({
-  data: mockStudentData.value,
-  columns: studentColumns,
-  state: studentTableState,
-  getCoreRowModel: getCoreRowModel(),
-  getFilteredRowModel: getFilteredRowModel(),
-  getSortedRowModel: getSortedRowModel(),
+// Replace the current studentTable initialization with:
+const studentTable = computed(() => {
+  return useVueTable({
+    data: mockStudentData.value,
+    columns: studentColumns,
+    state: studentTableState,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  });
 });
 
 // Configure course columns
@@ -581,28 +750,59 @@ const toast = useToast();
 onMounted(async () => {
   const id = parseInt(route.params.id as string, 10);
 
-  // Validate ID
   if (isNaN(id)) {
     toast.error("Invalid program ID");
     return navigateTo("/programs");
   }
 
-  // Find program
-  const foundProgram = mockPrograms.find((p) => p.id === id);
-
-  if (!foundProgram) {
+  if (!programData[id]) {
     toast.error("Program not found");
     return navigateTo("/programs");
   }
 
-  // Set program data
-  program.value = foundProgram;
-  isLoading.value = false;
+  try {
+    const data = await fetchProgramData(id);
+    program.value = {
+      id: id,
+      name: data.name,
+      enrolledStudents: data.students.length,
+      courses: data.courses.length,
+      coreCount: data.courses.filter((c) => c.type === "Core").length,
+      type: data.type,
+      credits: data.credits,
+    };
+    mockStudentData.value = data.students;
+    mockCourseData.value = data.courses;
+  } catch (error) {
+    console.error("Error loading program data:", error);
+  }
 });
 
 // Navigation methods
 const navigateBack = () => {
   navigateTo("/programs");
+};
+
+const fetchProgramData = async (programId: number): Promise<ProgramData> => {
+  isLoading.value = true;
+
+  try {
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    const data = programData[programId];
+
+    if (!data) {
+      throw new Error(`Data not found for program ID ${programId}`);
+    }
+
+    return data;
+  } catch (error) {
+    toast.error("Failed to load program data");
+    throw error;
+  } finally {
+    isLoading.value = false;
+  }
 };
 </script>
 
@@ -999,13 +1199,24 @@ const navigateBack = () => {
 
 .loading-state {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  padding: $spacing-6;
-  background-color: $white;
-  border-radius: 16px;
-  border: 1px solid $gray-200;
-  color: $gray-600;
-  font-size: $text-sm;
+  justify-content: center;
+  padding: 2rem;
+
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid $gray-200;
+    border-top-color: $primary-color;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
 }
 </style>
