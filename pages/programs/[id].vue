@@ -139,18 +139,10 @@
                 :key="cell.id"
                 class="table-cell"
               >
-                <div v-if="cell.column.id === 'actions'" class="action-cell">
-                  <button class="action-button">
-                    <DotsVerticalIcon />
-                  </button>
-                </div>
-                <template v-else>
-                  <component
-                    :is="cell.column.columnDef.cell"
-                    :row="cell.row"
-                    :value="cell.getValue()"
-                  />
-                </template>
+                <FlexRender
+                  :render="cell.column.columnDef.cell"
+                  :props="cell.getContext()"
+                />
               </td>
             </tr>
           </tbody>
@@ -446,71 +438,43 @@ const mockCourseData = ref<Course[]>([
   },
 ]);
 
-// Configure student columns
+// Student columns with proper typing
+const studentColumnHelper = createColumnHelper<Student>();
 const studentColumns = [
-  {
-    id: "name",
+  studentColumnHelper.accessor("name", {
     header: "Student Name",
-    accessorKey: "name",
-    cell: defineComponent({
-      props: ["row", "value"],
-      setup(props) {
-        const student = props.row.original;
-        return () =>
-          h("div", { class: "student-name-cell" }, [
-            h("img", {
-              src: student.avatar,
-              alt: props.value,
-              class: "student-avatar",
-            }),
-            h("span", {}, props.value),
-          ]);
-      },
-    }),
-  },
-  {
-    id: "email",
+    cell: ({ row }) =>
+      h("div", { class: "student-name-cell" }, [
+        h("img", {
+          src: row.original.avatar,
+          class: "student-avatar",
+          alt: row.original.name,
+        }),
+        row.original.name,
+      ]),
+  }),
+  studentColumnHelper.accessor("email", {
     header: "Email Address",
-    accessorKey: "email",
-    cell: defineComponent({
-      props: ["value"],
-      setup(props) {
-        return () => h("span", {}, props.value);
-      },
-    }),
-  },
-  {
-    id: "creditsCompleted",
+  }),
+  studentColumnHelper.accessor("creditsCompleted", {
     header: "Credits Completed",
-    accessorKey: "creditsCompleted",
-    cell: defineComponent({
-      props: ["value"],
-      setup(props) {
-        return () => h("span", {}, props.value);
-      },
-    }),
-  },
-  {
+  }),
+  studentColumnHelper.display({
     id: "actions",
     header: "Action",
-    cell: defineComponent({
-      setup() {
-        return () =>
-          h(
-            "button",
-            {
-              onClick: (e: Event) => {
-                e.stopPropagation();
-                // Action logic here
-              },
-              class: "action-button",
-            },
-            h(DotsVerticalIcon)
-          );
-      },
-    }),
-  },
-] as const;
+    cell: () => h(DotsVerticalIcon),
+  }),
+];
+
+// Initialize table without computed()
+const studentTable = useVueTable({
+  data: mockStudentData.value,
+  columns: studentColumns,
+  state: studentTableState,
+  getCoreRowModel: getCoreRowModel(),
+  getFilteredRowModel: getFilteredRowModel(),
+  getSortedRowModel: getSortedRowModel(),
+});
 
 // Configure course columns
 const courseColumns = [
@@ -597,18 +561,6 @@ const courseColumns = [
 ] as const;
 
 // Initialize tables
-const studentTable = computed(() => {
-  return useVueTable({
-    data: mockStudentData.value,
-    columns: studentColumns as any,
-    state: studentTableState,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-  });
-});
-
 const courseTable = computed(() => {
   return useVueTable({
     data: mockCourseData.value,
