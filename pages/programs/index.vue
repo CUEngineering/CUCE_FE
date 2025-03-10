@@ -266,6 +266,8 @@ const programs = ref<Program[]>([
   },
 ]);
 
+// programs.value = [];
+
 // Filter type
 const filterType = ref("all");
 
@@ -420,11 +422,10 @@ definePageMeta({
     align-items: center;
     flex-wrap: wrap;
     gap: $spacing-4;
-    margin-bottom: $spacing-6;
 
     h1 {
       font-family: $font-family-heading;
-      font-size: $text-2xl;
+      font-size: $text-xl;
       font-weight: 700;
       color: $gray-900;
       margin: 0;
@@ -479,6 +480,10 @@ definePageMeta({
     border: 1px solid $gray-200;
     overflow: hidden;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+    &.dashlet {
+      padding: 0;
+    }
   }
 
   .programs-table {

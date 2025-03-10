@@ -1,10 +1,10 @@
 <template>
   <div class="program-detail-page">
-    <!-- Debugging info -->
+    <!-- Debugging info
     <div v-if="!program" class="debugging-info">
       <p>Loading program with ID: {{ programId }}</p>
       <p>Route params: {{ JSON.stringify(route.params) }}</p>
-    </div>
+    </div> -->
 
     <!-- Back button header -->
     <div class="page-header">
@@ -232,6 +232,7 @@ import Button from "~/components/ui/Button.vue";
 import SearchIcon from "~/components/icons/SearchIcon.vue";
 import PlusIcon from "~/components/icons/PlusIcon.vue";
 import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
+import { useToast } from "~/composables/useToast";
 
 // Define that this page uses the dashboard layout
 definePageMeta({
@@ -573,13 +574,29 @@ const courseTable = computed(() => {
   });
 });
 
-// Fetch program details
-onMounted(() => {
-  // Set program data
-  const id = parseInt(route.params.id as string, 10);
-  program.value = mockPrograms.find((p) => p.id === id) || null;
+// Get toast instance
+const toast = useToast();
 
-  // We have mock data, no need to load
+// Update program fetch logic
+onMounted(async () => {
+  const id = parseInt(route.params.id as string, 10);
+
+  // Validate ID
+  if (isNaN(id)) {
+    toast.error("Invalid program ID");
+    return navigateTo("/programs");
+  }
+
+  // Find program
+  const foundProgram = mockPrograms.find((p) => p.id === id);
+
+  if (!foundProgram) {
+    toast.error("Program not found");
+    return navigateTo("/programs");
+  }
+
+  // Set program data
+  program.value = foundProgram;
   isLoading.value = false;
 });
 
