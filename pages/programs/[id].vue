@@ -105,175 +105,137 @@
 
     <!-- Students tab content -->
     <div v-if="activeTab === 'students'" class="tab-content">
-      <div class="tab-header">
-        <div class="search-container">
-          <input
-            type="text"
-            class="search-input"
-            placeholder="Search students"
-            v-model="studentSearchQuery"
-          />
-          <SearchIcon class="search-icon" />
-        </div>
-        <Button>
-          <template #icon>
-            <PlusIcon />
-          </template>
-          Add Student
-        </Button>
-      </div>
-
-      <!-- Desktop: Students table -->
-      <div class="desktop-view">
+      <!-- Students table -->
+      <div class="data-table-container">
         <table class="data-table">
           <thead>
             <tr>
-              <th>Student Name</th>
-              <th>Email Address</th>
-              <th>Credits Completed</th>
-              <th class="action-column">Action</th>
+              <th
+                v-for="header in studentTable.getHeaderGroups()[0].headers"
+                :key="header.id"
+                @click="header.column.getToggleSortingHandler()"
+                class="table-header"
+              >
+                <div class="header-content">
+                  {{ header.column.columnDef.header }}
+                  <span
+                    v-if="header.column.getIsSorted()"
+                    class="sort-indicator"
+                  >
+                    {{ header.column.getIsSortedDesc() ? "▼" : "▲" }}
+                  </span>
+                </div>
+              </th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="student in filteredStudents" :key="student.id">
-              <td class="student-name-cell">
-                <img
-                  :src="student.avatar"
-                  :alt="student.name"
-                  class="student-avatar"
-                />
-                <span>{{ student.name }}</span>
-              </td>
-              <td>{{ student.email }}</td>
-              <td>{{ student.creditsCompleted }}</td>
-              <td class="action-column">
-                <button class="action-button">
-                  <DotsVerticalIcon />
-                </button>
+            <tr
+              v-for="row in studentTable.getRowModel().rows"
+              :key="row.id"
+              class="table-row"
+            >
+              <td
+                v-for="cell in row.getVisibleCells()"
+                :key="cell.id"
+                class="table-cell"
+              >
+                <div v-if="cell.column.id === 'actions'" class="action-cell">
+                  <button class="action-button">
+                    <DotsVerticalIcon />
+                  </button>
+                </div>
+                <template v-else>
+                  <component
+                    :is="cell.column.columnDef.cell"
+                    :row="cell.row"
+                    :value="cell.getValue()"
+                  />
+                </template>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-
-      <!-- Mobile: Students cards -->
-      <div class="mobile-view">
-        <div
-          v-for="student in filteredStudents"
-          :key="student.id"
-          class="student-card"
-        >
-          <div class="student-card-header">
-            <div class="student-info">
-              <img
-                :src="student.avatar"
-                :alt="student.name"
-                class="student-avatar"
-              />
-              <div>
-                <h3 class="student-name">{{ student.name }}</h3>
-                <p class="student-email">{{ student.email }}</p>
-              </div>
-            </div>
-            <button class="action-button">
-              <DotsVerticalIcon />
-            </button>
-          </div>
-          <div class="student-card-content">
-            <div class="student-stat">
-              <span class="stat-label">Credits Completed</span>
-              <span class="stat-value">{{ student.creditsCompleted }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Pagination -->
-      <div class="pagination">
-        <button class="pagination-button" :disabled="currentPage === 1">
-          Previous
-        </button>
-        <div class="pagination-pages">
-          <button
-            v-for="page in totalPages"
-            :key="page"
-            class="page-number"
-            :class="{ active: currentPage === page }"
-            @click="currentPage = page"
-          >
-            {{ page }}
-          </button>
-        </div>
-        <button
-          class="pagination-button"
-          :disabled="currentPage === totalPages"
-        >
-          Next
-        </button>
-      </div>
     </div>
 
     <!-- Courses tab content -->
     <div v-if="activeTab === 'courses'" class="tab-content">
-      <div class="tab-header">
-        <div class="search-container">
-          <input
-            type="text"
-            class="search-input"
-            placeholder="Search courses"
-            v-model="courseSearchQuery"
-          />
-          <SearchIcon class="search-icon" />
-        </div>
-        <Button>
-          <template #icon>
-            <PlusIcon />
-          </template>
-          Add Course
-        </Button>
-      </div>
-
-      <!-- Courses list -->
-      <div class="courses-list">
-        <div
-          v-for="course in filteredCourses"
-          :key="course.id"
-          class="course-card"
-        >
-          <div class="course-card-header">
-            <h3 class="course-title">{{ course.title }}</h3>
-            <span :class="['course-type', course.type.toLowerCase()]">{{
-              course.type
-            }}</span>
-          </div>
-          <div class="course-card-content">
-            <div class="course-stats">
-              <div class="course-stat">
-                <span class="stat-label">Course Code</span>
-                <span class="stat-value">{{ course.code }}</span>
-              </div>
-              <div class="course-stat">
-                <span class="stat-label">Credits</span>
-                <span class="stat-value">{{ course.credits }}</span>
-              </div>
-              <div class="course-stat">
-                <span class="stat-label">Duration</span>
-                <span class="stat-value">{{ course.duration }}</span>
-              </div>
-            </div>
-            <button class="action-button">
-              <DotsVerticalIcon />
-            </button>
-          </div>
-        </div>
+      <!-- Courses table -->
+      <div class="data-table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th
+                v-for="header in courseTable.getHeaderGroups()[0].headers"
+                :key="header.id"
+                @click="header.column.getToggleSortingHandler()"
+                class="table-header"
+              >
+                <div class="header-content">
+                  {{ header.column.columnDef.header }}
+                  <span
+                    v-if="header.column.getIsSorted()"
+                    class="sort-indicator"
+                  >
+                    {{ header.column.getIsSortedDesc() ? "▼" : "▲" }}
+                  </span>
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="row in courseTable.getRowModel().rows"
+              :key="row.id"
+              class="table-row"
+            >
+              <td
+                v-for="cell in row.getVisibleCells()"
+                :key="cell.id"
+                class="table-cell"
+              >
+                <div v-if="cell.column.id === 'actions'" class="action-cell">
+                  <button class="action-button">
+                    <DotsVerticalIcon />
+                  </button>
+                </div>
+                <template v-else>
+                  <component
+                    :is="cell.column.columnDef.cell"
+                    :row="cell.row"
+                    :value="cell.getValue()"
+                  />
+                </template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import {
+  ref,
+  reactive,
+  computed,
+  onMounted,
+  h,
+  watch,
+  defineComponent,
+} from "vue";
 import { useRoute } from "vue-router";
+import {
+  createColumnHelper,
+  FlexRender,
+  useVueTable,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+} from "@tanstack/vue-table";
+import type { ColumnSort } from "@tanstack/vue-table";
 import Button from "~/components/ui/Button.vue";
 import SearchIcon from "~/components/icons/SearchIcon.vue";
 import PlusIcon from "~/components/icons/PlusIcon.vue";
@@ -302,18 +264,107 @@ interface Program {
   credits: number;
 }
 
-// Mock program data (replace with API call)
+interface Student {
+  id: number;
+  name: string;
+  email: string;
+  creditsCompleted: string;
+  avatar: string;
+}
+
+interface Course {
+  id: number;
+  title: string;
+  code: string;
+  credits: number;
+  duration: string;
+  type: string;
+}
+
+// Mock data
+const mockPrograms: Program[] = [
+  {
+    id: 1,
+    name: "Master of Science in Psychology",
+    enrolledStudents: 36,
+    courses: 12,
+    coreCount: 14,
+    type: "Undergraduate",
+    credits: 64,
+  },
+  {
+    id: 2,
+    name: "MSc. Nursing: Entry Level Clinical Track",
+    enrolledStudents: 201,
+    courses: 15,
+    coreCount: 18,
+    type: "Undergraduate",
+    credits: 72,
+  },
+  {
+    id: 3,
+    name: "MSc. Nursing: Leadership and Management",
+    enrolledStudents: 117,
+    courses: 4,
+    coreCount: 6,
+    type: "Masters",
+    credits: 100,
+  },
+  {
+    id: 4,
+    name: "Master of Public Health",
+    enrolledStudents: 103,
+    courses: 3,
+    coreCount: 3,
+    type: "Doctorate",
+    credits: 46,
+  },
+  {
+    id: 5,
+    name: "Master of Physiotherapy",
+    enrolledStudents: 201,
+    courses: 3,
+    coreCount: 7,
+    type: "Masters",
+    credits: 75,
+  },
+];
+
+// Add loading states and data refs
+const isLoading = ref(true);
 const program = ref<Program | null>(null);
+
+// Remove separate refs for students and courses since we're using mockData
+// const students = ref<Student[]>([]);
+// const courses = ref<Course[]>([]);
 
 // Tab state
 const activeTab = ref("students");
-const currentPage = ref(1);
-const pageSize = 10;
+
+// Student Table State
 const studentSearchQuery = ref("");
+const studentTableState = reactive({
+  pagination: {
+    pageIndex: 0,
+    pageSize: 10,
+  },
+  sorting: [] as ColumnSort[],
+  globalFilter: "",
+});
+
+// Course Table State
 const courseSearchQuery = ref("");
+const courseTableState = reactive({
+  pagination: {
+    pageIndex: 0,
+    pageSize: 6,
+  },
+  sorting: [] as ColumnSort[],
+  globalFilter: "",
+});
 
 // Mock student data (replace with API call)
-const students = ref([
+const mockStudentData = ref<Student[]>([
   {
     id: 1,
     name: "Lana Steiner",
@@ -352,7 +403,7 @@ const students = ref([
 ]);
 
 // Mock course data (replace with API call)
-const courses = ref([
+const mockCourseData = ref<Course[]>([
   {
     id: 1,
     title: "Introduction to Psychology",
@@ -395,111 +446,189 @@ const courses = ref([
   },
 ]);
 
+// Configure student columns
+const studentColumns = [
+  {
+    id: "name",
+    header: "Student Name",
+    accessorKey: "name",
+    cell: defineComponent({
+      props: ["row", "value"],
+      setup(props) {
+        const student = props.row.original;
+        return () =>
+          h("div", { class: "student-name-cell" }, [
+            h("img", {
+              src: student.avatar,
+              alt: props.value,
+              class: "student-avatar",
+            }),
+            h("span", {}, props.value),
+          ]);
+      },
+    }),
+  },
+  {
+    id: "email",
+    header: "Email Address",
+    accessorKey: "email",
+    cell: defineComponent({
+      props: ["value"],
+      setup(props) {
+        return () => h("span", {}, props.value);
+      },
+    }),
+  },
+  {
+    id: "creditsCompleted",
+    header: "Credits Completed",
+    accessorKey: "creditsCompleted",
+    cell: defineComponent({
+      props: ["value"],
+      setup(props) {
+        return () => h("span", {}, props.value);
+      },
+    }),
+  },
+  {
+    id: "actions",
+    header: "Action",
+    cell: defineComponent({
+      setup() {
+        return () =>
+          h(
+            "button",
+            {
+              onClick: (e: Event) => {
+                e.stopPropagation();
+                // Action logic here
+              },
+              class: "action-button",
+            },
+            h(DotsVerticalIcon)
+          );
+      },
+    }),
+  },
+] as const;
+
+// Configure course columns
+const courseColumns = [
+  {
+    id: "title",
+    header: "Course Name",
+    accessorKey: "title",
+    cell: defineComponent({
+      props: ["value"],
+      setup(props) {
+        return () => h("span", {}, props.value);
+      },
+    }),
+  },
+  {
+    id: "code",
+    header: "Course Code",
+    accessorKey: "code",
+    cell: defineComponent({
+      props: ["value"],
+      setup(props) {
+        return () => h("span", {}, props.value);
+      },
+    }),
+  },
+  {
+    id: "credits",
+    header: "Credits",
+    accessorKey: "credits",
+    cell: defineComponent({
+      props: ["value"],
+      setup(props) {
+        return () => h("span", {}, props.value);
+      },
+    }),
+  },
+  {
+    id: "duration",
+    header: "Duration",
+    accessorKey: "duration",
+    cell: defineComponent({
+      props: ["value"],
+      setup(props) {
+        return () => h("span", {}, props.value);
+      },
+    }),
+  },
+  {
+    id: "type",
+    header: "Type",
+    accessorKey: "type",
+    cell: defineComponent({
+      props: ["row", "value"],
+      setup(props) {
+        return () =>
+          h(
+            "span",
+            { class: ["course-type", props.value.toLowerCase()] },
+            props.value
+          );
+      },
+    }),
+  },
+  {
+    id: "actions",
+    header: "Action",
+    cell: defineComponent({
+      setup() {
+        return () =>
+          h(
+            "button",
+            {
+              onClick: (e: Event) => {
+                e.stopPropagation();
+                // Action logic here
+              },
+              class: "action-button",
+            },
+            h(DotsVerticalIcon)
+          );
+      },
+    }),
+  },
+] as const;
+
+// Initialize tables
+const studentTable = computed(() => {
+  return useVueTable({
+    data: mockStudentData.value,
+    columns: studentColumns as any,
+    state: studentTableState,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  });
+});
+
+const courseTable = computed(() => {
+  return useVueTable({
+    data: mockCourseData.value,
+    columns: courseColumns as any,
+    state: courseTableState,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  });
+});
+
 // Fetch program details
-onMounted(async () => {
-  console.log("Detail page mounted, program ID:", programId.value);
-  console.log("Full route:", route);
-  console.log("Route params:", route.params);
-  console.log("Route query:", route.query);
-  console.log("Current window location:", window.location.href);
+onMounted(() => {
+  // Set program data
+  const id = parseInt(route.params.id as string, 10);
+  program.value = mockPrograms.find((p) => p.id === id) || null;
 
-  try {
-    // Local mock data for programs
-    const mockPrograms: Program[] = [
-      {
-        id: 1,
-        name: "Master of Science in Psychology",
-        enrolledStudents: 36,
-        courses: 12,
-        coreCount: 14,
-        type: "Undergraduate",
-        credits: 64,
-      },
-      {
-        id: 2,
-        name: "MSc. Nursing: Entry Level Clinical Track",
-        enrolledStudents: 201,
-        courses: 15,
-        coreCount: 18,
-        type: "Undergraduate",
-        credits: 72,
-      },
-      {
-        id: 3,
-        name: "MSc. Nursing: Leadership and Management",
-        enrolledStudents: 117,
-        courses: 4,
-        coreCount: 6,
-        type: "Masters",
-        credits: 100,
-      },
-      {
-        id: 4,
-        name: "Master of Public Health",
-        enrolledStudents: 103,
-        courses: 3,
-        coreCount: 3,
-        type: "Doctorate",
-        credits: 46,
-      },
-      {
-        id: 5,
-        name: "Master of Physiotherapy",
-        enrolledStudents: 201,
-        courses: 3,
-        coreCount: 7,
-        type: "Masters",
-        credits: 75,
-      },
-    ];
-
-    // Find program by ID, ensuring type conversion
-    const selectedProgram = mockPrograms.find(
-      (p: Program) => p.id === Number(programId.value)
-    );
-
-    if (selectedProgram) {
-      program.value = selectedProgram;
-      console.log("Program found:", program.value);
-    } else {
-      console.error(`No program found with ID: ${programId.value}`);
-      // Redirect back to programs list if no program found
-      await navigateTo("/programs", { replace: true });
-    }
-  } catch (error) {
-    console.error("Error fetching program details:", error);
-    // Redirect back to programs list in case of any error
-    await navigateTo("/programs", { replace: true });
-  }
-});
-
-// Filter students by search query
-const filteredStudents = computed(() => {
-  if (!studentSearchQuery.value) return students.value;
-
-  const query = studentSearchQuery.value.toLowerCase();
-  return students.value.filter(
-    (student) =>
-      student.name.toLowerCase().includes(query) ||
-      student.email.toLowerCase().includes(query)
-  );
-});
-
-// Filter courses by search query
-const filteredCourses = computed(() => {
-  if (!courseSearchQuery.value) return courses.value;
-
-  const query = courseSearchQuery.value.toLowerCase();
-  return courses.value.filter(
-    (course) =>
-      course.title.toLowerCase().includes(query) ||
-      course.code.toLowerCase().includes(query)
-  );
-});
-
-// Total pages for pagination
-const totalPages = computed(() => {
-  return Math.ceil(filteredStudents.value.length / pageSize);
+  // We have mock data, no need to load
+  isLoading.value = false;
 });
 
 // Navigation methods
@@ -709,45 +838,78 @@ const navigateBack = () => {
   }
 }
 
-// Desktop table styles
-.desktop-view {
-  width: 100%;
-  overflow-x: auto;
-  display: block;
-
-  @media (max-width: $breakpoint-md) {
-    display: none;
-  }
+// Table styles
+.data-table-container {
+  background-color: $white;
+  border-radius: 16px;
+  border: 1px solid $gray-200;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-bottom: $spacing-4;
 }
 
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  background-color: $white;
-  border-radius: 16px;
-  border: 1px solid $gray-200;
-  overflow: hidden;
 
-  th,
-  td {
+  .table-header {
+    padding: $spacing-4;
+    text-align: left;
+    color: $gray-700;
+    font-weight: 600;
+    font-size: $text-sm;
+    background-color: $gray-50;
+    border-bottom: 1px solid $gray-200;
+    position: relative;
+    cursor: pointer;
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      gap: $spacing-2;
+    }
+
+    .sort-indicator {
+      display: inline-block;
+      color: $primary-color;
+      font-size: $text-sm;
+    }
+
+    &:last-child {
+      text-align: center;
+    }
+  }
+
+  .table-row {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+
+    &:nth-child(even) {
+      background-color: $gray-50;
+    }
+
+    &:hover {
+      background-color: $primary-color-25;
+    }
+  }
+
+  .table-cell {
     padding: $spacing-4;
     text-align: left;
     border-bottom: 1px solid $gray-200;
     font-size: $text-sm;
-  }
+    color: $gray-800;
 
-  th {
-    color: $gray-700;
-    font-weight: 600;
-    background-color: $gray-50;
-    white-space: nowrap;
+    &:last-child {
+      text-align: center;
+    }
   }
+}
 
-  .student-name-cell {
-    display: flex;
-    align-items: center;
-    gap: $spacing-3;
-  }
+.student-name-cell {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
 
   .student-avatar {
     width: 32px;
@@ -755,190 +917,68 @@ const navigateBack = () => {
     border-radius: 50%;
     object-fit: cover;
   }
+}
 
-  .action-column {
-    width: 60px;
-    text-align: center;
+.course-type {
+  display: inline-block;
+  padding: 4px $spacing-3;
+  border-radius: 16px;
+  font-size: $text-xs;
+  font-weight: 500;
+
+  &.core {
+    background-color: $primary-color-50;
+    color: $primary-color-700;
   }
 
-  .action-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: $gray-500;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-
-    &:hover {
-      background-color: $gray-100;
-      color: $gray-700;
-    }
+  &.elective {
+    background-color: $gray-100;
+    color: $gray-700;
   }
 }
 
-// Mobile styles
-.mobile-view {
-  display: none;
+.action-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: $gray-500;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  margin: 0 auto;
 
-  @media (max-width: $breakpoint-md) {
-    display: block;
+  &:hover {
+    background-color: $gray-100;
+    color: $gray-700;
   }
 }
 
-.student-card {
-  padding: $spacing-4;
-  background-color: $white;
-  border: 1px solid $gray-200;
-  border-radius: 12px;
-  margin-bottom: $spacing-3;
-
-  .student-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: $spacing-3;
-
-    .student-info {
-      display: flex;
-      align-items: center;
-      gap: $spacing-3;
-
-      .student-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        object-fit: cover;
-      }
-
-      .student-name {
-        font-weight: 600;
-        font-size: $text-base;
-        color: $gray-800;
-        margin: 0;
-      }
-
-      .student-email {
-        font-size: $text-sm;
-        color: $gray-600;
-        margin: 0;
-      }
-    }
-  }
-
-  .student-card-content {
-    .student-stat {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-
-      .stat-label {
-        font-size: $text-sm;
-        color: $gray-600;
-      }
-
-      .stat-value {
-        font-weight: 500;
-        color: $gray-900;
-      }
-    }
-  }
-}
-
-// Course cards
-.courses-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: $spacing-4;
-
-  @media (max-width: $breakpoint-sm) {
-    grid-template-columns: 1fr;
-  }
-}
-
-.course-card {
-  background-color: $white;
-  border: 1px solid $gray-200;
-  border-radius: 12px;
-  overflow: hidden;
-
-  .course-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: $spacing-4;
-    border-bottom: 1px solid $gray-200;
-
-    .course-title {
-      font-weight: 600;
-      font-size: $text-base;
-      color: $gray-800;
-      margin: 0;
-    }
-
-    .course-type {
-      padding: 4px $spacing-3;
-      border-radius: 16px;
-      font-size: $text-xs;
-      font-weight: 500;
-
-      &.core {
-        background-color: $primary-color-50;
-        color: $primary-color-700;
-      }
-
-      &.elective {
-        background-color: $gray-100;
-        color: $gray-700;
-      }
-    }
-  }
-
-  .course-card-content {
-    padding: $spacing-4;
-    display: flex;
-    justify-content: space-between;
-
-    .course-stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: $spacing-4;
-
-      @media (max-width: $breakpoint-sm) {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    .course-stat {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-
-      .stat-label {
-        font-size: $text-xs;
-        color: $gray-500;
-      }
-
-      .stat-value {
-        font-weight: 500;
-        color: $gray-800;
-      }
-    }
-  }
+.action-cell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 // Pagination
 .pagination {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   padding: $spacing-4;
-  margin-top: $spacing-4;
+
+  .pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
+  }
 
   .pagination-button {
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
     padding: $spacing-2 $spacing-3;
     border: 1px solid $gray-300;
     background-color: $white;
@@ -961,17 +1001,18 @@ const navigateBack = () => {
   .pagination-pages {
     display: flex;
     gap: 4px;
+    margin: 0 $spacing-2;
   }
 
-  .page-number {
-    width: 32px;
+  .page-button {
+    min-width: 32px;
     height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 8px;
     border: none;
-    background: none;
+    background: transparent;
     font-size: $text-sm;
     color: $gray-700;
     cursor: pointer;
@@ -985,5 +1026,17 @@ const navigateBack = () => {
       color: $white;
     }
   }
+}
+
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: $spacing-6;
+  background-color: $white;
+  border-radius: 16px;
+  border: 1px solid $gray-200;
+  color: $gray-600;
+  font-size: $text-sm;
 }
 </style>

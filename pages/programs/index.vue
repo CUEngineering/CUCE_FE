@@ -2,7 +2,7 @@
   <div class="programs-page dashlet-wrapper">
     <div class="page-header dashlet">
       <div class="title-and-filter">
-        <h1>Programs</h1>
+        <h1>Programmes</h1>
         <div v-if="programs.length > 0" class="programs-filter">
           <select v-model="filterType" class="filter-select">
             <option value="all">All ({{ programs.length }})</option>
@@ -14,16 +14,16 @@
           <input
             type="text"
             class="search-input"
-            placeholder="Find a program"
+            placeholder="Find a programme"
             v-model="searchQuery"
           />
           <SearchIcon class="search-icon" />
         </div>
-        <Button @click="openAddProgramModal">
+        <Button @click="openAddProgramModal" variant="primary">
           <template #icon>
             <PlusIcon />
           </template>
-          New Program
+          New Programme
         </Button>
       </div>
     </div>
@@ -31,8 +31,8 @@
     <!-- Empty state for when no programs exist -->
     <EmptyState
       v-if="!programs.length"
-      title="No programs found"
-      description="Add your first program to get started"
+      title="No programmes found"
+      description="Add your first programme to get started"
     >
       <template #icon>
         <DocumentIcon />
@@ -42,25 +42,28 @@
           <template #icon>
             <PlusIcon />
           </template>
-          Add a program
+          Add a programme
         </Button>
       </template>
     </EmptyState>
 
     <!-- Programs table when programs exist -->
     <div v-else class="programs-content dashlet">
-      <table>
+      <table class="programs-table">
         <thead>
           <tr>
             <th
               v-for="header in table.getHeaderGroups()[0].headers"
               :key="header.id"
               @click="header.column.getToggleSortingHandler()"
+              class="table-header"
             >
-              {{ header.column.columnDef.header }}
-              <span v-if="header.column.getIsSorted()">
-                {{ header.column.getIsSortedDesc() ? "▼" : "▲" }}
-              </span>
+              <div class="header-content">
+                {{ header.column.columnDef.header }}
+                <span v-if="header.column.getIsSorted()" class="sort-indicator">
+                  {{ header.column.getIsSortedDesc() ? "▼" : "▲" }}
+                </span>
+              </div>
             </th>
           </tr>
         </thead>
@@ -69,12 +72,39 @@
             v-for="row in table.getRowModel().rows"
             :key="row.id"
             @click="viewProgramDetails(row.original.id)"
+            class="table-row"
           >
-            <td v-for="cell in row.getVisibleCells()" :key="cell.id">
-              <component
-                :is="cell.column.columnDef.cell"
-                :info="cell.getContext()"
-              />
+            <td
+              v-for="cell in row.getVisibleCells()"
+              :key="cell.id"
+              class="table-cell"
+            >
+              <template v-if="typeof cell.column.columnDef.cell === 'function'">
+                <div v-if="cell.column.id === 'actions'" class="action-cell">
+                  <button class="action-button">
+                    <DotsVerticalIcon />
+                  </button>
+                </div>
+                <div
+                  v-else-if="cell.column.id === 'courses'"
+                  class="courses-cell"
+                >
+                  {{ cell.renderValue() }}
+                </div>
+                <div
+                  v-else-if="cell.column.id === 'type'"
+                  class="program-type-cell"
+                >
+                  <span
+                    :class="['program-type', row.original.type.toLowerCase()]"
+                  >
+                    {{ row.original.type }}
+                  </span>
+                </div>
+                <div v-else>
+                  {{ cell.renderValue() }}
+                </div>
+              </template>
             </td>
           </tr>
         </tbody>
@@ -82,20 +112,65 @@
 
       <!-- Pagination -->
       <div class="pagination">
-        <button
-          @click="table.previousPage()"
-          :disabled="!table.getCanPreviousPage()"
-        >
-          Previous
-        </button>
-        <span>
-          Page
-          {{ table.getState().pagination.pageIndex + 1 }} of
-          {{ table.getPageCount() }}
-        </span>
-        <button @click="table.nextPage()" :disabled="!table.getCanNextPage()">
-          Next
-        </button>
+        <div class="pagination-controls">
+          <button
+            @click="table.previousPage()"
+            :disabled="!table.getCanPreviousPage()"
+            class="pagination-button"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10 12L6 8L10 4"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            Previous
+          </button>
+          <div class="pagination-pages">
+            <button
+              v-for="page in calculatePageRange()"
+              :key="page"
+              @click="goToPage(page - 1)"
+              class="page-button"
+              :class="{
+                active: table.getState().pagination.pageIndex === page - 1,
+              }"
+            >
+              {{ page }}
+            </button>
+          </div>
+          <button
+            @click="table.nextPage()"
+            :disabled="!table.getCanNextPage()"
+            class="pagination-button"
+          >
+            Next
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M6 4L10 8L6 12"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -112,21 +187,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, h, computed } from "vue";
+import { ref, reactive, computed, h } from "vue";
 import {
-  useVueTable,
   createColumnHelper,
+  FlexRender,
+  useVueTable,
   getCoreRowModel,
   getPaginationRowModel,
   getFilteredRowModel,
   getSortedRowModel,
 } from "@tanstack/vue-table";
-import type {
-  SortingState,
-  ColumnDef,
-  PaginationState,
-  ColumnSort,
-} from "@tanstack/vue-table";
+import type { ColumnSort } from "@tanstack/vue-table";
 import Button from "~/components/ui/Button.vue";
 import EmptyState from "~/components/ui/EmptyState.vue";
 import PlusIcon from "~/components/icons/PlusIcon.vue";
@@ -195,72 +266,92 @@ const programs = ref<Program[]>([
   },
 ]);
 
+// Filter type
+const filterType = ref("all");
+
 const columnHelper = createColumnHelper<Program>();
 
 const columns = [
   columnHelper.accessor("name", {
-    header: "Program Name",
-    cell: (info) => info.getValue(),
+    header: "Programme Name",
+    cell: (props) => props.getValue(),
   }),
   columnHelper.accessor("enrolledStudents", {
     header: "Enrolled Students",
-    cell: (info) => info.getValue(),
+    cell: (props) => props.getValue(),
   }),
   columnHelper.accessor("courses", {
-    header: "Courses Associated",
-    cell: (info) =>
-      `${info.getValue()} ${
-        info.row.original.coreCount
-          ? `+${info.row.original.coreCount} core`
-          : ""
-      }`,
+    header: "Courses associated",
+    cell: (props) => {
+      const coreCount = props.row.original.coreCount;
+      return `${props.getValue()} ${coreCount ? `+${coreCount} core` : ""}`;
+    },
   }),
   columnHelper.accessor("type", {
-    header: "Program Type",
-    cell: (info) => {
-      const type = info.getValue().toLowerCase();
-      return h("span", { class: `program-type ${type}` }, info.getValue());
-    },
+    header: "Programme Type",
+    cell: (props) => props.getValue(),
   }),
   columnHelper.accessor("credits", {
     header: "Credits",
-    cell: (info) => info.getValue(),
+    cell: (props) => props.getValue(),
   }),
   columnHelper.display({
     id: "actions",
-    header: "Actions",
-    cell: (info) =>
-      h(
+    header: "Action",
+    cell: (props) => {
+      return h(
         "button",
         {
-          onClick: () => viewProgramDetails(info.row.original.id),
+          onClick: (e) => {
+            e.stopPropagation();
+            // Action logic here
+          },
           class: "action-button",
         },
         h(DotsVerticalIcon)
-      ),
+      );
+    },
   }),
 ];
 
-const searchQuery = ref("");
-const sorting = ref<ColumnSort[]>([]);
-const pagination = computed(() => ({
-  pageIndex: 0,
-  pageSize: 10,
-}));
-
-const table = useVueTable({
-  data: programs,
-  columns,
-  state: {
-    globalFilter: searchQuery,
-    sorting: sorting,
-    pagination: pagination.value,
+// Table state
+const globalFilter = ref("");
+const tableState = reactive({
+  pagination: {
+    pageIndex: 0,
+    pageSize: 10,
   },
-  onGlobalFilterChange: (updaterOrValue) => {
-    searchQuery.value =
-      typeof updaterOrValue === "function"
-        ? updaterOrValue(searchQuery.value)
-        : updaterOrValue;
+  sorting: [] as ColumnSort[],
+  globalFilter: "",
+});
+
+// Keep searchQuery in sync with globalFilter
+const searchQuery = computed({
+  get: () => tableState.globalFilter,
+  set: (value) => {
+    tableState.globalFilter = value;
+  },
+});
+
+// Create table instance
+const table = useVueTable({
+  get data() {
+    return programs.value;
+  },
+  columns,
+  state: tableState,
+  onGlobalFilterChange: (value) => {
+    tableState.globalFilter = value;
+  },
+  onSortingChange: (updater) => {
+    const newValue =
+      typeof updater === "function" ? updater(tableState.sorting) : updater;
+    tableState.sorting = newValue;
+  },
+  onPaginationChange: (updater) => {
+    const newValue =
+      typeof updater === "function" ? updater(tableState.pagination) : updater;
+    tableState.pagination = newValue;
   },
   getCoreRowModel: getCoreRowModel(),
   getFilteredRowModel: getFilteredRowModel(),
@@ -268,8 +359,38 @@ const table = useVueTable({
   getSortedRowModel: getSortedRowModel(),
 });
 
+// Pagination helpers
+const calculatePageRange = () => {
+  const currentPage = table.getState().pagination.pageIndex + 1;
+  const totalPages = table.getPageCount();
+  const maxVisiblePages = 5;
+
+  if (totalPages <= maxVisiblePages) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+
+  let startPage = Math.max(currentPage - Math.floor(maxVisiblePages / 2), 1);
+  let endPage = startPage + maxVisiblePages - 1;
+
+  if (endPage > totalPages) {
+    endPage = totalPages;
+    startPage = Math.max(endPage - maxVisiblePages + 1, 1);
+  }
+
+  return Array.from(
+    { length: endPage - startPage + 1 },
+    (_, i) => startPage + i
+  );
+};
+
+const goToPage = (pageIndex: number) => {
+  table.setPageIndex(pageIndex);
+};
+
+// Modal state
 const showAddProgramModal = ref(false);
 
+// Methods
 const openAddProgramModal = () => {
   showAddProgramModal.value = true;
 };
@@ -299,6 +420,7 @@ definePageMeta({
     align-items: center;
     flex-wrap: wrap;
     gap: $spacing-4;
+    margin-bottom: $spacing-6;
 
     h1 {
       font-family: $font-family-heading;
@@ -350,189 +472,81 @@ definePageMeta({
     }
   }
 
+  // Table styles
   .programs-content {
     background-color: $white;
     border-radius: 16px;
     border: 1px solid $gray-200;
     overflow: hidden;
-  }
-
-  .programs-filter {
-    display: flex;
-    align-items: center;
-    gap: $spacing-4;
-
-    .filter-select {
-      padding: $spacing-2 $spacing-4 $spacing-2 $spacing-1;
-      border-radius: 8px;
-      border: 1px solid $gray-300;
-      background-color: $white;
-      font-family: $font-family;
-      font-size: $text-xs;
-      font-weight: 500;
-      color: $gray-800;
-
-      &:focus {
-        outline: none;
-        border-color: $primary-color;
-      }
-    }
-  }
-
-  // Desktop table styles
-  .desktop-view {
-    width: 100%;
-    overflow-x: auto;
-    display: block;
-
-    @media (max-width: $breakpoint-md) {
-      display: none;
-    }
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   }
 
   .programs-table {
     width: 100%;
     border-collapse: collapse;
 
-    th,
-    td {
+    .table-header {
       padding: $spacing-4;
       text-align: left;
-      border-bottom: 1px solid $gray-200;
-      font-size: $text-sm;
-    }
-
-    th {
       color: $gray-700;
       font-weight: 600;
+      font-size: $text-sm;
       background-color: $gray-50;
-      white-space: nowrap;
+      border-bottom: 1px solid $gray-200;
+      position: relative;
+      cursor: pointer;
 
-      .info-icon {
-        width: 16px;
-        height: 16px;
-        margin-left: $spacing-1;
-        vertical-align: middle;
-        color: $gray-400;
+      .header-content {
+        display: flex;
+        align-items: center;
+        gap: $spacing-2;
+      }
+
+      .sort-indicator {
+        display: inline-block;
+        color: $primary-color;
+        font-size: $text-sm;
+      }
+
+      &:last-child {
+        text-align: center;
       }
     }
 
-    tbody tr {
+    .table-row {
       cursor: pointer;
+      transition: background-color 0.15s ease;
+
+      &:nth-child(even) {
+        background-color: $gray-50;
+      }
 
       &:hover {
         background-color: $primary-color-25;
       }
     }
 
-    .action-column {
-      width: 60px;
-      text-align: center;
-    }
+    .table-cell {
+      padding: $spacing-4;
+      text-align: left;
+      border-bottom: 1px solid $gray-200;
+      font-size: $text-sm;
+      color: $gray-800;
 
-    .action-button {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: $gray-500;
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 4px;
-
-      &:hover {
-        background-color: $gray-100;
-        color: $gray-700;
+      &:last-child {
+        text-align: center;
       }
     }
 
-    .core-tag {
-      display: inline-block;
-      margin-left: $spacing-2;
-      background-color: $primary-color-100;
-      color: $primary-color-700;
-      padding: 2px $spacing-2;
-      border-radius: 4px;
-      font-size: $text-xxs;
-      font-weight: 500;
-    }
-
-    .program-type {
-      padding: 4px $spacing-3;
-      border-radius: 16px;
-      font-size: $text-xs;
-      font-weight: 500;
-
-      &.undergraduate {
-        background-color: $primary-color-50;
+    .courses-cell {
+      .core-count {
+        display: inline-block;
+        margin-left: $spacing-2;
+        padding: 2px $spacing-2;
+        background-color: $primary-color-100;
         color: $primary-color-700;
-      }
-
-      &.masters {
-        background-color: $secondary-color;
-        color: $white;
-      }
-
-      &.doctorate {
-        background-color: $warning-300;
-        color: $gray-800;
-      }
-    }
-  }
-
-  // Mobile card view
-  .mobile-view {
-    display: none;
-
-    @media (max-width: $breakpoint-md) {
-      display: block;
-    }
-  }
-
-  .program-card {
-    padding: $spacing-4;
-    border-bottom: 1px solid $gray-200;
-    cursor: pointer;
-
-    &:hover {
-      background-color: $primary-color-25;
-    }
-
-    .program-card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: $spacing-3;
-
-      .program-name {
-        font-weight: 600;
-        font-size: $text-base;
-        color: $gray-800;
-        margin: 0;
-      }
-    }
-
-    .program-card-content {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: $spacing-3;
-    }
-
-    .program-stat {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-
-      .stat-label {
+        border-radius: 4px;
         font-size: $text-xs;
-        color: $gray-500;
-      }
-
-      .stat-value {
-        font-size: $text-sm;
-        color: $gray-800;
         font-weight: 500;
       }
     }
@@ -559,17 +573,45 @@ definePageMeta({
         color: $gray-800;
       }
     }
+
+    .action-button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: $gray-500;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      margin: 0 auto;
+
+      &:hover {
+        background-color: $gray-100;
+        color: $gray-700;
+      }
+    }
   }
 
   // Pagination
   .pagination {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     padding: $spacing-4;
     border-top: 1px solid $gray-200;
 
+    .pagination-controls {
+      display: flex;
+      align-items: center;
+      gap: $spacing-2;
+    }
+
     .pagination-button {
+      display: flex;
+      align-items: center;
+      gap: $spacing-2;
       padding: $spacing-2 $spacing-3;
       border: 1px solid $gray-300;
       background-color: $white;
@@ -592,17 +634,18 @@ definePageMeta({
     .pagination-pages {
       display: flex;
       gap: 4px;
+      margin: 0 $spacing-2;
     }
 
-    .page-number {
-      width: 32px;
+    .page-button {
+      min-width: 32px;
       height: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
       border-radius: 8px;
       border: none;
-      background: none;
+      background: transparent;
       font-size: $text-sm;
       color: $gray-700;
       cursor: pointer;
@@ -616,6 +659,12 @@ definePageMeta({
         color: $white;
       }
     }
+  }
+
+  .action-cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 }
 </style>
