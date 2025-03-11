@@ -18,13 +18,13 @@
 
             <div class="modal-body">
               <div class="form-field">
-                <div class="email-tags" v-if="emails.length > 0">
+                <div class="form-tags" v-if="emails.length > 0">
                   <div
                     v-for="(email, index) in emails"
                     :key="email"
-                    class="email-tag"
+                    class="form-tag"
                   >
-                    <span class="email-text">{{
+                    <span class="tag-text">{{
                       formatEmailDisplay(email)
                     }}</span>
                     <button
@@ -32,28 +32,17 @@
                       @click="removeEmail(index)"
                       aria-label="Remove email"
                     >
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 12 12"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M9 3L3 9M3 3L9 9"
-                          stroke="currentColor"
-                          stroke-width="1.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        />
-                      </svg>
+                      <CloseIcon />
                     </button>
                   </div>
                 </div>
+
                 <FormInput
                   id="registrar-email"
                   ref="emailInput"
-                  label="Registrar email address"
+                  :label="
+                    emails.length > 0 ? '' : 'Registrar email address(es)'
+                  "
                   v-model="currentEmail"
                   :error="inputError"
                   placeholder="Enter email address(es)"
@@ -252,60 +241,4 @@ watch(
 );
 </script>
 
-<style lang="scss" scoped>
-.modal-body {
-  .form-field {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .email-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    width: 100%;
-    margin-bottom: 8px;
-  }
-
-  .email-tag {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 8px 4px 10px;
-    background-color: $primary-color-50;
-    border: 1px solid $primary-color-200;
-    border-radius: 20px;
-    font-size: $text-sm;
-    font-family: $font-family;
-    font-weight: 500;
-
-    .email-text {
-      color: $primary-color-700;
-    }
-
-    .remove-tag {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: none;
-      border: none;
-      padding: 4px;
-      cursor: pointer;
-      color: $primary-color-400;
-      border-radius: 50%;
-      transition: all 0.2s ease;
-
-      &:hover {
-        color: $primary-color-700;
-        background-color: rgba($primary-color, 0.1);
-      }
-
-      svg {
-        width: 14px;
-        height: 14px;
-      }
-    }
-  }
-}
-</style>
+<style lang="scss" scoped></style>

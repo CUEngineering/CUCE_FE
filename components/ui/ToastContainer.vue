@@ -17,8 +17,14 @@
 <script setup lang="ts">
 import { useToast } from "../../composables/useToast";
 import Toast from "./Toast.vue";
+import { onUnmounted } from "vue";
 
 const { toasts, removeToast } = useToast();
+
+// Clear toasts when component unmounts
+onUnmounted(() => {
+  toasts.value.slice().forEach((t) => removeToast(t.id));
+});
 </script>
 
 <style lang="scss" scoped>

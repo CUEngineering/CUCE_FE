@@ -239,6 +239,9 @@
       confirm-button-text="Remove"
       @confirm="confirmRemoveCourse"
     />
+
+    <!-- Add Toast Container here -->
+    <ToastContainer />
   </div>
 </template>
 
@@ -274,6 +277,8 @@ import AddProgramModal from "~/components/AddProgramModal.vue";
 import Dialog from "~/components/ui/Dialog.vue";
 import IconsPlusIcon from "~/components/icons/PlusIcon.vue";
 import IconsSearchIcon from "~/components/icons/SearchIcon.vue";
+import type { ProgramOutput } from "~/types/program";
+import ToastContainer from "~/components/ui/ToastContainer.vue";
 
 // Define that this page uses the dashboard layout
 definePageMeta({
@@ -283,16 +288,6 @@ definePageMeta({
 // Get the program ID from the route
 const route = useRoute();
 const programId = computed(() => route.params.id);
-
-// Define types to match the ones in AddProgramModal
-interface ProgramOutput {
-  id: number;
-  name: string;
-  type: string;
-  credits: number;
-  courses?: number;
-  enrolledStudents?: number;
-}
 
 // Types used in this component
 interface Program {
@@ -811,9 +806,9 @@ const handleCoursesAdded = (courses: Course[]) => {
     program.value.courses = programCourses.value.length;
   }
 
-  // Update available courses
-  availableCourses.value = allCourses.value.filter(
-    (course) => !programCourses.value.some((c) => c.id === course.id)
+  // Update available courses by filtering newly added courses
+  availableCourses.value = availableCourses.value.filter(
+    (c) => !courses.some((newCourse) => newCourse.id === c.id)
   );
 
   toast.success(`${courses.length} courses added to program`);

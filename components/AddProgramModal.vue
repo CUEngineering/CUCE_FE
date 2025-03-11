@@ -3,7 +3,7 @@
     <Transition name="modal-fade">
       <div v-if="modelValue" class="modal-overlay" @click="onOverlayClick">
         <div class="modal-container" @click.stop>
-          <div class="modal">
+          <div class="modal o-visible">
             <div class="modal-header">
               <div class="header-content">
                 <h2 class="modal-title">{{ modalTitle }}</h2>
@@ -67,16 +67,16 @@
                   class="form-field"
                   v-if="mode === 'add' || mode === 'addCourses'"
                 >
-                  <label for="courses" class="form-label">Courses</label>
+                  <!-- <label for="courses" class="form-label">Courses</label> -->
 
                   <!-- Course tags display -->
-                  <div class="course-tags" v-if="selectedCourses.length > 0">
+                  <div class="form-tags" v-if="selectedCourses.length > 0">
                     <div
                       v-for="(course, index) in selectedCourses"
                       :key="course.id"
-                      class="course-tag"
+                      class="form-tag"
                     >
-                      <span class="course-text">{{
+                      <span class="tag-text">{{
                         formatCourseDisplay(course)
                       }}</span>
                       <button
@@ -84,27 +84,16 @@
                         @click="removeCourse(index)"
                         aria-label="Remove course"
                       >
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 12 12"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M9 3L3 9M3 3L9 9"
-                            stroke="currentColor"
-                            stroke-width="1.5"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          />
-                        </svg>
+                        <CloseIcon />
                       </button>
                     </div>
                   </div>
 
                   <!-- Course selection dropdown -->
-                  <div class="course-dropdown-container">
+                  <div
+                    class="course-dropdown-container"
+                    ref="dropdownContainer"
+                  >
                     <FormInput
                       id="course-search"
                       ref="courseInput"
@@ -118,21 +107,7 @@
                     >
                       <template #button>
                         <div class="dropdown-icon" @click="toggleDropdown">
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 16 16"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M4 6L8 10L12 6"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                          </svg>
+                          <ChevronDownIcon />
                         </div>
                       </template>
                     </FormInput>
@@ -191,18 +166,12 @@
 import { ref, reactive, watch, computed, nextTick, onMounted } from "vue";
 import Button from "./ui/Button.vue";
 import CloseCircleIcon from "./icons/CloseCircleIcon.vue";
+import ChevronDownIcon from "./icons/ChevronDownIcon.vue";
+import CloseIcon from "./icons/CloseIcon.vue";
 import FormInput from "./ui/FormInput.vue";
 import { useToast } from "~/composables/useToast";
-
-// Define the types here since we don't have access to the existing type file
-interface ProgramOutput {
-  id: number;
-  name: string;
-  type: string;
-  credits: number;
-  courses?: number;
-  enrolledStudents?: number;
-}
+import type { ProgramOutput } from "~/types/program";
+import { onClickOutside } from "@vueuse/core";
 
 interface Course {
   id: number;
@@ -239,7 +208,22 @@ const props = withDefaults(defineProps<Props>(), {
   persistent: false,
   mode: "add",
   program: null,
-  availableCourses: () => [],
+  availableCourses: () => [
+    {
+      id: 1,
+      title: "Course 1",
+      code: "C101",
+      credits: 3,
+      enrolledStudents: 0,
+    },
+    {
+      id: 2,
+      title: "Course 2",
+      code: "C102",
+      credits: 4,
+      enrolledStudents: 0,
+    },
+  ],
   selectedProgramCourses: () => [],
 });
 
@@ -463,7 +447,7 @@ const initializeForm = () => {
     form.data.credits = String(props.program.credits);
   }
 
-  if (props.mode === "addCourses" || props.mode === "edit") {
+  if (props.mode === "edit") {
     selectedCourses.value = [...props.selectedProgramCourses];
   }
 };
@@ -490,6 +474,13 @@ watch(
     }
   }
 );
+
+const dropdownContainer = ref<HTMLElement | null>(null);
+
+// Close dropdown when clicking outside
+onClickOutside(dropdownContainer, () => {
+  isDropdownOpen.value = false;
+});
 </script>
 
 <style lang="scss" scoped>
@@ -498,54 +489,6 @@ watch(
     display: flex;
     flex-direction: column;
     gap: 24px;
-  }
-
-  .course-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    width: 100%;
-    margin-bottom: 8px;
-  }
-
-  .course-tag {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 8px 4px 10px;
-    background-color: $primary-color-50;
-    border: 1px solid $primary-color-200;
-    border-radius: 20px;
-    font-size: $text-sm;
-    font-family: $font-family;
-    font-weight: 500;
-
-    .course-text {
-      color: $primary-color-700;
-    }
-
-    .remove-tag {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: none;
-      border: none;
-      padding: 4px;
-      cursor: pointer;
-      color: $primary-color-400;
-      border-radius: 50%;
-      transition: all 0.2s ease;
-
-      &:hover {
-        color: $primary-color-700;
-        background-color: rgba($primary-color, 0.1);
-      }
-
-      svg {
-        width: 14px;
-        height: 14px;
-      }
-    }
   }
 
   .course-dropdown-container {
@@ -568,7 +511,7 @@ watch(
     border: 1px solid $gray-200;
     border-radius: 8px;
     margin-top: 4px;
-    z-index: 10;
+    z-index: 1;
     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
   }
 
@@ -612,12 +555,6 @@ watch(
     padding: 16px;
     text-align: center;
     color: $gray-600;
-  }
-
-  .input-hint {
-    font-size: $text-sm;
-    color: $gray-600;
-    margin-top: -12px;
   }
 }
 </style>

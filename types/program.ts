@@ -2,5 +2,7 @@ export interface ProgramOutput {
   id: number;
   name: string;
   type: string;
-  credits: number; // Consistent number type
+  credits: number;
+  courses?: number;
+  // enrolledStudents?: number;
 }
