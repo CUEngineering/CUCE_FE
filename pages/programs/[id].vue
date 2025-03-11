@@ -278,7 +278,6 @@ import Dialog from "~/components/ui/Dialog.vue";
 import IconsPlusIcon from "~/components/icons/PlusIcon.vue";
 import IconsSearchIcon from "~/components/icons/SearchIcon.vue";
 import type { ProgramOutput } from "~/types/program";
-import ToastContainer from "~/components/ui/ToastContainer.vue";
 
 // Define that this page uses the dashboard layout
 definePageMeta({
@@ -1068,47 +1067,29 @@ const searchQuery = computed({
   }
 }
 
-.course-type {
-  display: inline-block;
-  padding: 4px $spacing-3;
-  border-radius: 16px;
-  font-size: $text-xs;
-  font-weight: 500;
-
-  &.core {
-    background-color: $primary-color-50;
-    color: $primary-color-700;
-  }
-
-  &.elective {
-    background-color: $gray-100;
-    color: $gray-700;
-  }
-}
-
-.action-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: $gray-500;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  margin: 0 auto;
-
-  &:hover {
-    background-color: $gray-100;
-    color: $gray-700;
-  }
-}
-
 .action-cell {
   display: flex;
   justify-content: center;
   align-items: center;
+
+  :deep(.action-button) {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: $gray-500;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    margin: 0 auto;
+
+    &:hover {
+      background-color: $gray-100;
+      color: $gray-700;
+    }
+  }
 }
 
 // Pagination
