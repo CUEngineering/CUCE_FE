@@ -1,8 +1,11 @@
 <template>
-  <div class="programs-page dashlet-wrapper">
+  <div
+    class="programs-page dashlet-wrapper"
+    :class="{ empty: !programs.length }"
+  >
     <div class="page-header dashlet">
       <div class="title-and-filter">
-        <h1>Programmes</h1>
+        <h2 class="heading-txt">Programs</h2>
         <div v-if="programs.length > 0" class="programs-filter">
           <select v-model="filterType" class="filter-select">
             <option value="all">All ({{ programs.length }})</option>
@@ -11,19 +14,26 @@
       </div>
       <div v-if="programs.length > 0" class="search-and-actions">
         <div class="search-container">
-          <input
-            type="text"
-            class="search-input"
-            placeholder="Find a programme"
+          <FormInput
+            id="program-search"
+            label=""
             v-model="searchQuery"
-          />
-          <SearchIcon class="search-icon" />
+            placeholder="Find a program"
+            size="sm"
+          >
+            <template #button>
+              <div class="search-icon">
+                <IconsSearchIcon />
+              </div>
+            </template>
+          </FormInput>
         </div>
-        <Button @click="openAddProgramModal" variant="primary">
+
+        <Button @click="openAddProgramModal" variant="primary" size="sm">
           <template #icon>
             <PlusIcon />
           </template>
-          New Programme
+          New Program
         </Button>
       </div>
     </div>
@@ -31,25 +41,30 @@
     <!-- Empty state for when no programs exist -->
     <EmptyState
       v-if="!programs.length"
-      title="No programmes found"
-      description="Add your first programme to get started"
+      class="dashlet"
+      title="No programs found"
+      description="Add your first program to get started"
     >
       <template #icon>
-        <DocumentIcon />
+        <img
+          src="~/assets/images/EmptyProgram.svg"
+          alt="Users Illustration"
+          class="empty-state-illustration"
+        />
       </template>
       <template #action>
-        <Button @click="openAddProgramModal">
+        <Button @click="openAddProgramModal" variant="secondary">
           <template #icon>
             <PlusIcon />
           </template>
-          Add a programme
+          Add a program
         </Button>
       </template>
     </EmptyState>
 
     <!-- Programs table when programs exist -->
     <div v-else class="programs-content dashlet">
-      <table class="programs-table">
+      <table class="programs-table table-container">
         <thead>
           <tr>
             <th
@@ -61,7 +76,7 @@
               <div class="header-content">
                 {{ header.column.columnDef.header }}
                 <span v-if="header.column.getIsSorted()" class="sort-indicator">
-                  {{ header.column.getIsSortedDesc() ? "▼" : "▲" }}
+                  {{ header.column.getIsSorted() === "desc" ? "▼" : "▲" }}
                 </span>
               </div>
             </th>
@@ -96,7 +111,14 @@
                   class="program-type-cell"
                 >
                   <span
-                    :class="['program-type', row.original.type.toLowerCase()]"
+                    class="pill pill-md"
+                    :class="
+                      row.original.type.toLowerCase() === 'undergraduate'
+                        ? 'p-green'
+                        : row.original.type.toLowerCase() === 'doctorate'
+                        ? 'p-yellow'
+                        : 'p-blue'
+                    "
                   >
                     {{ row.original.type }}
                   </span>
@@ -201,11 +223,12 @@ import type { ColumnSort } from "@tanstack/vue-table";
 import Button from "~/components/ui/Button.vue";
 import EmptyState from "~/components/ui/EmptyState.vue";
 import PlusIcon from "~/components/icons/PlusIcon.vue";
-import SearchIcon from "~/components/icons/SearchIcon.vue";
 import DocumentIcon from "~/components/icons/DocumentIcon.vue";
 import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
 import AddProgramModal from "~/components/AddProgramModal.vue";
 import ToastContainer from "~/components/ui/ToastContainer.vue";
+import type { ProgramOutput } from "~/types/program";
+import FormInput from "~/components/ui/FormInput.vue";
 
 interface Program {
   id: number;
@@ -216,6 +239,13 @@ interface Program {
   type: string;
   credits: number;
 }
+
+// interface ProgramOutput {
+//   id: number;
+//   name: string;
+//   type: string;
+//   credits: number;
+// }
 
 // Mock data - replace with API call in production
 const programs = ref<Program[]>([
@@ -275,7 +305,7 @@ const columnHelper = createColumnHelper<Program>();
 
 const columns = [
   columnHelper.accessor("name", {
-    header: "Programme Name",
+    header: "Program Name",
     cell: (props) => props.getValue(),
   }),
   columnHelper.accessor("enrolledStudents", {
@@ -283,14 +313,14 @@ const columns = [
     cell: (props) => props.getValue(),
   }),
   columnHelper.accessor("courses", {
-    header: "Courses associated",
+    header: "Courses",
     cell: (props) => {
       const coreCount = props.row.original.coreCount;
       return `${props.getValue()} ${coreCount ? `+${coreCount} core` : ""}`;
     },
   }),
   columnHelper.accessor("type", {
-    header: "Programme Type",
+    header: "Type",
     cell: (props) => props.getValue(),
   }),
   columnHelper.accessor("credits", {
@@ -397,7 +427,14 @@ const openAddProgramModal = () => {
   showAddProgramModal.value = true;
 };
 
-const handleProgramAdded = (newProgram: Program) => {
+const handleProgramAdded = (programOutput: ProgramOutput) => {
+  const newProgram: Program = {
+    ...programOutput,
+    enrolledStudents: 0, // Default value
+    courses: 0, // Default value
+    coreCount: 0, // Default value
+  };
+
   programs.value.push(newProgram);
   showAddProgramModal.value = false;
 };
@@ -416,20 +453,16 @@ definePageMeta({
 .programs-page {
   max-width: 100%;
 
+  &.empty {
+    height: 100%;
+  }
+
   .page-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
     gap: $spacing-4;
-
-    h1 {
-      font-family: $font-family-heading;
-      font-size: $text-xl;
-      font-weight: 700;
-      color: $gray-900;
-      margin: 0;
-    }
 
     .title-and-filter {
       display: flex;
@@ -440,35 +473,9 @@ definePageMeta({
     .search-and-actions {
       display: flex;
       gap: $spacing-2;
-    }
 
-    .search-container {
-      position: relative;
-
-      .search-input {
-        padding: $spacing-3 $spacing-3 $spacing-3 $spacing-10;
-        border-radius: 12px;
-        border: 1px solid $gray-300;
-        background-color: $white;
-        font-family: $font-family;
-        font-size: $text-sm;
-        width: 250px;
-
-        &:focus {
-          outline: none;
-          border-color: $primary-color;
-          box-shadow: 0 0 0 2px rgba($primary-color, 0.1);
-        }
-      }
-
-      .search-icon {
-        position: absolute;
-        left: $spacing-3;
-        top: 50%;
-        transform: translateY(-50%);
-        color: $gray-500;
-        width: 20px;
-        height: 20px;
+      :deep(.base-button) {
+        width: unset;
       }
     }
   }
@@ -487,62 +494,6 @@ definePageMeta({
   }
 
   .programs-table {
-    width: 100%;
-    border-collapse: collapse;
-
-    .table-header {
-      padding: $spacing-4;
-      text-align: left;
-      color: $gray-700;
-      font-weight: 600;
-      font-size: $text-sm;
-      background-color: $gray-50;
-      border-bottom: 1px solid $gray-200;
-      position: relative;
-      cursor: pointer;
-
-      .header-content {
-        display: flex;
-        align-items: center;
-        gap: $spacing-2;
-      }
-
-      .sort-indicator {
-        display: inline-block;
-        color: $primary-color;
-        font-size: $text-sm;
-      }
-
-      &:last-child {
-        text-align: center;
-      }
-    }
-
-    .table-row {
-      cursor: pointer;
-      transition: background-color 0.15s ease;
-
-      &:nth-child(even) {
-        background-color: $gray-50;
-      }
-
-      &:hover {
-        background-color: $primary-color-25;
-      }
-    }
-
-    .table-cell {
-      padding: $spacing-4;
-      text-align: left;
-      border-bottom: 1px solid $gray-200;
-      font-size: $text-sm;
-      color: $gray-800;
-
-      &:last-child {
-        text-align: center;
-      }
-    }
-
     .courses-cell {
       .core-count {
         display: inline-block;
@@ -553,29 +504,6 @@ definePageMeta({
         border-radius: 4px;
         font-size: $text-xs;
         font-weight: 500;
-      }
-    }
-
-    .program-type {
-      display: inline-block;
-      padding: 4px $spacing-3;
-      border-radius: 16px;
-      font-size: $text-xs;
-      font-weight: 500;
-
-      &.undergraduate {
-        background-color: $primary-color-50;
-        color: $primary-color-700;
-      }
-
-      &.masters {
-        background-color: $secondary-color;
-        color: $white;
-      }
-
-      &.doctorate {
-        background-color: $warning-300;
-        color: $gray-800;
       }
     }
 

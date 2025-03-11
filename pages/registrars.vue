@@ -6,8 +6,8 @@
     >
       <div class="page-header dashlet">
         <div class="title-section">
-          <h1 class="page-title">Registrars</h1>
-          <div class="profile-count pill-grey">
+          <h2 class="page-title heading-txt">Registrars</h2>
+          <div class="profile-count pill p-grey pill-sm">
             {{
               registrars.length > 0
                 ? `${registrars.length} profiles`
@@ -592,21 +592,6 @@ const pendingInvites = ref<Invite[]>([
           font-size: $text-sm;
         }
       }
-
-      .search-container {
-        position: relative;
-        width: 300px;
-
-        .search-icon {
-          width: 16px;
-          display: flex;
-        }
-
-        // Override FormInput styling
-        :deep(.form-field) {
-          gap: 0;
-        }
-      }
     }
 
     .registrars-list {
@@ -652,22 +637,6 @@ const pendingInvites = ref<Invite[]>([
         font-weight: 700;
         color: $gray-800;
         margin: 0;
-      }
-
-      .add-button {
-        background-color: $primary-color-700;
-        color: white;
-        border: none;
-        border-radius: 0.375rem;
-        width: 28px;
-        height: 28px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        box-shadow: 0px 12px 16px -4px rgba(16, 24, 40, 0.08),
-          0px 4px 6px -2px rgba(16, 24, 40, 0.03);
-        padding: 4px;
       }
     }
 
@@ -725,11 +694,5 @@ const pendingInvites = ref<Invite[]>([
       grid-template-columns: 1fr;
     }
   }
-}
-
-.empty-state-illustration {
-  width: 200px;
-  height: 200px;
-  margin-left: 1rem;
 }
 </style>

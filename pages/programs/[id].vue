@@ -1,218 +1,244 @@
 <template>
-  <div class="program-detail-page">
-    <!-- Debugging info
-    <div v-if="!program" class="debugging-info">
-      <p>Loading program with ID: {{ programId }}</p>
-      <p>Route params: {{ JSON.stringify(route.params) }}</p>
-    </div> -->
-
+  <div class="program-detail-page dashlet-wrapper">
     <!-- Back button header -->
-    <div class="page-header">
-      <button class="back-button" @click="navigateBack">
-        <span class="back-icon">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 20 20"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M15.8334 10H4.16669M4.16669 10L10.0001 15.8333M4.16669 10L10.0001 4.16667"
-              stroke="currentColor"
-              stroke-width="1.66667"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-        </span>
-        Program Details
-      </button>
+    <div class="page-header dashlet">
+      <div class="page-title">
+        <button class="back-icon" @click="navigateBack">
+          <ArrowLeftIcon />
+        </button>
+        <h2 class="heading-txt">Program Details</h2>
+      </div>
+
       <div class="header-actions">
-        <Button variant="outline">
+        <Button variant="outline" @click="openEditModal">
           <template #icon>
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M10 16.6667H17.5M13.75 2.91667C14.0815 2.58515 14.5312 2.39844 15 2.39844C15.4688 2.39844 15.9185 2.58515 16.25 2.91667C16.5815 3.24819 16.7682 3.69785 16.7682 4.16667C16.7682 4.63549 16.5815 5.08515 16.25 5.41667L5.83333 15.8333L2.5 16.6667L3.33333 13.3333L13.75 2.91667Z"
-                stroke="currentColor"
-                stroke-width="1.66667"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
+            <PencilIcon />
           </template>
           Edit
         </Button>
       </div>
     </div>
 
-    <!-- Program overview -->
-    <div v-if="program" class="program-overview">
-      <div class="overview-header">
+    <div class="dashlet program-details">
+      <!-- Program overview -->
+      <div v-if="program" class="program-overview">
         <h1 class="program-title">{{ program.name }}</h1>
-        <span :class="['program-type', program.type.toLowerCase()]">
-          {{ program.type }}
-        </span>
-      </div>
 
-      <div class="overview-stats">
-        <div class="stat-card">
-          <div class="stat-value">{{ program.enrolledStudents }}</div>
-          <div class="stat-label">Total Students</div>
-          <div class="stat-indicator">
-            <span class="new-students">+35 new</span>
+        <div class="overview-stats">
+          <div class="stat-card">
+            <div class="stat-label">Program Type</div>
+            <div
+              class="pill pill-lg"
+              :class="
+                program.type.toLowerCase() === 'undergraduate'
+                  ? 'p-green'
+                  : program.type.toLowerCase() === 'doctorate'
+                  ? 'p-yellow'
+                  : 'p-blue'
+              "
+            >
+              {{ program.type }}
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Students</div>
+            <div class="stat-details">
+              <div class="stat-value">{{ program.enrolledStudents }}</div>
+
+              <div class="stat-indicator">
+                <span class="new-students">+35 new</span>
+              </div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Credits</div>
+            <div class="stat-value">{{ program.credits }}</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-label">Total Courses</div>
+
+            <div class="stat-details">
+              <div class="stat-value">{{ program.courses }}</div>
+            </div>
           </div>
         </div>
+      </div>
 
-        <div class="stat-card">
-          <div class="stat-value">{{ program.courses }}</div>
-          <div class="stat-label">Total Courses</div>
-          <div class="stat-indicator">
-            <span class="core-count">+{{ program.coreCount }} core</span>
+      <div class="program-tabs">
+        <div class="tabs-heading">
+          <!-- Tabs for students/courses -->
+          <div class="program-tab-title">
+            <button
+              class="tab-button"
+              :class="{ active: activeTab === 'students' }"
+              @click="activeTab = 'students'"
+            >
+              Students
+            </button>
+            <button
+              class="tab-button"
+              :class="{ active: activeTab === 'courses' }"
+              @click="activeTab = 'courses'"
+            >
+              Courses
+            </button>
           </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-value">{{ program.credits }}</div>
-          <div class="stat-label">Total Credits</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tabs for students/courses -->
-    <div class="program-tabs">
-      <button
-        class="tab-button"
-        :class="{ active: activeTab === 'students' }"
-        @click="activeTab = 'students'"
-      >
-        Students
-      </button>
-      <button
-        class="tab-button"
-        :class="{ active: activeTab === 'courses' }"
-        @click="activeTab = 'courses'"
-      >
-        Courses
-      </button>
-    </div>
-
-    <!-- Students tab content -->
-    <div v-if="activeTab === 'students'" class="tab-content">
-      <!-- Students table -->
-      <div class="data-table-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th
-                v-for="header in studentTable.getHeaderGroups()[0].headers"
-                :key="header.id"
-                @click="header.column.getToggleSortingHandler()"
-                class="table-header"
+          <div class="tab-actions">
+            <div class="search-container">
+              <FormInput
+                id="student-search"
+                label=""
+                :placeholder="
+                  activeTab === 'students' ? 'Find a student' : 'Find a course'
+                "
+                v-model="searchQuery"
+                size="sm"
               >
-                <div class="header-content">
-                  {{ header.column.columnDef.header }}
-                  <span
-                    v-if="header.column.getIsSorted()"
-                    class="sort-indicator"
-                  >
-                    {{ header.column.getIsSortedDesc() ? "▼" : "▲" }}
-                  </span>
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="row in studentTable.getRowModel().rows"
-              :key="row.id"
-              class="table-row"
-            >
-              <td
-                v-for="cell in row.getVisibleCells()"
-                :key="cell.id"
-                class="table-cell"
-              >
-                <FlexRender
-                  :render="cell.column.columnDef.cell"
-                  :props="cell.getContext()"
-                />
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Courses tab content -->
-    <div v-if="activeTab === 'courses'" class="tab-content">
-      <!-- Courses table -->
-      <div class="data-table-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th
-                v-for="header in courseTable.getHeaderGroups()[0].headers"
-                :key="header.id"
-                @click="header.column.getToggleSortingHandler()"
-                class="table-header"
-              >
-                <div class="header-content">
-                  {{ header.column.columnDef.header }}
-                  <span
-                    v-if="header.column.getIsSorted()"
-                    class="sort-indicator"
-                  >
-                    {{ header.column.getIsSortedDesc() ? "▼" : "▲" }}
-                  </span>
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="row in courseTable.getRowModel().rows"
-              :key="row.id"
-              class="table-row"
-            >
-              <td
-                v-for="cell in row.getVisibleCells()"
-                :key="cell.id"
-                class="table-cell"
-              >
-                <div v-if="cell.column.id === 'actions'" class="action-cell">
-                  <button class="action-button">
-                    <DotsVerticalIcon />
-                  </button>
-                </div>
-                <template v-else>
-                  <component
-                    :is="cell.column.columnDef.cell"
-                    :row="cell.row"
-                    :value="cell.getValue()"
-                  />
+                <template #button>
+                  <div class="search-icon">
+                    <IconsSearchIcon />
+                  </div>
                 </template>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </FormInput>
+            </div>
+            <button
+              v-if="activeTab === 'courses'"
+              class="add-button"
+              @click="openAddCoursesModal"
+            >
+              <IconsPlusIcon />
+            </button>
+          </div>
+        </div>
+
+        <!-- Students tab content -->
+        <div v-if="activeTab === 'students'" class="tab-content">
+          <!-- Students table -->
+          <div class="data-table-container">
+            <table class="table-container">
+              <thead>
+                <tr>
+                  <th
+                    v-for="header in studentTable.getHeaderGroups()[0].headers"
+                    :key="header.id"
+                    @click="header.column.getToggleSortingHandler()"
+                    class="table-header"
+                  >
+                    <div class="header-content">
+                      {{ header.column.columnDef.header }}
+                      <span
+                        v-if="header.column.getIsSorted()"
+                        class="sort-indicator"
+                      >
+                        {{ header.column.getIsSorted() === "desc" ? "▼" : "▲" }}
+                      </span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="row in studentTable.getRowModel().rows"
+                  :key="row.id"
+                  class="table-row"
+                >
+                  <td
+                    v-for="cell in row.getVisibleCells()"
+                    :key="cell.id"
+                    class="table-cell"
+                  >
+                    <FlexRender
+                      :render="cell.column.columnDef.cell"
+                      :props="cell.getContext()"
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Courses tab content -->
+        <div v-if="activeTab === 'courses'" class="tab-content">
+          <!-- Courses table -->
+          <div class="data-table-container">
+            <table class="table-container">
+              <thead>
+                <tr>
+                  <th
+                    v-for="header in courseTable.getHeaderGroups()[0].headers"
+                    :key="header.id"
+                    @click="header.column.getToggleSortingHandler()"
+                    class="table-header"
+                  >
+                    <div class="header-content">
+                      {{ header.column.columnDef.header }}
+                      <span
+                        v-if="header.column.getIsSorted()"
+                        class="sort-indicator"
+                      >
+                        {{ header.column.getIsSorted() === "desc" ? "▼" : "▲" }}
+                      </span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="row in courseTable.getRowModel().rows"
+                  :key="row.id"
+                  class="table-row"
+                >
+                  <td
+                    v-for="cell in row.getVisibleCells()"
+                    :key="cell.id"
+                    class="table-cell"
+                  >
+                    <FlexRender
+                      :render="cell.column.columnDef.cell"
+                      :props="cell.getContext()"
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div v-if="isLoading" class="loading-state">
+          <div class="loading-spinner"></div>
+          <p>Loading program data...</p>
+        </div>
       </div>
     </div>
 
-    <div v-if="isLoading" class="loading-state">
-      <div class="loading-spinner"></div>
-      <p>Loading program data...</p>
-    </div>
+    <!-- Modals and Dialogs -->
+    <AddProgramModal
+      v-model="showEditModal"
+      mode="edit"
+      :program="program"
+      :available-courses="availableCourses"
+      :selected-program-courses="programCourses"
+      @program-updated="handleProgramUpdated"
+    />
 
-    <div v-else class="program-content">
-      <!-- Existing program content -->
-    </div>
+    <AddProgramModal
+      v-model="showAddCoursesModal"
+      mode="addCourses"
+      :available-courses="availableCourses"
+      :selected-program-courses="programCourses"
+      @courses-added="handleCoursesAdded"
+    />
+
+    <Dialog
+      v-model="showRemoveCourseDialog"
+      title="Remove Course"
+      :message="`Are you sure you want to remove '${courseToRemove?.title}' from this program?`"
+      variant="danger"
+      confirm-button-text="Remove"
+      @confirm="confirmRemoveCourse"
+    />
   </div>
 </template>
 
@@ -238,10 +264,16 @@ import {
 } from "@tanstack/vue-table";
 import type { ColumnSort } from "@tanstack/vue-table";
 import Button from "~/components/ui/Button.vue";
-import SearchIcon from "~/components/icons/SearchIcon.vue";
-import PlusIcon from "~/components/icons/PlusIcon.vue";
 import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
 import { useToast } from "~/composables/useToast";
+import PencilIcon from "~/components/icons/PencilIcon.vue";
+import ArrowLeftIcon from "~/components/icons/ArrowLeftIcon.vue";
+import FormInput from "~/components/ui/FormInput.vue";
+import TrashIcon from "~/components/icons/TrashIcon.vue";
+import AddProgramModal from "~/components/AddProgramModal.vue";
+import Dialog from "~/components/ui/Dialog.vue";
+import IconsPlusIcon from "~/components/icons/PlusIcon.vue";
+import IconsSearchIcon from "~/components/icons/SearchIcon.vue";
 
 // Define that this page uses the dashboard layout
 definePageMeta({
@@ -252,13 +284,22 @@ definePageMeta({
 const route = useRoute();
 const programId = computed(() => route.params.id);
 
-// Add Program interface definition
+// Define types to match the ones in AddProgramModal
+interface ProgramOutput {
+  id: number;
+  name: string;
+  type: string;
+  credits: number;
+  courses?: number;
+  enrolledStudents?: number;
+}
+
+// Types used in this component
 interface Program {
   id: number;
   name: string;
   enrolledStudents: number;
   courses: number;
-  coreCount: number;
   type: string;
   credits: number;
 }
@@ -276,8 +317,7 @@ interface Course {
   title: string;
   code: string;
   credits: number;
-  duration: string;
-  type: string;
+  enrolledStudents: number;
 }
 
 interface ProgramData {
@@ -321,24 +361,21 @@ const programData: Record<number, ProgramData> = {
         title: "Introduction to Psychology",
         code: "PSY101",
         credits: 4,
-        duration: "12 weeks",
-        type: "Core",
+        enrolledStudents: 12,
       },
       {
         id: 2,
         title: "Developmental Psychology",
         code: "PSY201",
         credits: 3,
-        duration: "10 weeks",
-        type: "Core",
+        enrolledStudents: 10,
       },
       {
         id: 3,
         title: "Abnormal Psychology",
         code: "PSY301",
         credits: 4,
-        duration: "12 weeks",
-        type: "Elective",
+        enrolledStudents: 12,
       },
     ],
     name: "Master of Science in Psychology",
@@ -376,24 +413,21 @@ const programData: Record<number, ProgramData> = {
         title: "Nursing Fundamentals",
         code: "NUR101",
         credits: 3,
-        duration: "10 weeks",
-        type: "Core",
+        enrolledStudents: 10,
       },
       {
         id: 5,
         title: "Anatomy & Physiology",
         code: "NUR102",
         credits: 4,
-        duration: "12 weeks",
-        type: "Core",
+        enrolledStudents: 12,
       },
       {
         id: 6,
         title: "Pharmacology Basics",
         code: "NUR201",
         credits: 3,
-        duration: "10 weeks",
-        type: "Core",
+        enrolledStudents: 10,
       },
     ],
     name: "MSc. Nursing: Entry Level Clinical Track",
@@ -431,24 +465,21 @@ const programData: Record<number, ProgramData> = {
         title: "Leadership in Nursing",
         code: "NUR301",
         credits: 4,
-        duration: "12 weeks",
-        type: "Core",
+        enrolledStudents: 12,
       },
       {
         id: 8,
         title: "Healthcare Management",
         code: "NUR302",
         credits: 3,
-        duration: "10 weeks",
-        type: "Core",
+        enrolledStudents: 10,
       },
       {
         id: 9,
         title: "Advanced Pharmacology",
         code: "NUR303",
         credits: 4,
-        duration: "12 weeks",
-        type: "Elective",
+        enrolledStudents: 12,
       },
     ],
     name: "MSc. Nursing: Leadership",
@@ -486,24 +517,21 @@ const programData: Record<number, ProgramData> = {
         title: "Epidemiology",
         code: "PH101",
         credits: 3,
-        duration: "10 weeks",
-        type: "Core",
+        enrolledStudents: 10,
       },
       {
         id: 11,
         title: "Biostatistics",
         code: "PH102",
         credits: 4,
-        duration: "12 weeks",
-        type: "Core",
+        enrolledStudents: 12,
       },
       {
         id: 12,
         title: "Health Policy",
         code: "PH201",
         credits: 3,
-        duration: "10 weeks",
-        type: "Elective",
+        enrolledStudents: 10,
       },
     ],
     name: "Master of Public Health",
@@ -541,24 +569,21 @@ const programData: Record<number, ProgramData> = {
         title: "Anatomy for Physiotherapy",
         code: "PT101",
         credits: 4,
-        duration: "12 weeks",
-        type: "Core",
+        enrolledStudents: 12,
       },
       {
         id: 14,
         title: "Exercise Physiology",
         code: "PT102",
         credits: 3,
-        duration: "10 weeks",
-        type: "Core",
+        enrolledStudents: 10,
       },
       {
         id: 15,
         title: "Clinical Practice",
         code: "PT201",
         credits: 4,
-        duration: "12 weeks",
-        type: "Core",
+        enrolledStudents: 12,
       },
     ],
     name: "Master of Physiotherapy",
@@ -571,9 +596,11 @@ const programData: Record<number, ProgramData> = {
 const isLoading = ref(true);
 const program = ref<Program | null>(null);
 
-// Remove separate refs for students and courses since we're using mockData
-// const students = ref<Student[]>([]);
-// const courses = ref<Course[]>([]);
+// Modal and dialog states
+const showEditModal = ref(false);
+const showAddCoursesModal = ref(false);
+const showRemoveCourseDialog = ref(false);
+const courseToRemove = ref<Course | null>(null);
 
 // Tab state
 const activeTab = ref("students");
@@ -605,6 +632,22 @@ const mockStudentData = ref<Student[]>([]);
 
 // Mock course data (replace with API call)
 const mockCourseData = ref<Course[]>([]);
+const programCourses = ref<Course[]>([]);
+const availableCourses = ref<Course[]>([]);
+
+// Collection of all available courses across all programs
+const allCourses = computed(() => {
+  // Collect all courses from all programs for the available courses dropdown
+  const courses: Course[] = [];
+  Object.values(programData).forEach((data) => {
+    data.courses.forEach((course) => {
+      if (!courses.some((c) => c.id === course.id)) {
+        courses.push(course);
+      }
+    });
+  });
+  return courses;
+});
 
 // Student columns with proper typing
 const studentColumnHelper = createColumnHelper<Student>();
@@ -627,11 +670,6 @@ const studentColumns = [
   studentColumnHelper.accessor("creditsCompleted", {
     header: "Credits Completed",
   }),
-  studentColumnHelper.display({
-    id: "actions",
-    header: "Action",
-    cell: () => h(DotsVerticalIcon),
-  }),
 ];
 
 // Replace the current studentTable initialization with:
@@ -646,95 +684,48 @@ const studentTable = computed(() => {
   });
 });
 
-// Configure course columns
+// Replace the existing course columns with:
+const courseColumnHelper = createColumnHelper<Course>();
 const courseColumns = [
-  {
-    id: "title",
+  courseColumnHelper.accessor("title", {
     header: "Course Name",
-    accessorKey: "title",
-    cell: defineComponent({
-      props: ["value"],
-      setup(props) {
-        return () => h("span", {}, props.value);
-      },
-    }),
-  },
-  {
-    id: "code",
+    cell: (props) => props.getValue(),
+  }),
+  courseColumnHelper.accessor("code", {
     header: "Course Code",
-    accessorKey: "code",
-    cell: defineComponent({
-      props: ["value"],
-      setup(props) {
-        return () => h("span", {}, props.value);
-      },
-    }),
-  },
-  {
-    id: "credits",
+    cell: (props) => props.getValue(),
+  }),
+  courseColumnHelper.accessor("credits", {
     header: "Credits",
-    accessorKey: "credits",
-    cell: defineComponent({
-      props: ["value"],
-      setup(props) {
-        return () => h("span", {}, props.value);
-      },
-    }),
-  },
-  {
-    id: "duration",
-    header: "Duration",
-    accessorKey: "duration",
-    cell: defineComponent({
-      props: ["value"],
-      setup(props) {
-        return () => h("span", {}, props.value);
-      },
-    }),
-  },
-  {
-    id: "type",
-    header: "Type",
-    accessorKey: "type",
-    cell: defineComponent({
-      props: ["row", "value"],
-      setup(props) {
-        return () =>
-          h(
-            "span",
-            { class: ["course-type", props.value.toLowerCase()] },
-            props.value
-          );
-      },
-    }),
-  },
-  {
+    cell: (props) => props.getValue(),
+  }),
+  courseColumnHelper.accessor("enrolledStudents", {
+    header: "Enrolled Students",
+    cell: (props) => props.getValue(),
+  }),
+
+  courseColumnHelper.display({
     id: "actions",
     header: "Action",
-    cell: defineComponent({
-      setup() {
-        return () =>
-          h(
-            "button",
-            {
-              onClick: (e: Event) => {
-                e.stopPropagation();
-                // Action logic here
-              },
-              class: "action-button",
-            },
-            h(DotsVerticalIcon)
-          );
-      },
-    }),
-  },
-] as const;
+    cell: ({ row }) =>
+      h("div", { class: "action-cell" }, [
+        h(
+          "button",
+          {
+            class: "action-button",
+            onClick: () => openRemoveCourseDialog(row.original),
+          },
+          [h(TrashIcon)]
+        ),
+      ]),
+  }),
+];
 
-// Initialize tables
+// Update the courseTable initialization
 const courseTable = computed(() => {
   return useVueTable({
     data: mockCourseData.value,
-    columns: courseColumns as any,
+    columns: courseColumns,
     state: courseTableState,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -767,16 +758,101 @@ onMounted(async () => {
       name: data.name,
       enrolledStudents: data.students.length,
       courses: data.courses.length,
-      coreCount: data.courses.filter((c) => c.type === "Core").length,
       type: data.type,
       credits: data.credits,
     };
     mockStudentData.value = data.students;
     mockCourseData.value = data.courses;
+    programCourses.value = [...data.courses];
+
+    // Set available courses (all courses minus the ones already in this program)
+    availableCourses.value = allCourses.value.filter(
+      (course) => !programCourses.value.some((c) => c.id === course.id)
+    );
   } catch (error) {
     console.error("Error loading program data:", error);
   }
 });
+
+// Modal and dialog handlers
+const openEditModal = () => {
+  showEditModal.value = true;
+};
+
+const openAddCoursesModal = () => {
+  showAddCoursesModal.value = true;
+};
+
+const openRemoveCourseDialog = (course: Course) => {
+  courseToRemove.value = course;
+  showRemoveCourseDialog.value = true;
+};
+
+const handleProgramUpdated = (updatedProgram: ProgramOutput) => {
+  // Update the local program data
+  if (program.value) {
+    program.value = {
+      ...program.value,
+      name: updatedProgram.name,
+      type: updatedProgram.type,
+      credits: updatedProgram.credits,
+    };
+  }
+  toast.success("Program updated successfully");
+};
+
+const handleCoursesAdded = (courses: Course[]) => {
+  // Add the new courses to the program
+  programCourses.value = [...programCourses.value, ...courses];
+  mockCourseData.value = [...programCourses.value];
+
+  // Update the program object with new course count
+  if (program.value) {
+    program.value.courses = programCourses.value.length;
+  }
+
+  // Update available courses
+  availableCourses.value = allCourses.value.filter(
+    (course) => !programCourses.value.some((c) => c.id === course.id)
+  );
+
+  toast.success(`${courses.length} courses added to program`);
+};
+
+const confirmRemoveCourse = async () => {
+  if (!courseToRemove.value) return;
+
+  try {
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Remove the course from the program
+    const courseId = courseToRemove.value.id;
+    programCourses.value = programCourses.value.filter(
+      (c) => c.id !== courseId
+    );
+    mockCourseData.value = [...programCourses.value];
+
+    // Update the program object with new course count
+    if (program.value) {
+      program.value.courses = programCourses.value.length;
+    }
+
+    // Add the removed course back to available courses
+    if (!availableCourses.value.some((c) => c.id === courseId)) {
+      const course = allCourses.value.find((c) => c.id === courseId);
+      if (course) {
+        availableCourses.value.push(course);
+      }
+    }
+
+    toast.success(`Course removed from program`);
+    courseToRemove.value = null;
+  } catch (error) {
+    console.error("Error removing course:", error);
+    toast.error("Failed to remove course");
+  }
+};
 
 // Navigation methods
 const navigateBack = () => {
@@ -804,11 +880,25 @@ const fetchProgramData = async (programId: number): Promise<ProgramData> => {
     isLoading.value = false;
   }
 };
+
+// Add this computed property
+const searchQuery = computed({
+  get: () =>
+    activeTab.value === "students"
+      ? studentSearchQuery.value
+      : courseSearchQuery.value,
+  set: (value) => {
+    if (activeTab.value === "students") {
+      studentSearchQuery.value = value;
+    } else {
+      courseSearchQuery.value = value;
+    }
+  },
+});
 </script>
 
 <style lang="scss" scoped>
 .program-detail-page {
-  padding: $spacing-6;
   max-width: 100%;
 }
 
@@ -816,25 +906,20 @@ const fetchProgramData = async (programId: number): Promise<ProgramData> => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: $spacing-6;
 
-  .back-button {
+  .page-title {
     display: flex;
     align-items: center;
     gap: $spacing-2;
+  }
+
+  .back-icon {
     background: none;
     border: none;
-    font-family: $font-family-heading;
-    font-size: $text-xl;
-    font-weight: 600;
     color: $gray-900;
     cursor: pointer;
-    padding: 0;
-
-    .back-icon {
-      width: 20px;
-      height: 20px;
-    }
+    width: 20px;
+    height: 20px;
   }
 
   .header-actions {
@@ -843,62 +928,28 @@ const fetchProgramData = async (programId: number): Promise<ProgramData> => {
   }
 }
 
+.dashlet.program-details {
+  padding: 0;
+}
+
 .program-overview {
-  background-color: $white;
-  border-radius: 16px;
-  border: 1px solid $gray-200;
-  padding: $spacing-6;
-  margin-bottom: $spacing-6;
-
-  .overview-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: $spacing-6;
-    flex-wrap: wrap;
-    gap: $spacing-4;
-
-    .program-title {
-      font-family: $font-family-heading;
-      font-size: $text-2xl;
-      font-weight: 700;
-      color: $gray-900;
-      margin: 0;
-    }
-
-    .program-type {
-      padding: 6px $spacing-4;
-      border-radius: 16px;
-      font-size: $text-sm;
-      font-weight: 500;
-
-      &.undergraduate {
-        background-color: $primary-color-50;
-        color: $primary-color-700;
-      }
-
-      &.masters {
-        background-color: $secondary-color;
-        color: $white;
-      }
-
-      &.doctorate {
-        background-color: $warning-300;
-        color: $gray-800;
-      }
-    }
-  }
+  padding: $spacing-8;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-6;
+  border-bottom: 1px solid $gray-200;
 
   .overview-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: $spacing-6;
+    display: flex;
+    justify-content: space-between;
   }
 
   .stat-card {
+    width: 25%;
     display: flex;
     flex-direction: column;
-    gap: $spacing-1;
+    gap: $spacing-3;
+    align-items: start;
 
     .stat-value {
       font-size: $text-3xl;
@@ -906,66 +957,92 @@ const fetchProgramData = async (programId: number): Promise<ProgramData> => {
       color: $gray-900;
     }
 
+    .stat-details {
+      display: flex;
+      align-items: center;
+      gap: $spacing-1;
+    }
+
     .stat-label {
       font-size: $text-sm;
       color: $gray-600;
     }
 
-    .stat-indicator {
-      margin-top: $spacing-1;
+    .new-students {
+      display: inline-block;
+      padding: 2px $spacing-2;
+      border-radius: 4px;
+      font-size: $text-xs;
+      font-weight: 500;
+      background-color: $success-50;
+      color: $success-500;
+    }
 
-      .new-students {
-        display: inline-block;
-        padding: 2px $spacing-2;
-        border-radius: 4px;
-        font-size: $text-xs;
-        font-weight: 500;
-        background-color: $success-50;
-        color: $success-500;
-      }
-
-      .core-count {
-        display: inline-block;
-        padding: 2px $spacing-2;
-        border-radius: 4px;
-        font-size: $text-xs;
-        font-weight: 500;
-        background-color: $primary-color-100;
-        color: $primary-color-700;
-      }
+    .core-count {
+      display: inline-block;
+      padding: 2px $spacing-2;
+      border-radius: 4px;
+      font-size: $text-xs;
+      font-weight: 500;
+      background-color: $primary-color-100;
+      color: $primary-color-700;
     }
   }
 }
 
 .program-tabs {
   display: flex;
-  gap: $spacing-2;
-  margin-bottom: $spacing-6;
-  border-bottom: 1px solid $gray-200;
+  flex-direction: column;
 
-  .tab-button {
-    padding: $spacing-3 $spacing-4;
-    background: none;
-    border: none;
-    border-bottom: 2px solid transparent;
-    color: $gray-600;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
+  .tabs-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $spacing-4;
+  }
 
-    &:hover {
-      color: $gray-900;
-    }
+  .tab-actions {
+    display: flex;
+    gap: $spacing-2;
+    align-items: center;
+  }
 
-    &.active {
-      color: $primary-color;
-      border-bottom: 2px solid $primary-color;
+  .program-tab-title {
+    display: flex;
+    gap: $spacing-2;
+    padding: $spacing-1;
+    background-color: $gray-100;
+    border-radius: 8px;
+    border: 1px solid $gray-200;
+
+    .tab-button {
+      padding: $spacing-2 $spacing-8;
+      background: none;
+      border: none;
+      border-radius: 8px;
+      border-bottom: 2px solid transparent;
+      color: $gray-600;
+      font-weight: 400;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: $font-family;
+      font-size: $text-sm;
+
+      &:hover {
+        color: $gray-900;
+      }
+
+      &.active {
+        color: $primary-color-600;
+        background-color: $white;
+        font-weight: 600;
+      }
     }
   }
 }
 
 .tab-content {
-  margin-bottom: $spacing-6;
+  margin-bottom: $spacing-4;
 }
 
 .tab-header {
@@ -975,104 +1052,12 @@ const fetchProgramData = async (programId: number): Promise<ProgramData> => {
   margin-bottom: $spacing-4;
   flex-wrap: wrap;
   gap: $spacing-4;
-
-  .search-container {
-    position: relative;
-
-    .search-input {
-      padding: $spacing-3 $spacing-3 $spacing-3 $spacing-10;
-      border-radius: 12px;
-      border: 1px solid $gray-300;
-      background-color: $white;
-      font-family: $font-family;
-      font-size: $text-sm;
-      width: 250px;
-
-      &:focus {
-        outline: none;
-        border-color: $primary-color;
-        box-shadow: 0 0 0 2px rgba($primary-color, 0.1);
-      }
-    }
-
-    .search-icon {
-      position: absolute;
-      left: $spacing-3;
-      top: 50%;
-      transform: translateY(-50%);
-      color: $gray-500;
-      width: 20px;
-      height: 20px;
-    }
-  }
 }
 
 // Table styles
 .data-table-container {
-  background-color: $white;
-  border-radius: 16px;
-  border: 1px solid $gray-200;
+  border-top: 1px solid $gray-200;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  margin-bottom: $spacing-4;
-}
-
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-
-  .table-header {
-    padding: $spacing-4;
-    text-align: left;
-    color: $gray-700;
-    font-weight: 600;
-    font-size: $text-sm;
-    background-color: $gray-50;
-    border-bottom: 1px solid $gray-200;
-    position: relative;
-    cursor: pointer;
-
-    .header-content {
-      display: flex;
-      align-items: center;
-      gap: $spacing-2;
-    }
-
-    .sort-indicator {
-      display: inline-block;
-      color: $primary-color;
-      font-size: $text-sm;
-    }
-
-    &:last-child {
-      text-align: center;
-    }
-  }
-
-  .table-row {
-    cursor: pointer;
-    transition: background-color 0.15s ease;
-
-    &:nth-child(even) {
-      background-color: $gray-50;
-    }
-
-    &:hover {
-      background-color: $primary-color-25;
-    }
-  }
-
-  .table-cell {
-    padding: $spacing-4;
-    text-align: left;
-    border-bottom: 1px solid $gray-200;
-    font-size: $text-sm;
-    color: $gray-800;
-
-    &:last-child {
-      text-align: center;
-    }
-  }
 }
 
 .student-name-cell {

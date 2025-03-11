@@ -109,6 +109,7 @@ defineEmits<{
     padding: 8px 16px;
     font-size: 0.75rem;
     border-radius: 8px;
+    font-weight: 600;
 
     .button-icon svg {
       width: 14px;
