@@ -45,9 +45,7 @@
             <div class="stat-details">
               <div class="stat-value">{{ program.enrolledStudents }}</div>
 
-              <div class="stat-indicator">
-                <span class="new-students">+35 new</span>
-              </div>
+              <div class="pill pill-md p-blue-dark">+35 new</div>
             </div>
           </div>
           <div class="stat-card">
@@ -159,6 +157,52 @@
           </div>
         </div>
 
+        <!-- Add after the students table -->
+        <div class="mobile-card-view" v-if="activeTab === 'students'">
+          <div
+            v-for="student in studentTable.getRowModel().rows"
+            :key="student.id"
+            class="base-card"
+          >
+            <div class="card-header-avatar">
+              <img
+                :src="student.original.avatar"
+                class="avatar lg"
+                alt="Student avatar"
+              />
+              <div class="avatar-info">
+                <h3 class="avatar-name">{{ student.original.name }}</h3>
+                <p class="avatar-email">{{ student.original.email }}</p>
+              </div>
+            </div>
+            <div class="card-progress">
+              <div class="progress-container">
+                <div
+                  class="progress-bar"
+                  :style="{
+                    width: calculateCreditProgress(
+                      student.original.creditsCompleted
+                    ),
+                  }"
+                ></div>
+              </div>
+
+              <div class="card-details">
+                <div class="detail-item">
+                  <div class="detail-icon">
+                    <IconsGraduationCapIcon />
+                  </div>
+                  <span class="detail-label">Credits Completed:</span>
+
+                  <span class="detail-value">{{
+                    student.original.creditsCompleted
+                  }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Courses tab content -->
         <div v-if="activeTab === 'courses'" class="tab-content">
           <!-- Courses table -->
@@ -203,6 +247,47 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+        </div>
+
+        <div class="mobile-card-view" v-if="activeTab === 'courses'">
+          <div
+            v-for="course in courseTable.getRowModel().rows"
+            :key="course.id"
+            class="base-card"
+          >
+            <div>
+              <div class="card-header">
+                <h3 class="card-title">{{ course.original.title }}</h3>
+                <div class="card-actions">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    @click="openRemoveCourseDialog(course.original)"
+                  >
+                    <template #icon>
+                      <IconsTrashIcon />
+                    </template>
+                  </Button>
+                </div>
+              </div>
+
+              <span class="course-code">{{ course.original.code }}</span>
+            </div>
+            <div class="card-details">
+              <div class="detail-item">
+                <IconsBookIcon class="detail-icon" />
+                <span class="detail-label">Credits</span>
+                <span class="detail-value">{{ course.original.credits }}</span>
+              </div>
+              <div class="detail-item">
+                <IconsUsersIcon class="detail-icon" />
+                <span class="detail-label">Students:</span>
+                <span class="detail-value">
+                  {{ course.original.enrolledStudents }}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -278,6 +363,9 @@ import Dialog from "~/components/ui/Dialog.vue";
 import IconsPlusIcon from "~/components/icons/PlusIcon.vue";
 import IconsSearchIcon from "~/components/icons/SearchIcon.vue";
 import type { ProgramOutput } from "~/types/program";
+import IconsGraduationCapIcon from "~/components/icons/AcademicCapIcon.vue";
+import IconsBookIcon from "~/components/icons/BookOpenIcon.vue";
+import IconsUsersIcon from "~/components/icons/UsersIcon.vue";
 
 // Define that this page uses the dashboard layout
 definePageMeta({
@@ -332,21 +420,21 @@ const programData: Record<number, ProgramData> = {
         name: "Alice Johnson",
         email: "alice.johnson@psych.edu",
         creditsCompleted: "30/64",
-        avatar: "/images/avatars/1.png",
+        avatar: "https://randomuser.me/api/portraits/women/1.jpg",
       },
       {
         id: 2,
         name: "Bob Smith",
         email: "bob.smith@psych.edu",
         creditsCompleted: "45/64",
-        avatar: "/images/avatars/2.png",
+        avatar: "https://randomuser.me/api/portraits/women/2.jpg",
       },
       {
         id: 3,
         name: "Charlie Brown",
         email: "charlie.brown@psych.edu",
         creditsCompleted: "60/64",
-        avatar: "/images/avatars/3.png",
+        avatar: "https://randomuser.me/api/portraits/women/3.jpg",
       },
     ],
     courses: [
@@ -384,21 +472,21 @@ const programData: Record<number, ProgramData> = {
         name: "David Wilson",
         email: "david.wilson@nursing.edu",
         creditsCompleted: "50/72",
-        avatar: "/images/avatars/4.png",
+        avatar: "https://randomuser.me/api/portraits/women/4.jpg",
       },
       {
         id: 5,
         name: "Eva Green",
         email: "eva.green@nursing.edu",
         creditsCompleted: "60/72",
-        avatar: "/images/avatars/5.png",
+        avatar: "https://randomuser.me/api/portraits/women/5.jpg",
       },
       {
         id: 6,
         name: "Frank White",
         email: "frank.white@nursing.edu",
         creditsCompleted: "70/72",
-        avatar: "/images/avatars/6.png",
+        avatar: "https://randomuser.me/api/portraits/women/6.jpg",
       },
     ],
     courses: [
@@ -436,21 +524,21 @@ const programData: Record<number, ProgramData> = {
         name: "Grace Lee",
         email: "grace.lee@nursing.edu",
         creditsCompleted: "80/100",
-        avatar: "/images/avatars/7.png",
+        avatar: "https://randomuser.me/api/portraits/women/7.jpg",
       },
       {
         id: 8,
         name: "Henry Ford",
         email: "henry.ford@nursing.edu",
         creditsCompleted: "90/100",
-        avatar: "/images/avatars/8.png",
+        avatar: "https://randomuser.me/api/portraits/women/8.jpg",
       },
       {
         id: 9,
         name: "Ivy Chen",
         email: "ivy.chen@nursing.edu",
         creditsCompleted: "100/100",
-        avatar: "/images/avatars/9.png",
+        avatar: "https://randomuser.me/api/portraits/women/9.jpg",
       },
     ],
     courses: [
@@ -477,7 +565,7 @@ const programData: Record<number, ProgramData> = {
       },
     ],
     name: "MSc. Nursing: Leadership",
-    type: "Undergraduate",
+    type: "Masters",
     credits: 100,
   },
   4: {
@@ -488,21 +576,21 @@ const programData: Record<number, ProgramData> = {
         name: "Jack Black",
         email: "jack.black@publichealth.edu",
         creditsCompleted: "30/46",
-        avatar: "/images/avatars/10.png",
+        avatar: "https://randomuser.me/api/portraits/women/10.jpg",
       },
       {
         id: 11,
         name: "Karen White",
         email: "karen.white@publichealth.edu",
         creditsCompleted: "40/46",
-        avatar: "/images/avatars/11.png",
+        avatar: "https://randomuser.me/api/portraits/women/11.jpg",
       },
       {
         id: 12,
         name: "Leo Green",
         email: "leo.green@publichealth.edu",
         creditsCompleted: "46/46",
-        avatar: "/images/avatars/12.png",
+        avatar: "https://randomuser.me/api/portraits/women/12.jpg",
       },
     ],
     courses: [
@@ -529,7 +617,7 @@ const programData: Record<number, ProgramData> = {
       },
     ],
     name: "Master of Public Health",
-    type: "Postgraduate",
+    type: "Doctorate",
     credits: 46,
   },
   5: {
@@ -540,21 +628,21 @@ const programData: Record<number, ProgramData> = {
         name: "Mia Brown",
         email: "mia.brown@physio.edu",
         creditsCompleted: "50/75",
-        avatar: "/images/avatars/13.png",
+        avatar: "https://randomuser.me/api/portraits/women/13.jpg",
       },
       {
         id: 14,
         name: "Noah Smith",
         email: "noah.smith@physio.edu",
         creditsCompleted: "60/75",
-        avatar: "/images/avatars/14.png",
+        avatar: "https://randomuser.me/api/portraits/women/14.jpg",
       },
       {
         id: 15,
         name: "Olivia Johnson",
         email: "olivia.johnson@physio.edu",
         creditsCompleted: "75/75",
-        avatar: "/images/avatars/15.png",
+        avatar: "https://randomuser.me/api/portraits/women/15.jpg",
       },
     ],
     courses: [
@@ -581,7 +669,7 @@ const programData: Record<number, ProgramData> = {
       },
     ],
     name: "Master of Physiotherapy",
-    type: "Postgraduate",
+    type: "Masters",
     credits: 75,
   },
 };
@@ -649,10 +737,10 @@ const studentColumns = [
   studentColumnHelper.accessor("name", {
     header: "Student Name",
     cell: ({ row }) =>
-      h("div", { class: "student-name-cell" }, [
+      h("div", { class: "avatar-cell" }, [
         h("img", {
           src: row.original.avatar,
-          class: "student-avatar",
+          class: "avatar",
           alt: row.original.name,
         }),
         row.original.name,
@@ -889,6 +977,11 @@ const searchQuery = computed({
     }
   },
 });
+
+const calculateCreditProgress = (creditsCompleted: string) => {
+  const [completed, total] = creditsCompleted.split("/").map(Number);
+  return `${((completed / total) * 100).toFixed(2)}%`;
+};
 </script>
 
 <style lang="scss" scoped>
@@ -924,6 +1017,7 @@ const searchQuery = computed({
 
 .dashlet.program-details {
   padding: 0;
+  overflow: hidden;
 }
 
 .program-overview {
@@ -932,18 +1026,20 @@ const searchQuery = computed({
   flex-direction: column;
   gap: $spacing-6;
   border-bottom: 1px solid $gray-200;
+  background-color: $primary-color-25;
 
   .overview-stats {
     display: flex;
     justify-content: space-between;
+    gap: $spacing-6;
   }
 
   .stat-card {
     width: 25%;
     display: flex;
     flex-direction: column;
-    gap: $spacing-3;
     align-items: start;
+    justify-content: space-between;
 
     .stat-value {
       font-size: $text-3xl;
@@ -960,16 +1056,6 @@ const searchQuery = computed({
     .stat-label {
       font-size: $text-sm;
       color: $gray-600;
-    }
-
-    .new-students {
-      display: inline-block;
-      padding: 2px $spacing-2;
-      border-radius: 4px;
-      font-size: $text-xs;
-      font-weight: 500;
-      background-color: $success-50;
-      color: $success-500;
     }
 
     .core-count {
@@ -993,6 +1079,8 @@ const searchQuery = computed({
     justify-content: space-between;
     align-items: center;
     padding: $spacing-4;
+    border-bottom: 1px solid $gray-200;
+    gap: $spacing-4;
   }
 
   .tab-actions {
@@ -1020,7 +1108,7 @@ const searchQuery = computed({
       cursor: pointer;
       transition: all 0.2s ease;
       font-family: $font-family;
-      font-size: $text-sm;
+      font-size: $text-xs;
 
       &:hover {
         color: $gray-900;
@@ -1037,59 +1125,6 @@ const searchQuery = computed({
 
 .tab-content {
   margin-bottom: $spacing-4;
-}
-
-.tab-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: $spacing-4;
-  flex-wrap: wrap;
-  gap: $spacing-4;
-}
-
-// Table styles
-.data-table-container {
-  border-top: 1px solid $gray-200;
-  overflow: hidden;
-}
-
-.student-name-cell {
-  display: flex;
-  align-items: center;
-  gap: $spacing-3;
-
-  .student-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-}
-
-.action-cell {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  :deep(.action-button) {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: $gray-500;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-    margin: 0 auto;
-
-    &:hover {
-      background-color: $gray-100;
-      color: $gray-700;
-    }
-  }
 }
 
 // Pagination
@@ -1177,6 +1212,139 @@ const searchQuery = computed({
   @keyframes spin {
     to {
       transform: rotate(360deg);
+    }
+  }
+}
+
+.mobile-card-view {
+  display: none;
+  padding: $spacing-4;
+  gap: $spacing-4;
+  flex-direction: column;
+
+  .base-card {
+    background: $gray-25;
+    border: 1px solid $gray-200;
+    border-radius: 16px;
+    padding: $spacing-6;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-4;
+    // box-shadow: rgba(149, 157, 165, 0.1) 0px 8px 20px;
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      :deep(.base-button) {
+        width: 40px;
+        height: 40px;
+        border-radius: 100px;
+
+        .button-icon {
+          margin: 0;
+        }
+      }
+    }
+
+    .card-title {
+      font-size: $text-base;
+      margin-bottom: $spacing-1;
+    }
+
+    .card-details {
+      display: flex;
+      gap: $spacing-5;
+
+      .detail-item {
+        display: flex;
+        align-items: center;
+        gap: $spacing-2;
+        border-bottom: 1px solid $gray-100;
+
+        .detail-icon {
+          width: 20px;
+          height: 20px;
+          color: $gray-700;
+        }
+
+        .detail-label {
+          color: $gray-600;
+          font-size: $text-sm;
+        }
+
+        .detail-value {
+          font-weight: 600;
+        }
+      }
+    }
+
+    .card-header-avatar {
+      display: flex;
+      align-items: center;
+      gap: $spacing-3;
+
+      .avatar-info {
+        .avatar-name {
+          font-size: $text-base;
+          margin-bottom: 2px;
+        }
+
+        .avatar-email {
+          color: $gray-600;
+          font-size: $text-sm;
+        }
+      }
+    }
+    .card-progress {
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-2;
+    }
+
+    .progress-container {
+      width: 100%;
+      height: 12px;
+      padding: 2px;
+      border-radius: 100px;
+      display: flex;
+      align-items: center;
+      background-color: $gray-200;
+
+      overflow: hidden;
+
+      .progress-bar {
+        height: 100%;
+        background-color: $primary-color-500;
+        transition: width 0.5s ease-in-out;
+        border-radius: 100px;
+      }
+    }
+  }
+}
+
+// Add responsive styles
+@media (max-width: 768px) {
+  .table-container {
+    display: none;
+  }
+
+  .mobile-card-view {
+    display: flex;
+  }
+
+  .tab-content {
+    margin-bottom: 0 !important;
+  }
+
+  .overview-stats {
+    flex-wrap: wrap;
+    row-gap: 28px;
+    column-gap: 0 !important;
+
+    .stat-card {
+      width: 50%;
     }
   }
 }

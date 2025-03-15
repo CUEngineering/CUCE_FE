@@ -13,4 +13,13 @@ export default defineNuxtConfig({
       },
     },
   },
+  runtimeConfig: {
+    // Private keys (server-side)
+    // publicApiBase: '', // Fallback value
+
+    // Public keys (exposed to client)
+    public: {
+      apiBaseUrl: process.env.API_BASE_URL || "http://localhost:3001/api",
+    },
+  },
 });

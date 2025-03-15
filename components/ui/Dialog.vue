@@ -193,12 +193,14 @@ const confirmButtonVariant = computed(
   box-shadow: 0px 24px 48px -12px rgba(16, 24, 40, 0.18);
   display: flex;
   flex-direction: column;
+  padding: 36px;
+  gap: 24px;
 
   .dialog-header {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 32px 32px 16px;
+    gap: 24px;
     position: relative;
 
     .dialog-icon {
@@ -208,7 +210,6 @@ const confirmButtonVariant = computed(
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 16px;
 
       img {
         width: auto;
@@ -227,8 +228,8 @@ const confirmButtonVariant = computed(
 
     .dialog-close {
       position: absolute;
-      top: 20px;
-      right: 16px;
+      top: 0;
+      right: 0;
       background: none;
       border: none;
       color: $gray-500;
@@ -252,7 +253,6 @@ const confirmButtonVariant = computed(
   }
 
   .dialog-content {
-    padding: 0 32px 24px;
     overflow-y: auto;
 
     .dialog-message {
@@ -266,7 +266,6 @@ const confirmButtonVariant = computed(
   }
 
   .dialog-footer {
-    padding: 0 32px 32px;
     display: flex;
     justify-content: center;
     gap: 16px;
@@ -307,18 +306,7 @@ const confirmButtonVariant = computed(
 @media (max-width: $breakpoint-md) {
   .dialog {
     max-width: 100%;
-
-    .dialog-header {
-      padding: 24px 24px 12px;
-    }
-
-    .dialog-content {
-      padding: 0 24px 16px;
-    }
-
-    .dialog-footer {
-      padding: 0 24px 24px;
-    }
+    gap: 16px;
   }
 }
 </style>

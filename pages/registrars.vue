@@ -329,30 +329,6 @@ const confirmSuspend = async () => {
   }
 };
 
-const confirmDelete = async () => {
-  if (!selectedRegistrar.value) return;
-
-  isActionLoading.value = true;
-  try {
-    // Simulating API call with timeout
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // Success case
-    toast.success(`${selectedRegistrar.value.name} has been deleted`);
-
-    // Remove registrar from the list
-    registrars.value = registrars.value.filter(
-      (r) => r.email !== selectedRegistrar.value?.email
-    );
-  } catch (error) {
-    // Error case
-    toast.error("Failed to delete registrar");
-  } finally {
-    isActionLoading.value = false;
-    showDeleteConfirm.value = false;
-  }
-};
-
 // Handle invite actions
 const showCancelInviteDialog = (invite: Invite) => {
   selectedInvite.value = invite;
@@ -662,7 +638,7 @@ const pendingInvites = ref<Invite[]>([
 
       .registrars-list {
         overflow-y: visible; // Remove overflow
-        padding-bottom: 0;
+        // padding-bottom: 0;
       }
     }
 

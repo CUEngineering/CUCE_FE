@@ -96,6 +96,11 @@ button {
     padding: 2px 12px;
     font-size: $text-xxs;
   }
+
+  &.pill-square {
+    border-radius: 4px;
+  }
+
   &.pill-md {
     padding: 4px 12px;
     font-size: $text-xs;
@@ -103,7 +108,6 @@ button {
   &.pill-lg {
     padding: 6px 14px;
     font-size: $text-sm;
-    font-weight: 600;
   }
   &.p-grey {
     background-color: $gray-100;
@@ -114,6 +118,11 @@ button {
     background-color: $primary-color-50;
     color: $primary-color-700;
     border-color: $primary-color-200;
+  }
+  &.p-blue-dark {
+    background-color: $primary-color-100;
+    color: $primary-color-700;
+    border-color: $primary-color-400;
   }
   &.p-yellow {
     background-color: $warning-50;
@@ -384,6 +393,7 @@ button {
 .table-container {
   width: 100%;
   border-collapse: collapse;
+  overflow: hidden;
 
   .table-header {
     padding: $spacing-4;
@@ -440,9 +450,50 @@ button {
     &:last-child {
       text-align: center;
     }
+
+    .action-cell {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      .action-button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: $gray-500;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        margin: 0 auto;
+
+        &:hover {
+          background-color: $gray-100;
+          color: $gray-700;
+        }
+      }
+    }
+
+    .avatar-cell {
+      display: flex;
+      align-items: center;
+      gap: $spacing-3;
+    }
   }
 }
 
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  &.lg {
+    width: 48px;
+    height: 48px;
+  }
+}
 //Search Field Styles
 .search-container {
   position: relative;

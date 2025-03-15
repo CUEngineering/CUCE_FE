@@ -24,6 +24,7 @@
               type="email"
               placeholder="Enter email address"
               required
+              :error="authError ? 'Invalid email or password' : ''"
             />
 
             <FormInput
@@ -54,9 +55,13 @@
               <a href="#" class="forgot-password">Forgot Password?</a>
             </div>
 
-            <Button type="submit" variant="primary" :loading="loading">
-              {{ loading ? "Signing in..." : "Sign In" }}
+            <Button type="submit" variant="primary" :loading="isLoading">
+              {{ isLoading ? "Signing in..." : "Sign In" }}
             </Button>
+
+            <div v-if="authError" class="error-message">
+              {{ authError }}
+            </div>
           </form>
         </div>
 
@@ -85,21 +90,39 @@ import Carousel from "~/components/ui/Carousel.vue";
 import EyeIcon from "~/components/icons/EyeIcon.vue";
 import EyeOffIcon from "~/components/icons/EyeOffIcon.vue";
 import Button from "~/components/ui/Button.vue";
+import { useAuth } from "~/composables/useAuth";
 
+// Form state
 const email = ref("");
 const password = ref("");
 const rememberMe = ref(false);
 const showPassword = ref(false);
-const loading = ref(false);
+
+// Auth service
+const { signIn, error: authError, loading: isLoading } = useAuth();
 
 const handleLogin = async () => {
-  try {
-    loading.value = true;
-    // Add login logic here
-  } catch (error) {
-    console.error("Login error:", error);
-  } finally {
-    loading.value = false;
+  if (!email.value || !password.value) {
+    return;
+  }
+
+  const result = await signIn({
+    email: email.value,
+    password: password.value,
+  });
+
+  if (result.success) {
+    // Store "remember me" preference if needed
+    if (rememberMe.value) {
+      // Set a longer cookie expiration time
+      const rememberMeCookie = useCookie("remember_me", {
+        maxAge: 30 * 24 * 60 * 60, // 30 days
+      });
+      rememberMeCookie.value = "true";
+    }
+
+    // Redirect to dashboard after successful login
+    navigateTo("/dashboard");
   }
 };
 </script>
@@ -282,5 +305,12 @@ const handleLogin = async () => {
   .feature-content {
     display: none;
   }
+}
+
+.error-message {
+  color: $error-500;
+  font-size: $text-sm;
+  margin-top: 0.5rem;
+  text-align: center;
 }
 </style>

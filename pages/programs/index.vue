@@ -506,25 +506,6 @@ definePageMeta({
         font-weight: 500;
       }
     }
-
-    .action-button {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: $gray-500;
-      width: 36px;
-      height: 36px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 4px;
-      margin: 0 auto;
-
-      &:hover {
-        background-color: $gray-100;
-        color: $gray-700;
-      }
-    }
   }
 
   // Pagination
@@ -592,12 +573,6 @@ definePageMeta({
         color: $white;
       }
     }
-  }
-
-  .action-cell {
-    display: flex;
-    justify-content: center;
-    align-items: center;
   }
 }
 </style>
