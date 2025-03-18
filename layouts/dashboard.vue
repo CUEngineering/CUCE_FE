@@ -18,6 +18,11 @@
             </button>
           </div>
 
+          <button class="logout-button" @click="handleLogout">
+            <LogoutIcon class="logout-icon" />
+            <span>Log out</span>
+          </button>
+
           <div class="user-profile">
             <img
               src="https://randomuser.me/api/portraits/women/44.jpg"
@@ -39,12 +44,19 @@
 <script setup>
 import MenuIcon from "~/components/icons/MenuIcon.vue";
 import BellIcon from "~/components/icons/BellIcon.vue";
+import LogoutIcon from "~/components/icons/LogoutIcon.vue";
+import { useAuth } from "~/composables/useAuth";
 
 const sidebarOpen = ref(true);
+const { signOut } = useAuth();
 
 function toggleSidebar() {
   sidebarOpen.value = !sidebarOpen.value;
   // You would emit an event or use a store to communicate with the Sidebar component
+}
+
+function handleLogout() {
+  signOut();
 }
 </script>
 
@@ -110,6 +122,31 @@ function toggleSidebar() {
 .icon-button:hover {
   background-color: $gray-100;
   color: $gray-700;
+}
+
+.logout-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: $gray-100;
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  color: $gray-700;
+  font-weight: 500;
+  font-size: $text-sm;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: $gray-200;
+    color: $gray-900;
+  }
+
+  .logout-icon {
+    width: 16px;
+    height: 16px;
+  }
 }
 
 .avatar {

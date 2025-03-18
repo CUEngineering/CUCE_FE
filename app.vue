@@ -13,8 +13,5 @@
 </style>
 
 <script setup>
-// Apply middleware globally
-definePageMeta({
-  middleware: ["auth"],
-});
+// The middleware is configured on individual pages or in nuxt.config.ts
 </script>

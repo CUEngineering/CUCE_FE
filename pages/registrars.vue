@@ -189,6 +189,7 @@ interface Invite {
 
 definePageMeta({
   layout: "dashboard",
+  middleware: ["auth"],
 });
 
 // Provide a global state for tracking the currently open dropdown

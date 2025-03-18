@@ -446,6 +446,7 @@ const viewProgramDetails = (programId: number) => {
 // Define that this page uses the dashboard layout
 definePageMeta({
   layout: "dashboard",
+  middleware: ["auth"],
 });
 </script>
 

@@ -22,4 +22,9 @@ export default defineNuxtConfig({
       apiBaseUrl: process.env.API_BASE_URL || "http://localhost:3001/api",
     },
   },
+  // Add global middleware to protect all routes
+  routeRules: {
+    // Apply auth middleware to all routes except login
+    "/**": { middleware: ["auth"] },
+  },
 });

@@ -58,7 +58,7 @@ export function useAuth() {
       user.value = data.user;
 
       return { success: true, data };
-    } catch (err) {
+    } catch (err: any) {
       console.error("Sign in error details:", {
         message: err.message,
         name: err.name,

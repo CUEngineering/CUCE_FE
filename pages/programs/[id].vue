@@ -370,6 +370,7 @@ import IconsUsersIcon from "~/components/icons/UsersIcon.vue";
 // Define that this page uses the dashboard layout
 definePageMeta({
   layout: "dashboard",
+  middleware: ["auth"],
 });
 
 // Get the program ID from the route
