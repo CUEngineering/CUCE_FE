@@ -32,20 +32,26 @@ export function useAuth() {
     error.value = "";
 
     try {
-      const response = await fetch(`${apiBaseUrl}/signin`, {
+      const response = await fetch(`${apiBaseUrl}/auth/signin`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Accept: "application/json",
         },
         body: JSON.stringify(credentials),
       });
 
+      console.log("Response status:", response.status);
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to sign in");
+        const errorBody = await response.text();
+        console.error("Error response body:", errorBody);
+        throw new Error(
+          `HTTP error! status: ${response.status}, body: ${errorBody}`
+        );
       }
 
-      const data: SignInResponse = await response.json();
+      const data = await response.json();
 
       // Save token and user data
       token.value = data.token;
@@ -53,7 +59,13 @@ export function useAuth() {
 
       return { success: true, data };
     } catch (err) {
-      error.value = err.message || "An error occurred during sign in";
+      console.error("Sign in error details:", {
+        message: err.message,
+        name: err.name,
+        stack: err.stack,
+      });
+
+      error.value = err.message || "Failed to sign in";
       return { success: false, error: error.value };
     } finally {
       loading.value = false;
