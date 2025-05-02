@@ -19,7 +19,7 @@ export default defineNuxtConfig({
 
     // Public keys (exposed to client)
     public: {
-      apiBaseUrl: process.env.API_BASE_URL || "http://localhost:3001/api",
+      apiBaseUrl: process.env.API_BASE_URL,
     },
   },
   // Add global middleware to protect all routes

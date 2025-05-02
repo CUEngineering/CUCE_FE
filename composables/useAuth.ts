@@ -7,18 +7,34 @@ interface SignInRequest {
 }
 
 interface SignInResponse {
-  token: string;
   user: {
     id: string;
     email: string;
-    name: string;
     role: string;
+  };
+  session: {
+    access_token: string;
+    expires_in: number;
+    refresh_token: string;
   };
 }
 
 export function useAuth() {
-  const token = useCookie("auth_token");
-  const user = ref(null);
+  const token = useCookie("auth_token", {
+    // Add additional cookie options for security
+    httpOnly: false,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 3600, // 1 hour, matching the token expiration
+  });
+
+  // Define user type explicitly
+  const user = ref<{
+    id: string;
+    email: string;
+    role: string;
+  } | null>(null);
+
   const isAuthenticated = computed(() => !!token.value);
   const error = ref("");
   const loading = ref(false);
@@ -32,6 +48,11 @@ export function useAuth() {
     error.value = "";
 
     try {
+      console.log("Attempting to sign in with:", {
+        email: credentials.email,
+        apiBaseUrl: apiBaseUrl,
+      });
+
       const response = await fetch(`${apiBaseUrl}/auth/signin`, {
         method: "POST",
         headers: {
@@ -41,8 +62,6 @@ export function useAuth() {
         body: JSON.stringify(credentials),
       });
 
-      console.log("Response status:", response.status);
-
       if (!response.ok) {
         const errorBody = await response.text();
         console.error("Error response body:", errorBody);
@@ -51,13 +70,33 @@ export function useAuth() {
         );
       }
 
-      const data = await response.json();
+      const data: SignInResponse = await response.json();
 
-      // Save token and user data
-      token.value = data.token;
-      user.value = data.user;
+      console.log("Received login data:", {
+        hasAccessToken: !!data.session?.access_token,
+        hasUser: !!data.user,
+      });
 
-      return { success: true, data };
+      // Ensure token and user are set correctly
+      if (data.session?.access_token) {
+        // Save token and user data
+        token.value = data.session.access_token;
+        user.value = {
+          id: data.user.id,
+          email: data.user.email,
+          role: data.user.role,
+        };
+
+        console.log("Token after setting:", {
+          tokenValue: token.value,
+          isAuthenticated: isAuthenticated.value,
+        });
+
+        return { success: true, data };
+      } else {
+        console.error("No access token found in response", data);
+        throw new Error("Authentication failed: No access token received");
+      }
     } catch (err: any) {
       console.error("Sign in error details:", {
         message: err.message,
