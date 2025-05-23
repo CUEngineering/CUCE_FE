@@ -90,7 +90,6 @@ import Carousel from "~/components/ui/Carousel.vue";
 import EyeIcon from "~/components/icons/EyeIcon.vue";
 import EyeOffIcon from "~/components/icons/EyeOffIcon.vue";
 import Button from "~/components/ui/Button.vue";
-import { useAuth } from "~/composables/useAuth";
 
 // Form state
 const email = ref("");
@@ -99,31 +98,16 @@ const rememberMe = ref(false);
 const showPassword = ref(false);
 
 // Auth service
-const { signIn, error: authError, loading: isLoading } = useAuth();
+const isLoading = true;
+const authError = true;
 
 const handleLogin = async () => {
   if (!email.value || !password.value) {
     return;
   }
 
-  const result = await signIn({
-    email: email.value,
-    password: password.value,
-  });
-
-  if (result.success) {
-    // Store "remember me" preference if needed
-    if (rememberMe.value) {
-      // Set a longer cookie expiration time
-      const rememberMeCookie = useCookie("remember_me", {
-        maxAge: 30 * 24 * 60 * 60, // 30 days
-      });
-      rememberMeCookie.value = "true";
-    }
-
-    // Redirect to dashboard after successful login
-    navigateTo("/dashboard");
-  }
+  // Redirect to dashboard after successful login
+  navigateTo("/dashboard");
 };
 </script>
 
