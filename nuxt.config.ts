@@ -27,4 +27,5 @@ export default defineNuxtConfig({
     // Apply auth middleware to all routes except login
     "/**": { middleware: ["auth"] },
   },
+  modules: ["@pinia/nuxt"],
 });
