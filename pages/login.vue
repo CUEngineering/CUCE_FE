@@ -24,7 +24,7 @@
               type="email"
               placeholder="Enter email address"
               required
-              :error="authError ? 'Invalid email or password' : ''"
+              :error="authError"
             />
 
             <FormInput
@@ -91,21 +91,50 @@ import EyeIcon from "~/components/icons/EyeIcon.vue";
 import EyeOffIcon from "~/components/icons/EyeOffIcon.vue";
 import Button from "~/components/ui/Button.vue";
 
-// Form state
+// State
 const email = ref("");
 const password = ref("");
 const rememberMe = ref(false);
 const showPassword = ref(false);
+const authError = ref("");
 
-// Auth service
-const isLoading = true;
-const authError = true;
+// Store and router
+const authStore = useAuthStore();
+const router = useRouter();
+const toast = useToast();
+
+const { call, isLoading } = useBackendService("/signin", "post");
 
 const handleLogin = async () => {
+  authError.value = "";
   if (!email.value || !password.value) {
+    authError.value = "Email and password are required.";
     return;
   }
-  // Redirect to dashboard after successful login
+
+  try {
+    const response = await call({
+      email: email.value,
+      password: password.value,
+    });
+
+    authStore.setAuth(response.token, response.role, response.user);
+
+    toast.success("Login successful!");
+    switch (response.role) {
+      case "ADMIN":
+        router.push("/admin/dashboard");
+        break;
+      case "REGISTRAR":
+        router.push("/registrar/dashboard");
+        break;
+      case "STUDENT":
+        router.push("/student/dashboard");
+        break;
+    }
+  } catch (err: any) {
+    authError.value = "Invalid email or password";
+  }
 };
 </script>
 

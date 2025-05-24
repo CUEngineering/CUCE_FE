@@ -3,10 +3,9 @@ import { useAuthStore } from "@/stores/auth";
 import { useRouter } from "vue-router";
 import { ref } from "vue";
 
-const config = useRuntimeConfig();
-const baseURL = config.public.apiBaseUrl;
-
 export const useBackendService = (endpoint: string, method: string) => {
+  const config = useRuntimeConfig();
+
   const auth = useAuthStore();
   const router = useRouter();
   const toast = useToast();
@@ -14,9 +13,10 @@ export const useBackendService = (endpoint: string, method: string) => {
   const isLoading = ref(false);
   const error = ref<any>(null);
   const data = ref<any>(null);
+  const baseURL = config.public.apiBaseUrl;
 
   const call = async (payload: any = {}, customConfig: any = {}) => {
-    const url = `${baseURL}${endpoint}`;
+    const url = `${baseURL}/api/v1${endpoint}`;
     const headers: Record<string, any> = {
       ...customConfig.headers,
       Authorization: auth.token ? `Bearer ${auth.token}` : undefined,

@@ -23,9 +23,16 @@ export default defineNuxtConfig({
     },
   },
   // Add global middleware to protect all routes
-  routeRules: {
-    // Apply auth middleware to all routes except login
-    "/**": { middleware: ["auth"] },
+  // routeRules: {
+  //   // Apply auth middleware to all routes except login
+  //   "/**": { middleware: ["auth"] },
+  // },
+  app: {
+    head: {
+      title: "CUCE",
+      link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" }],
+    },
   },
+
   modules: ["@pinia/nuxt"],
 });

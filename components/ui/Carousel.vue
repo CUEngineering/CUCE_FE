@@ -9,7 +9,12 @@
           <!-- <div class="preview-card"> -->
 
           <!-- <div class="preview-image enrollment-preview"> -->
-          <<img src="~/assets/images/onboard1.svg" alt="User avatar" />
+          <img
+            src="~/assets/images/onboard1.svg"
+            alt="User avatar"
+            class="mock-dashboard"
+            style="width: 100%; height: auto; border-radius: 0.5rem"
+          />
           <!-- <div class="mock-dashboard">
               <div class="mock-header"></div>
               <div class="mock-content">
@@ -46,13 +51,20 @@
       </div>
       <div class="carousel-slide">
         <div class="preview-card">
-          <div class="preview-image course-preview">
+          <img
+            src="~/assets/images/manage.svg"
+            alt="User avatar"
+            class="mock-dashboard"
+            style="width: 100%; height: auto; border-radius: 0.5rem"
+          />
+
+          <!-- <div class="preview-image course-preview">
             <div class="mock-dashboard">
               <div class="mock-grid">
                 <div class="mock-card" v-for="i in 6" :key="i"></div>
               </div>
             </div>
-          </div>
+          </div> -->
         </div>
         <h2>Course Management</h2>
         <p>
