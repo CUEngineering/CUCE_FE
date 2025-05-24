@@ -10,7 +10,7 @@
       <NuxtLink
         to="/admin/dashboard"
         class="nav-item"
-        :class="{ active: currentPath === '/dashboard' }"
+        :class="{ active: currentPath === '/admin/dashboard' }"
       >
         <span class="icon">
           <IconsHomeIcon />
@@ -21,7 +21,7 @@
       <NuxtLink
         to="/admin/registrars"
         class="nav-item"
-        :class="{ active: currentPath === '/registrars' }"
+        :class="{ active: currentPath === '/admin/registrars' }"
       >
         <span class="icon">
           <IconsUsersIcon />
@@ -32,7 +32,7 @@
       <NuxtLink
         to="/admin/enrollments"
         class="nav-item"
-        :class="{ active: currentPath === '/enrollments' }"
+        :class="{ active: currentPath === '/admin/enrollments' }"
       >
         <span class="icon">
           <IconsEnrollmentIcon />
@@ -45,7 +45,8 @@
         class="nav-item"
         :class="{
           active:
-            currentPath === '/programs' || currentPath.startsWith('/programs/'),
+            currentPath === '/admin/programs' ||
+            currentPath.startsWith('/admin/programs/'),
         }"
       >
         <span class="icon">
@@ -57,7 +58,7 @@
       <NuxtLink
         to="/admin/courses"
         class="nav-item"
-        :class="{ active: currentPath === '/courses' }"
+        :class="{ active: currentPath === '/admin/courses' }"
       >
         <span class="icon">
           <IconsDocumentIcon />
@@ -68,7 +69,7 @@
       <NuxtLink
         to="/admin/sessions"
         class="nav-item"
-        :class="{ active: currentPath === '/sessions' }"
+        :class="{ active: currentPath === '/admin/sessions' }"
       >
         <span class="icon">
           <IconsCalendarIcon />
@@ -79,7 +80,7 @@
       <NuxtLink
         to="/admin/students"
         class="nav-item"
-        :class="{ active: currentPath === '/students' }"
+        :class="{ active: currentPath === '/admin/students' }"
       >
         <span class="icon">
           <IconsAcademicCapIcon />

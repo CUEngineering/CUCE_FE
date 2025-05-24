@@ -53,6 +53,8 @@ export const useBackendService = (endpoint: string, method: string) => {
         toast.error("Session expired. Logging out...");
         auth.logout();
         router.push("/login");
+      } else if (!msg || msg.length <= 1) {
+        toast.error("Something went wrong");
       } else {
         toast.error(msg || "Something went wrong");
       }

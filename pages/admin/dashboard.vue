@@ -102,6 +102,36 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from "vue";
+import { useBackendService } from "@/composables/useBackendService"; // adjust path if needed
+
+const totalRegistrars = ref(0);
+const totalStudents = ref(0);
+const totalPrograms = ref(0);
+const totalCourses = ref(0);
+
+const { call, isLoading, error, data } = useBackendService(
+  "/dashboard/admin/stats",
+  "get"
+);
+
+const fetchStats = async () => {
+  try {
+    await call();
+
+    totalRegistrars.value = data.value.registrars;
+    totalStudents.value = data.value.students;
+    totalPrograms.value = data.value.programs;
+    totalCourses.value = data.value.courses;
+  } catch (err) {
+    console.error("Failed to fetch dashboard stats", err);
+  }
+};
+
+onMounted(() => {
+  fetchStats();
+});
+
 definePageMeta({
   layout: "dashboard",
   // middleware: ["auth"],
