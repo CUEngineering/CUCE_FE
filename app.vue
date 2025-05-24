@@ -1,6 +1,7 @@
 <template>
   <NuxtLayout>
     <NuxtPage />
+    <ToastContainer />
   </NuxtLayout>
 </template>
 
@@ -13,5 +14,7 @@
 </style>
 
 <script setup>
+import ToastContainer from "./components/ui/ToastContainer.vue";
+
 // The middleware is configured on individual pages or in nuxt.config.ts
 </script>

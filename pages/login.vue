@@ -90,6 +90,7 @@ import Carousel from "~/components/ui/Carousel.vue";
 import EyeIcon from "~/components/icons/EyeIcon.vue";
 import EyeOffIcon from "~/components/icons/EyeOffIcon.vue";
 import Button from "~/components/ui/Button.vue";
+import { useBackendService } from "~/composables/useBackendService";
 
 // State
 const email = ref("");
@@ -103,9 +104,13 @@ const authStore = useAuthStore();
 const router = useRouter();
 const toast = useToast();
 
-const { call, isLoading } = useBackendService("/signin", "post");
+const { call, isLoading, error, data } = useBackendService(
+  "/auth/signin",
+  "post"
+);
 
 const handleLogin = async () => {
+  console.log("Login attempt with email:", email.value);
   authError.value = "";
   if (!email.value || !password.value) {
     authError.value = "Email and password are required.";
@@ -113,26 +118,31 @@ const handleLogin = async () => {
   }
 
   try {
-    const response = await call({
+    await call({
       email: email.value,
       password: password.value,
     });
 
-    authStore.setAuth(response.token, response.role, response.user);
+    authStore.setAuth(
+      data.value.session.access_token,
+      data.value.role,
+      data.value.user
+    );
 
     toast.success("Login successful!");
-    switch (response.role) {
-      case "ADMIN":
-        router.push("/admin/dashboard");
-        break;
+    switch (data.value.role) {
       case "REGISTRAR":
         router.push("/registrar/dashboard");
         break;
       case "STUDENT":
         router.push("/student/dashboard");
         break;
+      case "ADMIN":
+        router.push("/admin/dashboard");
+        break;
     }
   } catch (err: any) {
+    console.error("Login error:", err);
     authError.value = "Invalid email or password";
   }
 };

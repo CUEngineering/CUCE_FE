@@ -2,6 +2,8 @@ import axios from "axios";
 import { useAuthStore } from "@/stores/auth";
 import { useRouter } from "vue-router";
 import { ref } from "vue";
+import { useToast } from "@/composables/useToast";
+import { compileScript } from "vue/compiler-sfc";
 
 export const useBackendService = (endpoint: string, method: string) => {
   const config = useRuntimeConfig();
@@ -31,6 +33,13 @@ export const useBackendService = (endpoint: string, method: string) => {
     data.value = null;
 
     try {
+      console.log("API Call:", {
+        url,
+        method,
+        payload,
+        headers,
+        customConfig,
+      });
       const response = await axios({
         url,
         method,
@@ -44,7 +53,9 @@ export const useBackendService = (endpoint: string, method: string) => {
       return response.data;
     } catch (err: any) {
       error.value = err;
-      const msg = err?.response?.data?.message?.toLowerCase();
+
+      const msg = err?.response?.data?.message[0]?.toLowerCase();
+
       if (msg?.includes("unauthorized")) {
         toast.error("Session expired. Logging out...");
         auth.logout();
