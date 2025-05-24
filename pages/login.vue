@@ -83,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import Logo from "~/components/Logo.vue";
 import FormInput from "~/components/ui/FormInput.vue";
 import Carousel from "~/components/ui/Carousel.vue";
@@ -104,13 +104,16 @@ const authStore = useAuthStore();
 const router = useRouter();
 const toast = useToast();
 
+onMounted(() => {
+  authStore.logout();
+});
+
 const { call, isLoading, error, data } = useBackendService(
   "/auth/signin",
   "post"
 );
 
 const handleLogin = async () => {
-  console.log("Login attempt with email:", email.value);
   authError.value = "";
   if (!email.value || !password.value) {
     authError.value = "Email and password are required.";

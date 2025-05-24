@@ -33,13 +33,6 @@ export const useBackendService = (endpoint: string, method: string) => {
     data.value = null;
 
     try {
-      console.log("API Call:", {
-        url,
-        method,
-        payload,
-        headers,
-        customConfig,
-      });
       const response = await axios({
         url,
         method,

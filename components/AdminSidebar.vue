@@ -8,7 +8,7 @@
     <!-- Navigation Links -->
     <nav class="navigation">
       <NuxtLink
-        to="/dashboard"
+        to="/admin/dashboard"
         class="nav-item"
         :class="{ active: currentPath === '/dashboard' }"
       >
@@ -19,7 +19,7 @@
       </NuxtLink>
 
       <NuxtLink
-        to="/registrars"
+        to="/admin/registrars"
         class="nav-item"
         :class="{ active: currentPath === '/registrars' }"
       >
@@ -30,7 +30,7 @@
       </NuxtLink>
 
       <NuxtLink
-        to="/enrollments"
+        to="/admin/enrollments"
         class="nav-item"
         :class="{ active: currentPath === '/enrollments' }"
       >
@@ -41,7 +41,7 @@
       </NuxtLink>
 
       <NuxtLink
-        to="/programs"
+        to="/admin/programs"
         class="nav-item"
         :class="{
           active:
@@ -55,7 +55,7 @@
       </NuxtLink>
 
       <NuxtLink
-        to="/courses"
+        to="/admin/courses"
         class="nav-item"
         :class="{ active: currentPath === '/courses' }"
       >
@@ -66,7 +66,7 @@
       </NuxtLink>
 
       <NuxtLink
-        to="/sessions"
+        to="/admin/sessions"
         class="nav-item"
         :class="{ active: currentPath === '/sessions' }"
       >
@@ -77,7 +77,7 @@
       </NuxtLink>
 
       <NuxtLink
-        to="/students"
+        to="/admin/students"
         class="nav-item"
         :class="{ active: currentPath === '/students' }"
       >
@@ -91,7 +91,7 @@
     <!-- Bottom Section -->
     <div class="sidebar-bottom">
       <div class="help-section">
-        <NuxtLink to="/help" class="nav-item">
+        <NuxtLink to="/admin/help" class="nav-item">
           <span class="icon">
             <IconsHelpIcon />
           </span>
@@ -100,7 +100,7 @@
       </div>
 
       <div class="settings-section">
-        <NuxtLink to="/settings" class="nav-item">
+        <NuxtLink to="/admin/settings" class="nav-item">
           <span class="icon">
             <IconsSettingsIcon />
           </span>

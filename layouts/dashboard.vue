@@ -1,6 +1,7 @@
 <template>
   <div class="dashboard-layout">
-    <Sidebar />
+    <!-- <AdminSidebar /> -->
+    <component :is="getSidebarComponent" />
 
     <div class="content-wrapper">
       <!-- Header -->
@@ -25,11 +26,7 @@
           </button>
 
           <div class="user-profile">
-            <img
-              src="https://randomuser.me/api/portraits/women/44.jpg"
-              alt="User avatar"
-              class="avatar"
-            />
+            <img :src="avatar" alt="User avatar" class="avatar" />
           </div>
         </div>
       </header>
@@ -48,11 +45,17 @@ import BellIcon from "~/components/icons/BellIcon.vue";
 import LogoutIcon from "~/components/icons/LogoutIcon.vue";
 import { useToast } from "~/composables/useToast";
 import { useRouter } from "vue-router";
+import AdminSidebar from "~/components/AdminSidebar.vue";
 
 const sidebarOpen = ref(true);
 const authStore = useAuthStore();
 const { success } = useToast();
 const router = useRouter();
+const role = useCookie("role").value;
+const userCookie = useCookie("user").value;
+
+const defaultAvatar = "https://randomuser.me/api/portraits/women/44.jpg";
+const avatar = computed(() => userCookie?.profile_picture ?? defaultAvatar);
 
 function toggleSidebar() {
   sidebarOpen.value = !sidebarOpen.value;
@@ -63,6 +66,13 @@ function handleLogout() {
   success("Logged out successfully");
   router.push("/login");
 }
+
+const getSidebarComponent = computed(() => {
+  if (role === "ADMIN") return AdminSidebar;
+  if (role === "STUDENT") return StudentSidebar;
+  if (role === "REGISTRAR") return RegistrarSidebar;
+  return null;
+});
 </script>
 
 <style lang="scss" scoped>

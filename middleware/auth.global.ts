@@ -1,6 +1,9 @@
 export default defineNuxtRouteMiddleware((to) => {
-  const auth = useAuthStore();
-  console.log("Auth Middleware", auth);
+  const token = useCookie("token").value;
+  const role = useCookie("role").value;
+
+  // const auth = useAuthStore();
+  // console.log("Auth Middleware", auth);
 
   const roleRoutes: Record<string, { roles: string[]; exclude?: string[] }> = {
     "/admin": {
@@ -17,7 +20,7 @@ export default defineNuxtRouteMiddleware((to) => {
 
   if (
     Object.keys(roleRoutes).some((prefix) => to.path.startsWith(prefix)) &&
-    !auth.token
+    !token
   ) {
     return navigateTo("/login");
   }
@@ -26,7 +29,7 @@ export default defineNuxtRouteMiddleware((to) => {
     if (
       to.path.startsWith(prefix) &&
       !config.exclude?.includes(to.path) &&
-      !config.roles.includes(auth.role || "")
+      !config.roles.includes(role || "")
     ) {
       return navigateTo("/unauthorized");
     }
