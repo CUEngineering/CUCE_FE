@@ -5,18 +5,20 @@
       :style="{ transform: `translateX(-${currentSlide * 100}%)` }"
     >
       <div class="carousel-slide">
-        <div class="preview-card">
-          <div class="preview-image enrollment-preview">
-            <!-- Placeholder for enrollment dashboard preview -->
-            <div class="mock-dashboard">
+        <div>
+          <!-- <div class="preview-card"> -->
+
+          <!-- <div class="preview-image enrollment-preview"> -->
+          <<img src="~/assets/images/onboard1.svg" alt="User avatar" />
+          <!-- <div class="mock-dashboard">
               <div class="mock-header"></div>
               <div class="mock-content">
                 <div class="mock-table">
                   <div class="mock-row" v-for="i in 4" :key="i"></div>
                 </div>
               </div>
-            </div>
-          </div>
+            </div> -->
+          <!-- </div> -->
         </div>
         <h2>Manage Enrolments</h2>
         <p>
@@ -45,7 +47,6 @@
       <div class="carousel-slide">
         <div class="preview-card">
           <div class="preview-image course-preview">
-            <!-- Placeholder for course management preview -->
             <div class="mock-dashboard">
               <div class="mock-grid">
                 <div class="mock-card" v-for="i in 6" :key="i"></div>
