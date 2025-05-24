@@ -105,9 +105,7 @@ const handleLogin = async () => {
   if (!email.value || !password.value) {
     return;
   }
-
   // Redirect to dashboard after successful login
-  navigateTo("/dashboard");
 };
 </script>
 

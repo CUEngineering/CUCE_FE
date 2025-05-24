@@ -2,20 +2,32 @@ export default defineNuxtRouteMiddleware((to) => {
   const token = useCookie("token").value;
   const role = useCookie("role").value;
 
-  const protectedRoutes = ["/dashboard", "/admin", "/student", "/registrar"];
-
-  const roleRoutes: Record<string, string[]> = {
-    "/admin": ["ADMIN"],
-    "/student": ["STUDENT"],
-    "/registrar": ["REGISTRAR"],
+  const roleRoutes: Record<string, { roles: string[]; exclude?: string[] }> = {
+    "/admin": {
+      roles: ["ADMIN"],
+    },
+    "/student": {
+      roles: ["STUDENT"],
+      exclude: ["/student/create"],
+    },
+    "/registrar": {
+      roles: ["REGISTRAR"],
+    },
   };
 
-  if (protectedRoutes.some((p) => to.path.startsWith(p)) && !token) {
+  if (
+    Object.keys(roleRoutes).some((prefix) => to.path.startsWith(prefix)) &&
+    !token
+  ) {
     return navigateTo("/login");
   }
 
-  for (const [prefix, allowedRoles] of Object.entries(roleRoutes)) {
-    if (to.path.startsWith(prefix) && !allowedRoles.includes(role || "")) {
+  for (const [prefix, config] of Object.entries(roleRoutes)) {
+    if (
+      to.path.startsWith(prefix) &&
+      !config.exclude?.includes(to.path) &&
+      !config.roles.includes(role || "")
+    ) {
       return navigateTo("/unauthorized");
     }
   }

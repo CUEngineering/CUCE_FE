@@ -1,11 +1,25 @@
-<script setup>
-// Redirect to dashboard page
-const router = useRouter();
-router.push("/dashboard");
+<script setup lang="ts">
+const auth = useAuthStore();
+
+if (!auth.token || !auth.role) {
+  navigateTo("/login");
+} else {
+  switch (auth.role) {
+    case "ADMIN":
+      navigateTo("/admin/dashboard");
+      break;
+    case "REGISTRAR":
+      navigateTo("/registrar/dashboard");
+      break;
+    case "STUDENT":
+      navigateTo("/student/dashboard");
+      break;
+  }
+}
 </script>
 
 <template>
-  <div>Redirecting to dashboard...</div>
+  <div>Redirecting to your dashboard...</div>
 </template>
 
 <style scoped>

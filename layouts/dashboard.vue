@@ -19,8 +19,9 @@
           </div>
 
           <button class="logout-button" @click="handleLogout">
-            <LogoutIcon class="logout-icon" />
-            <span>Log out</span>
+            <LogoutIcon />
+            <!-- class="logout-icon"  -->
+            <!-- <span>Log out</span> -->
           </button>
 
           <div class="user-profile">
@@ -45,18 +46,22 @@
 import MenuIcon from "~/components/icons/MenuIcon.vue";
 import BellIcon from "~/components/icons/BellIcon.vue";
 import LogoutIcon from "~/components/icons/LogoutIcon.vue";
-import { useAuth } from "~/composables/useAuth";
+import { useToast } from "~/composables/useToast";
+import { useRouter } from "vue-router";
 
 const sidebarOpen = ref(true);
-const { signOut } = useAuth();
+const authStore = useAuthStore();
+const { success } = useToast();
+const router = useRouter();
 
 function toggleSidebar() {
   sidebarOpen.value = !sidebarOpen.value;
-  // You would emit an event or use a store to communicate with the Sidebar component
 }
 
 function handleLogout() {
-  signOut();
+  authStore.logout();
+  success("Logged out successfully");
+  router.push("/login");
 }
 </script>
 
@@ -128,7 +133,8 @@ function handleLogout() {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background-color: $gray-100;
+  // background-color: $gray-100;
+  background-color: transparent;
   border: none;
   border-radius: 0.375rem;
   padding: 0.5rem 0.75rem;
