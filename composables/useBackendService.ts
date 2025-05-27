@@ -49,7 +49,6 @@ export const useBackendService = (endpoint: string, method: string) => {
       error.value = err;
 
       const msg = err?.response?.data?.message[0]?.toLowerCase();
-      alert(err.response?.data?.message || "Something went wrong");
 
       if (msg?.includes("unauthorized")) {
         toast.error("Session expired. Logging out...");

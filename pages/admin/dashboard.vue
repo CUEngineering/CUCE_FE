@@ -1,5 +1,7 @@
 <template>
   <div class="dashboard-page">
+    <Loader v-if="isLoading" />
+
     <h1 class="page-title">Dashboard</h1>
     <p class="welcome-message">
       Welcome to Charisma University admin dashboard.
@@ -112,6 +114,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useBackendService } from "@/composables/useBackendService"; // adjust path if needed
+import Loader from "~/components/Loader.vue";
 
 const totalRegistrars = ref(0);
 const totalStudents = ref(0);

@@ -28,7 +28,7 @@ export function formatRegistrars(
 
 export function formatInvitees(rawInvites: Invitee[]): FormattedInvitee[] {
   return rawInvites
-    .filter((invite) => invite.user_type === "REGISTRAR")
+    .filter((invite) => invite.status === "PENDING")
     .map((invite) => ({
       email: invite.email,
       date: format(new Date(invite.created_at), "do MMM, yyyy"),

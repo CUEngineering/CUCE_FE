@@ -2,15 +2,15 @@
   <div class="registrars-page">
     <div
       class="content-container dashlet-wrapper"
-      :class="{ 'is-empty': registrars.length === 0 }"
+      :class="{ 'is-empty': filteredRegistrars.length === 0 }"
     >
       <div class="page-header dashlet">
         <div class="title-section">
           <h2 class="page-title heading-txt">Registrars</h2>
           <div class="profile-count pill p-grey pill-sm">
             {{
-              registrars.length > 0
-                ? `${registrars.length} profiles`
+              filteredRegistrars.length > 0
+                ? `${filteredRegistrars.length} profiles`
                 : "No profiles"
             }}
           </div>
@@ -33,12 +33,12 @@
       </div>
       <div
         class="registrars-list dashlet"
-        :class="{ 'is-empty': registrars.length === 0 }"
+        :class="{ 'is-empty': filteredRegistrars.length === 0 }"
       >
         <Loader v-if="loadingRegistrars" />
         <!-- Empty state for registrars -->
         <EmptyState
-          v-if="registrars.length === 0"
+          v-if="filteredRegistrars.length === 0"
           class="empty-state"
           title="No registrars yet"
           description="Registrars will appear here once they are added to the system."
@@ -63,7 +63,7 @@
         <!-- Registrar Cards -->
         <RegistrarCard
           v-else
-          v-for="(registrar, index) in registrars"
+          v-for="(registrar, index) in filteredRegistrars"
           :key="index"
           :registrar="registrar"
           @deactivate="showDeactivateDialog(registrar)"
@@ -226,6 +226,14 @@ const {
 
 const registrars = ref<Registrar[]>([]);
 const pendingInvites = ref<Invite[]>([]);
+
+const filteredRegistrars = computed(() => {
+  if (!searchQuery.value.trim()) return registrars.value;
+  const query = searchQuery.value.toLowerCase();
+  return registrars.value.filter((registrar) =>
+    registrar.name.toLowerCase().includes(query)
+  );
+});
 
 onMounted(async () => {
   try {
