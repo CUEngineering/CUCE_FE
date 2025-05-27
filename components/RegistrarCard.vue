@@ -107,6 +107,7 @@ import CloseCircleIcon from "./icons/CloseCircleIcon.vue";
 import PlusCircleIcon from "./icons/PlusCircleIcon.vue";
 
 interface Registrar {
+  id: number;
   name: string;
   email: string;
   avatar: string;
@@ -160,7 +161,7 @@ const closeDropdown = (event: MouseEvent) => {
 };
 
 // Actions
-const suspend = () => {
+const suspend = async () => {
   emit("suspend", props.registrar);
   dropdownOpen.value = false;
 };

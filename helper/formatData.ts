@@ -15,6 +15,7 @@ export function formatRegistrars(
   rawRegistrars: Registrar[]
 ): FormattedRegistrar[] {
   return rawRegistrars.map((r) => ({
+    id: r.registrar_id,
     name: `${r.first_name} ${r.last_name}`,
     email: r.email,
     avatar:
@@ -28,8 +29,12 @@ export function formatRegistrars(
 
 export function formatInvitees(rawInvites: Invitee[]): FormattedInvitee[] {
   return rawInvites
-    .filter((invite) => invite.status === "PENDING")
+    .filter(
+      (invite) =>
+        invite.status === "PENDING" && invite.user_type === "REGISTRAR"
+    )
     .map((invite) => ({
+      id: invite.invitation_id,
       email: invite.email,
       date: format(new Date(invite.created_at), "do MMM, yyyy"),
     }));

@@ -24,6 +24,7 @@ export interface Registrar {
 }
 
 export interface FormattedRegistrar {
+  id: number;
   name: string;
   email: string;
   avatar: string;
@@ -48,6 +49,7 @@ export interface Invitee {
 }
 
 export interface FormattedInvitee {
+  id: number;
   email: string;
   date: string;
 }
