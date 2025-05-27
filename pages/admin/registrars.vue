@@ -176,6 +176,7 @@ import { useToast } from "~/composables/useToast";
 import { formatInvitees, formatRegistrars } from "~/helper/formatData";
 
 interface Registrar {
+  id: number;
   name: string;
   email: string;
   avatar: string;
