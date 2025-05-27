@@ -8,9 +8,9 @@
     <!-- Navigation Links -->
     <nav class="navigation">
       <NuxtLink
-        to="/admin/dashboard"
+        to="/registrar/dashboard"
         class="nav-item"
-        :class="{ active: currentPath === '/dashboard' }"
+        :class="{ active: currentPath === '/registrar/dashboard' }"
       >
         <span class="icon">
           <IconsHomeIcon />
@@ -19,20 +19,9 @@
       </NuxtLink>
 
       <NuxtLink
-        to="/admin/registrars"
+        to="/registrar/enrollments"
         class="nav-item"
-        :class="{ active: currentPath === '/registrars' }"
-      >
-        <span class="icon">
-          <IconsUsersIcon />
-        </span>
-        <span class="label">Registrars</span>
-      </NuxtLink>
-
-      <NuxtLink
-        to="/admin/enrollments"
-        class="nav-item"
-        :class="{ active: currentPath === '/enrollments' }"
+        :class="{ active: currentPath === '/registrar/enrollments' }"
       >
         <span class="icon">
           <IconsEnrollmentIcon />
@@ -41,45 +30,9 @@
       </NuxtLink>
 
       <NuxtLink
-        to="/admin/programs"
+        to="/registrar/students"
         class="nav-item"
-        :class="{
-          active:
-            currentPath === '/programs' || currentPath.startsWith('/programs/'),
-        }"
-      >
-        <span class="icon">
-          <IconsBookOpenIcon />
-        </span>
-        <span class="label">Programs</span>
-      </NuxtLink>
-
-      <NuxtLink
-        to="/admin/courses"
-        class="nav-item"
-        :class="{ active: currentPath === '/courses' }"
-      >
-        <span class="icon">
-          <IconsDocumentIcon />
-        </span>
-        <span class="label">Courses</span>
-      </NuxtLink>
-
-      <NuxtLink
-        to="/admin/sessions"
-        class="nav-item"
-        :class="{ active: currentPath === '/sessions' }"
-      >
-        <span class="icon">
-          <IconsCalendarIcon />
-        </span>
-        <span class="label">Sessions</span>
-      </NuxtLink>
-
-      <NuxtLink
-        to="/admin/students"
-        class="nav-item"
-        :class="{ active: currentPath === '/students' }"
+        :class="{ active: currentPath === '/registrar/students' }"
       >
         <span class="icon">
           <IconsAcademicCapIcon />
@@ -91,7 +44,7 @@
     <!-- Bottom Section -->
     <div class="sidebar-bottom">
       <div class="help-section">
-        <NuxtLink to="/admin/help" class="nav-item">
+        <NuxtLink to="/help" class="nav-item">
           <span class="icon">
             <IconsHelpIcon />
           </span>
@@ -100,7 +53,7 @@
       </div>
 
       <div class="settings-section">
-        <NuxtLink to="/admin/settings" class="nav-item">
+        <NuxtLink to="/settings" class="nav-item">
           <span class="icon">
             <IconsSettingsIcon />
           </span>

@@ -46,6 +46,8 @@ import LogoutIcon from "~/components/icons/LogoutIcon.vue";
 import { useToast } from "~/composables/useToast";
 import { useRouter } from "vue-router";
 import AdminSidebar from "~/components/AdminSidebar.vue";
+import StudentSidebar from "~/components/StudentSidebar.vue";
+import RegistrarSidebar from "~/components/RegistrarSidebar.vue";
 
 const sidebarOpen = ref(true);
 const authStore = useAuthStore();

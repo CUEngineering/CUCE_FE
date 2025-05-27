@@ -25,7 +25,9 @@
         </div>
         <div class="stat-content">
           <h3 class="stat-title">Total Registrars</h3>
-          <div class="stat-value">145</div>
+          <div class="stat-value">
+            {{ isLoading ? "Loading..." : totalRegistrars }}
+          </div>
         </div>
       </div>
 
@@ -48,7 +50,9 @@
         </div>
         <div class="stat-content">
           <h3 class="stat-title">Total Students</h3>
-          <div class="stat-value">3,245</div>
+          <div class="stat-value">
+            {{ isLoading ? "Loading..." : totalStudents }}
+          </div>
         </div>
       </div>
 
@@ -71,7 +75,9 @@
         </div>
         <div class="stat-content">
           <h3 class="stat-title">Total Program</h3>
-          <div class="stat-value">24</div>
+          <div class="stat-value">
+            {{ isLoading ? "Loading..." : totalPrograms }}
+          </div>
         </div>
       </div>
 
@@ -94,7 +100,9 @@
         </div>
         <div class="stat-content">
           <h3 class="stat-title">Total Courses</h3>
-          <div class="stat-value">78</div>
+          <div class="stat-value">
+            {{ isLoading ? "Loading..." : totalCourses }}
+          </div>
         </div>
       </div>
     </div>
@@ -119,10 +127,10 @@ const fetchStats = async () => {
   try {
     await call();
 
-    totalRegistrars.value = data.value.registrars;
-    totalStudents.value = data.value.students;
-    totalPrograms.value = data.value.programs;
-    totalCourses.value = data.value.courses;
+    totalRegistrars.value = data.value.totalRegistrars;
+    totalStudents.value = data.value.totalStudents;
+    totalPrograms.value = data.value.totalPrograms;
+    totalCourses.value = data.value.totalCourses;
   } catch (err) {
     console.error("Failed to fetch dashboard stats", err);
   }

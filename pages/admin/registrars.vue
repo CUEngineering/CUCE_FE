@@ -210,6 +210,32 @@ const selectedRegistrar = ref<Registrar | null>(null);
 const showCancelInviteConfirm = ref(false);
 const selectedInvite = ref<Invite | null>(null);
 
+const {
+  call: fetchRegistrars,
+  isLoading: loadingRegistrars,
+  data: registrarData,
+} = useBackendService("/registrars", "get");
+const {
+  call: fetchInvites,
+  isLoading: loadingInvites,
+  data: inviteData,
+} = useBackendService("/invites", "get");
+
+const registrars = ref<Registrar[]>([]);
+const pendingInvites = ref<Invite[]>([]);
+
+onMounted(async () => {
+  try {
+    await fetchRegistrars();
+    registrars.value = registrarData.value || [];
+
+    await fetchInvites();
+    pendingInvites.value = inviteData.value || [];
+  } catch (err) {
+    console.error("Failed to fetch data:", err);
+  }
+});
+
 // Show dialogs
 const showDeactivateDialog = (registrar: Registrar) => {
   selectedRegistrar.value = registrar;
@@ -435,95 +461,6 @@ function getOrdinalSuffix(day: number): string {
       return "th";
   }
 }
-
-// For testing empty states, you can toggle these between empty arrays and populated data
-const registrars = ref<Registrar[]>([
-  {
-    name: "Lana Steiner",
-    email: "lanasteiner@charisma.edu.ng",
-    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-    status: "Active",
-    enrollRequests: 85,
-    approvals: 41,
-    denials: 24,
-  },
-  {
-    name: "Lana Steiner",
-    email: "lanasteiner@charisma.edu.ng",
-    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-    status: "Suspended",
-    enrollRequests: 85,
-    approvals: 41,
-    denials: 24,
-  },
-  {
-    name: "Lana Steiner",
-    email: "lanasteiner@charisma.edu.ng",
-    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-    status: "Active",
-    enrollRequests: 85,
-    approvals: 41,
-    denials: 24,
-  },
-  {
-    name: "Lana Steiner",
-    email: "lanasteiner@charisma.edu.ng",
-    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-    status: "Active",
-    enrollRequests: 85,
-    approvals: 41,
-    denials: 24,
-  },
-  {
-    name: "Lana Steiner",
-    email: "lanasteiner@charisma.edu.ng",
-    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-    status: "Active",
-    enrollRequests: 85,
-    approvals: 41,
-    denials: 24,
-  },
-  {
-    name: "Lana Steiner",
-    email: "lanasteiner@charisma.edu.ng",
-    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-    status: "Deactivated",
-    enrollRequests: 85,
-    approvals: 41,
-    denials: 24,
-  },
-]);
-
-const pendingInvites = ref<Invite[]>([
-  {
-    email: "lanasteiner@charisma.edu.ng",
-    date: "25th Oct, 2024",
-  },
-  {
-    email: "lanasteiner@charisma.edu.ng",
-    date: "25th Oct, 2024",
-  },
-  {
-    email: "lanasteiner@charisma.edu.ng",
-    date: "25th Oct, 2024",
-  },
-  {
-    email: "lanasteiner@charisma.edu.ng",
-    date: "25th Oct, 2024",
-  },
-  {
-    email: "lanasteiner@charisma.edu.ng",
-    date: "25th Oct, 2024",
-  },
-  {
-    email: "lanasteiner@charisma.edu.ng",
-    date: "25th Oct, 2024",
-  },
-]);
-
-// To test different empty states, uncomment these lines:
-// registrars.value = []; // Empty registrars
-// pendingInvites.value = []; // Empty invites
 </script>
 
 <style lang="scss" scoped>

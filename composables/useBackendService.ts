@@ -11,6 +11,7 @@ export const useBackendService = (endpoint: string, method: string) => {
   const auth = useAuthStore();
   const router = useRouter();
   const toast = useToast();
+  const token = useCookie("token").value;
 
   const isLoading = ref(false);
   const error = ref<any>(null);
@@ -21,7 +22,7 @@ export const useBackendService = (endpoint: string, method: string) => {
     const url = `${baseURL}/api/v1${endpoint}`;
     const headers: Record<string, any> = {
       ...customConfig.headers,
-      Authorization: auth.token ? `Bearer ${auth.token}` : undefined,
+      Authorization: token ? `Bearer ${token}` : undefined,
     };
 
     if (payload instanceof FormData) {
