@@ -21,6 +21,7 @@
     "@tanstack/vue-table": "^8.21.2",
     "@vueuse/core": "^13.0.0",
     "axios": "^1.9.0",
+    "date-fns": "^4.1.0",
     "nuxt": "^3.8.0",
     "pinia-plugin-persistedstate": "^4.3.0",
     "vue": "^3.3.4",

@@ -35,6 +35,7 @@
         class="registrars-list dashlet"
         :class="{ 'is-empty': registrars.length === 0 }"
       >
+        <Loader v-if="loadingRegistrars" />
         <!-- Empty state for registrars -->
         <EmptyState
           v-if="registrars.length === 0"
@@ -85,6 +86,7 @@
       </div>
 
       <div class="invites-list dashlet">
+        <Loader v-if="loadingInvites" />
         <!-- Empty state for pending invites -->
         <EmptyState
           v-if="pendingInvites.length === 0"
@@ -171,6 +173,7 @@ import ToastContainer from "~/components/ui/ToastContainer.vue";
 import Dialog from "~/components/ui/Dialog.vue";
 import InviteModal from "~/components/InviteModal.vue";
 import { useToast } from "~/composables/useToast";
+import { formatInvitees, formatRegistrars } from "~/helper/formatData";
 
 interface Registrar {
   name: string;
@@ -219,7 +222,7 @@ const {
   call: fetchInvites,
   isLoading: loadingInvites,
   data: inviteData,
-} = useBackendService("/invites", "get");
+} = useBackendService("/invitations", "get");
 
 const registrars = ref<Registrar[]>([]);
 const pendingInvites = ref<Invite[]>([]);
@@ -227,10 +230,10 @@ const pendingInvites = ref<Invite[]>([]);
 onMounted(async () => {
   try {
     await fetchRegistrars();
-    registrars.value = registrarData.value || [];
+    registrars.value = formatRegistrars(registrarData.value || []);
 
     await fetchInvites();
-    pendingInvites.value = inviteData.value || [];
+    pendingInvites.value = formatInvitees(inviteData.value || []);
   } catch (err) {
     console.error("Failed to fetch data:", err);
   }

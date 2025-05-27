@@ -43,18 +43,25 @@ export const useBackendService = (endpoint: string, method: string) => {
         ...customConfig,
       });
 
-      data.value = response.data;
+      data.value = response.data.data;
       return response.data;
     } catch (err: any) {
       error.value = err;
 
       const msg = err?.response?.data?.message[0]?.toLowerCase();
+      alert(err.response?.data?.message || "Something went wrong");
 
       if (msg?.includes("unauthorized")) {
         toast.error("Session expired. Logging out...");
         auth.logout();
         router.push("/login");
       } else if (!msg || msg.length <= 1) {
+        if (err?.response?.data?.message.includes("JWT")) {
+          toast.error("Session expired. Logging out...");
+          auth.logout();
+          router.push("/login");
+        }
+
         toast.error("Something went wrong");
       } else {
         toast.error(msg || "Something went wrong");
