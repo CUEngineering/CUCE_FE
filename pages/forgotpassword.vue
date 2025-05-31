@@ -2,21 +2,17 @@
   <div class="login-page">
     <div class="login-container">
       <div class="login-content">
-        <!-- Logo -->
         <div class="logo-wrapper">
           <Logo />
         </div>
 
-        <!-- Main Content -->
         <div class="main-content">
-          <!-- Welcome Text -->
           <div class="welcome-text">
-            <h1>Welcome back</h1>
-            <p>Let's get you signed in</p>
+            <h1>Forgot Password</h1>
+            <p>Enter your email to receive a 6-digit reset code</p>
           </div>
 
-          <!-- Login Form -->
-          <form @submit.prevent="handleLogin" class="login-form">
+          <form @submit.prevent="handleForgotPassword" class="login-form">
             <FormInput
               id="email"
               label="Email address"
@@ -27,38 +23,8 @@
               :error="authError"
             />
 
-            <FormInput
-              id="password"
-              label="Password"
-              v-model="password"
-              :type="showPassword ? 'text' : 'password'"
-              placeholder="Enter your password"
-              required
-            >
-              <template #button>
-                <button
-                  type="button"
-                  class="toggle-password"
-                  @click="showPassword = !showPassword"
-                >
-                  <EyeIcon v-if="showPassword" />
-                  <EyeOffIcon v-else />
-                </button>
-              </template>
-            </FormInput>
-
-            <div class="form-options">
-              <label class="remember-me">
-                <input type="checkbox" v-model="rememberMe" />
-                <span>Remember me</span>
-              </label>
-              <a href="forgotpassword" class="forgot-password"
-                >Forgot Password?</a
-              >
-            </div>
-
             <Button type="submit" variant="primary" :loading="isLoading">
-              {{ isLoading ? "Signing in..." : "Sign In" }}
+              {{ isLoading ? "Sending..." : "Send Reset Code" }}
             </Button>
 
             <div v-if="authError" class="error-message">
@@ -67,13 +33,11 @@
           </form>
         </div>
 
-        <!-- Copyright -->
         <div class="copyright">
           <p>© 2024 Charisma All rights reserved</p>
         </div>
       </div>
 
-      <!-- Right Side Content -->
       <div class="feature-content">
         <div class="gradient-blur"></div>
         <Carousel />
@@ -85,70 +49,35 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
+import { useRouter } from "vue-router";
 import Logo from "~/components/Logo.vue";
-import FormInput from "~/components/ui/FormInput.vue";
 import Carousel from "~/components/ui/Carousel.vue";
-import EyeIcon from "~/components/icons/EyeIcon.vue";
-import EyeOffIcon from "~/components/icons/EyeOffIcon.vue";
+import FormInput from "~/components/ui/FormInput.vue";
 import Button from "~/components/ui/Button.vue";
 import { useBackendService } from "~/composables/useBackendService";
+import { useToast } from "~/composables/useToast";
 
-// State
 const email = ref("");
-const password = ref("");
-const rememberMe = ref(false);
-const showPassword = ref(false);
 const authError = ref("");
-
-// Store and router
-const authStore = useAuthStore();
-const router = useRouter();
 const toast = useToast();
+const router = useRouter();
 
-onMounted(() => {
-  authStore.logout();
-});
+const { call, isLoading } = useBackendService("/auth/forgot-password", "post");
 
-const { call, isLoading, error, data } = useBackendService(
-  "/auth/signin",
-  "post"
-);
-
-const handleLogin = async () => {
+const handleForgotPassword = async () => {
   authError.value = "";
-  if (!email.value || !password.value) {
-    authError.value = "Email and password are required.";
+  if (!email.value) {
+    authError.value = "Email is required.";
     return;
   }
 
   try {
-    await call({
-      email: email.value,
-      password: password.value,
-    });
-
-    authStore.setAuth(
-      data.value.session.access_token,
-      data.value.role,
-      data.value.user
-    );
-
-    toast.success("Login successful!");
-    switch (data.value.role) {
-      case "REGISTRAR":
-        router.push("/registrar/dashboard");
-        break;
-      case "STUDENT":
-        router.push("/student/dashboard");
-        break;
-      case "ADMIN":
-        router.push("/admin/dashboard");
-        break;
-    }
+    await call({ email: email.value });
+    toast.success("Reset code sent to your email.");
+    router.push({ name: "reset-password", query: { email: email.value } });
   } catch (err: any) {
-    console.error("Login error:", err);
-    authError.value = "Invalid email or password";
+    authError.value = "Failed to send reset code.";
   }
 };
 </script>
