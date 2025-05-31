@@ -162,7 +162,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, provide } from "vue";
+import { ref, provide, Suspense } from "vue";
 import Button from "~/components/ui/Button.vue";
 import FormInput from "~/components/ui/FormInput.vue";
 import RegistrarCard from "~/components/RegistrarCard.vue";
@@ -266,10 +266,16 @@ const showDeleteDialog = (registrar: Registrar) => {
 
 // Direct actions (no confirmation dialog)
 const activateRegistrar = async (registrar: Registrar) => {
+  const {
+    call: activateRegistrar,
+    isLoading: loadingActivateRegistrar,
+    data: activateRegistrarData,
+  } = useBackendService(`/registrars/${registrar.id}/unsuspend`, "patch");
+
   isActionLoading.value = true;
   try {
-    // Simulating API call with timeout
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await activateRegistrar();
+    // await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Success case
     toast.success(`${registrar.name} has been activated`);
@@ -290,10 +296,17 @@ const activateRegistrar = async (registrar: Registrar) => {
 };
 
 const unsuspendRegistrar = async (registrar: Registrar) => {
+  const {
+    call: unsuspendRegistrar,
+    isLoading: loadingUnsuspendRegistrar,
+    data: unsuspendRegistrarData,
+  } = useBackendService(`/registrars/${registrar.id}/unsuspend`, "patch");
+
   isActionLoading.value = true;
   try {
+    await unsuspendRegistrar();
     // Simulating API call with timeout
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Success case
     toast.success(`Suspension has been lifted for ${registrar.name}`);
@@ -315,12 +328,22 @@ const unsuspendRegistrar = async (registrar: Registrar) => {
 
 // Confirm actions
 const confirmDeactivate = async () => {
+  const {
+    call: confirmDeactivate,
+    isLoading: loadingConfirmDeactivate,
+    data: confirmDeactivateData,
+  } = useBackendService(
+    `/registrars/${selectedRegistrar.value?.id}/deactivate`,
+    "patch"
+  );
+
   if (!selectedRegistrar.value) return;
 
   isActionLoading.value = true;
   try {
+    await confirmDeactivate();
     // Simulating API call with timeout
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Success case
     toast.success(`${selectedRegistrar.value.name} has been deactivated`);
@@ -342,12 +365,21 @@ const confirmDeactivate = async () => {
 };
 
 const confirmSuspend = async () => {
+  const {
+    call: confirmSuspend,
+    isLoading: loadingConfirmSuspend,
+    data: confirmSuspendData,
+  } = useBackendService(
+    `/registrars/${selectedRegistrar.value?.id}/suspend`,
+    "patch"
+  );
   if (!selectedRegistrar.value) return;
 
   isActionLoading.value = true;
   try {
+    await confirmSuspend();
     // Simulating API call with timeout
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Success case
     toast.success(`${selectedRegistrar.value.name} has been suspended`);
@@ -375,11 +407,18 @@ const showCancelInviteDialog = (invite: Invite) => {
 };
 
 const handleCancelInvite = async () => {
+  const {
+    call: handleCancelInvite,
+    isLoading: loadingCancelInvite,
+    data: cancelInviteData,
+  } = useBackendService("/registrars/delete-invite", "post");
+
   if (!selectedInvite.value) return;
 
   try {
+    await handleCancelInvite({ email: selectedInvite.value?.email });
     // Simulating API call
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    // await new Promise((resolve) => setTimeout(resolve, 500));
 
     // Remove from pending invites
     pendingInvites.value = pendingInvites.value.filter(
@@ -397,9 +436,16 @@ const handleCancelInvite = async () => {
 };
 
 const handleResendInvite = async (invite: Invite) => {
+  const {
+    call: handleResendInvite,
+    isLoading: loadingResendInvite,
+    data: resendInviteData,
+  } = useBackendService("/registrars/resend-invite", "post");
+
   try {
+    await handleResendInvite({ email: invite.email });
     // Simulating API call
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    // await new Promise((resolve) => setTimeout(resolve, 500));
 
     // Show success toast
     toast.success(`Invite resent to ${invite.email}`);
@@ -409,11 +455,18 @@ const handleResendInvite = async (invite: Invite) => {
 };
 
 const sendInvites = async (emails: string[]) => {
+  const {
+    call: sendInvites,
+    isLoading: loadingSendInvites,
+    data: sendInvitesData,
+  } = useBackendService("/registrars/invite", "post");
   isInviteSending.value = true;
 
   try {
+    console.log(emails);
+    await sendInvites({ emails });
     // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    // await new Promise((resolve) => setTimeout(resolve, 1500));
 
     // Add new invites to the pending invites list
     const today = new Date();
