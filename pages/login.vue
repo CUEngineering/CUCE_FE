@@ -24,7 +24,7 @@
               type="email"
               placeholder="Enter email address"
               required
-              :error="authError"
+              :error="emailError"
             />
 
             <FormInput
@@ -34,6 +34,7 @@
               :type="showPassword ? 'text' : 'password'"
               placeholder="Enter your password"
               required
+              :error="passwordError"
             >
               <template #button>
                 <button
@@ -100,11 +101,18 @@ const password = ref("");
 const rememberMe = ref(false);
 const showPassword = ref(false);
 const authError = ref("");
+const emailError = ref("");
+const passwordError = ref("");
 
 // Store and router
 const authStore = useAuthStore();
 const router = useRouter();
 const toast = useToast();
+
+const validateEmail = (value: string) => {
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return regex.test(value);
+};
 
 onMounted(() => {
   authStore.logout();
@@ -116,11 +124,24 @@ const { call, isLoading, error, data } = useBackendService(
 );
 
 const handleLogin = async () => {
+  emailError.value = "";
+  passwordError.value = "";
   authError.value = "";
-  if (!email.value || !password.value) {
-    authError.value = "Email and password are required.";
-    return;
+
+  // Field validation
+  if (!email.value) {
+    emailError.value = "Email is required.";
+  } else if (!validateEmail(email.value)) {
+    emailError.value = "Enter a valid email address.";
   }
+
+  if (!password.value) {
+    passwordError.value = "Password is required.";
+  } else if (password.value.length > 8) {
+    passwordError.value = "Password is required.";
+  }
+
+  if (emailError.value || passwordError.value) return;
 
   try {
     await call({
@@ -149,6 +170,8 @@ const handleLogin = async () => {
   } catch (err: any) {
     console.error("Login error:", err);
     authError.value = "Invalid email or password";
+    emailError.value = " ";
+    passwordError.value = " ";
   }
 };
 </script>

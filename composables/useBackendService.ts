@@ -53,12 +53,16 @@ export const useBackendService = (endpoint: string, method: string) => {
       if (msg?.includes("unauthorized")) {
         toast.error("Session expired. Logging out...");
         auth.logout();
-        router.push("/login");
+        setTimeout(() => {
+          router.push("/login");
+        }, 2000); // 2 seconds delay
       } else if (!msg || msg.length <= 1) {
         if (err?.response?.data?.message.includes("JWT")) {
           toast.error("Session expired. Logging out...");
           auth.logout();
-          router.push("/login");
+          setTimeout(() => {
+            router.push("/login");
+          }, 2000); // 2 seconds delay
         }
 
         toast.error("Something went wrong");
