@@ -52,9 +52,9 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import Logo from "~/components/Logo.vue";
+import Button from "~/components/ui/Button.vue";
 import Carousel from "~/components/ui/Carousel.vue";
 import FormInput from "~/components/ui/FormInput.vue";
-import Button from "~/components/ui/Button.vue";
 import { useBackendService } from "~/composables/useBackendService";
 import { useToast } from "~/composables/useToast";
 
@@ -75,8 +75,9 @@ const handleForgotPassword = async () => {
   try {
     await call({ email: email.value });
     toast.success("Reset code sent to your email.");
-    router.push({ name: "reset-password", query: { email: email.value } });
+    router.push({ path: "/resetpassword", query: { email: email.value } });
   } catch (err: any) {
+    console.log(err);
     authError.value = "Failed to send reset code.";
   }
 };

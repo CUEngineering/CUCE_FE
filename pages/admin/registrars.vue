@@ -162,16 +162,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, provide, Suspense } from "vue";
-import Button from "~/components/ui/Button.vue";
-import FormInput from "~/components/ui/FormInput.vue";
-import RegistrarCard from "~/components/RegistrarCard.vue";
-import InviteItem from "~/components/InviteItem.vue";
-import EmptyState from "~/components/ui/EmptyState.vue";
+import { provide, ref } from "vue";
 import PlusIcon from "~/components/icons/PlusIcon.vue";
-import ToastContainer from "~/components/ui/ToastContainer.vue";
-import Dialog from "~/components/ui/Dialog.vue";
+import InviteItem from "~/components/InviteItem.vue";
 import InviteModal from "~/components/InviteModal.vue";
+import RegistrarCard from "~/components/RegistrarCard.vue";
+import Button from "~/components/ui/Button.vue";
+import Dialog from "~/components/ui/Dialog.vue";
+import EmptyState from "~/components/ui/EmptyState.vue";
+import FormInput from "~/components/ui/FormInput.vue";
+import ToastContainer from "~/components/ui/ToastContainer.vue";
 import { useToast } from "~/composables/useToast";
 import { formatInvitees, formatRegistrars } from "~/helper/formatData";
 

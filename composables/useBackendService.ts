@@ -1,9 +1,8 @@
-import axios from "axios";
-import { useAuthStore } from "@/stores/auth";
-import { useRouter } from "vue-router";
-import { ref } from "vue";
 import { useToast } from "@/composables/useToast";
-import { compileScript } from "vue/compiler-sfc";
+import { useAuthStore } from "@/stores/auth";
+import axios from "axios";
+import { ref } from "vue";
+import { useRouter } from "vue-router";
 
 export const useBackendService = (endpoint: string, method: string) => {
   const config = useRuntimeConfig();
@@ -48,9 +47,10 @@ export const useBackendService = (endpoint: string, method: string) => {
     } catch (err: any) {
       error.value = err;
 
-      const msg = err?.response?.data?.message[0]?.toLowerCase();
+      const msg = err?.response?.data?.message?.toLowerCase();
+      console.log(msg);
 
-      if (msg?.includes("unauthorized")) {
+      if (msg?.includes("unauthorized") || msg?.includes("authentication")) {
         toast.error("Session expired. Logging out...");
         auth.logout();
         setTimeout(() => {

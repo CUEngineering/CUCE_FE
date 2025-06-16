@@ -25,6 +25,7 @@
         </div>
       </div>
     </div>
+    <Loader v-if="isLoading" />
 
     <!-- Empty state for when no enrollments exist -->
     <EmptyState
@@ -105,7 +106,7 @@
           <tr
             v-for="row in table.getRowModel().rows"
             :key="row.id"
-            @click="viewProgramDetails(row.original.studentId)"
+            @click="viewDetails(row.original)"
             class="table-row"
           >
             <td
@@ -271,24 +272,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, h } from "vue";
+import type { ColumnSort } from "@tanstack/vue-table";
 import {
   createColumnHelper,
-  FlexRender,
-  useVueTable,
   getCoreRowModel,
-  getPaginationRowModel,
   getFilteredRowModel,
+  getPaginationRowModel,
   getSortedRowModel,
+  useVueTable,
 } from "@tanstack/vue-table";
-import type { ColumnSort } from "@tanstack/vue-table";
-import EmptyState from "~/components/ui/EmptyState.vue";
-import ToastContainer from "~/components/ui/ToastContainer.vue";
-import FormInput from "~/components/ui/FormInput.vue";
+import { computed, h, reactive, ref } from "vue";
 import ActionCancelIcon from "~/components/icons/ActionCancelIcon.vue";
 import ActionEditIcon from "~/components/icons/ActionEditIcon.vue";
 import FilterIcon from "~/components/icons/FilterIcon.vue";
 import StatusBadge from "~/components/icons/StatusBadge.vue";
+import EmptyState from "~/components/ui/EmptyState.vue";
+import FormInput from "~/components/ui/FormInput.vue";
+import ToastContainer from "~/components/ui/ToastContainer.vue";
 
 interface Enrollment {
   enrollmentId?: number;
@@ -296,171 +296,26 @@ interface Enrollment {
   studentId: number;
   studentImage: string;
   courseCode: string;
-  courseStatus: "open" | "closed";
+  courseStatus: string;
   program: string;
   status: "approved" | "pending" | "rejected";
   assignedRegistrar?: string;
   assignedRegistrarImage?: string;
   assignedStatus: "unassigned" | "toOthers" | "toMe";
+  sessionName: string;
 }
 const toast = useToast();
-// Mock data - replace with API call in production
-const enrollments = ref<Enrollment[]>([
-  {
-    studentName: "Grace Williams",
-    studentId: 1001,
-    studentImage: "http://mayowafadeni.vercel.app/may.jpg",
-    courseCode: "PSY101",
-    courseStatus: "open",
-    program: "Master of Science in Psychology",
-    status: "rejected",
-    assignedRegistrarImage: "http://mayowafadeni.vercel.app/may.jpg",
-    assignedStatus: "toOthers",
-    assignedRegistrar: "Fadeni Mayowa",
-  },
-  {
-    studentName: "Emeka Johnson",
-    studentId: 1002,
-    studentImage: "http://mayowafadeni.vercel.app/may.jpg",
-    courseCode: "NUR201",
-    courseStatus: "closed",
-    program: "MSc. Nursing: Entry Level Clinical Track",
-    status: "approved",
-    assignedStatus: "toMe",
-  },
-  {
-    studentName: "Aisha Bello",
-    studentId: 1003,
-    studentImage: "http://mayowafadeni.vercel.app/may.jpg",
-    courseCode: "PSY203",
-    courseStatus: "open",
-    program: "Master of Science in Psychology",
-    status: "approved",
-    assignedStatus: "unassigned",
-  },
-  {
-    studentName: "Tunde Adebayo",
-    studentId: 1004,
-    studentImage: "http://mayowafadeni.vercel.app/may.jpg",
-    courseCode: "NUR302",
-    courseStatus: "closed",
-    program: "MSc. Nursing: Entry Level Clinical Track",
-    status: "pending",
-    assignedStatus: "unassigned",
-  },
-  {
-    studentName: "Chidinma Okeke",
-    studentId: 1005,
-    studentImage: "http://mayowafadeni.vercel.app/may.jpg",
-    courseCode: "PSY110",
-    courseStatus: "closed",
-    program: "Master of Science in Psychology",
-    status: "approved",
-    assignedStatus: "unassigned",
-  },
-  {
-    studentName: "Michael Owolabi",
-    studentId: 1006,
-    studentImage: "http://mayowafadeni.vercel.app/may.jpg",
-    courseCode: "NUR105",
-    courseStatus: "closed",
-    program: "MSc. Nursing: Entry Level Clinical Track",
-    status: "approved",
-    assignedStatus: "unassigned",
-  },
-  {
-    studentName: "Yetunde Hassan",
-    studentId: 1007,
-    studentImage: "http://mayowafadeni.vercel.app/may.jpg",
-    courseCode: "PSY401",
-    courseStatus: "closed",
-    program: "Master of Science in Psychology",
-    status: "pending",
-    assignedStatus: "unassigned",
-  },
-  {
-    studentName: "Ibrahim Musa",
-    studentId: 1008,
-    studentImage: "http://mayowafadeni.vercel.app/may.jpg",
-    courseCode: "NUR206",
-    courseStatus: "closed",
-    program: "MSc. Nursing: Entry Level Clinical Track",
-    status: "approved",
-    assignedStatus: "unassigned",
-  },
-  {
-    studentName: "Ngozi Chukwu",
-    studentId: 1009,
-    studentImage: "http://mayowafadeni.vercel.app/may.jpg",
-    courseCode: "PSY222",
-    courseStatus: "closed",
-    program: "Master of Science in Psychology",
-    status: "approved",
-    assignedStatus: "unassigned",
-  },
-  {
-    studentName: "Daniel Etim",
-    studentId: 1010,
-    studentImage: "http://mayowafadeni.vercel.app/may.jpg",
-    courseCode: "NUR109",
-    courseStatus: "closed",
-    program: "MSc. Nursing: Entry Level Clinical Track",
-    status: "pending",
-    assignedStatus: "unassigned",
-  },
-  {
-    studentName: "Amaka Nwosu",
-    studentId: 1011,
-    studentImage: "http://mayowafadeni.vercel.app/may.jpg",
-    courseCode: "PSY307",
-    courseStatus: "closed",
-    program: "Master of Science in Psychology",
-    status: "approved",
-    assignedStatus: "unassigned",
-  },
-  {
-    studentName: "Samuel Umeh",
-    studentId: 1012,
-    studentImage: "http://mayowafadeni.vercel.app/may.jpg",
-    courseCode: "NUR315",
-    courseStatus: "closed",
-    program: "MSc. Nursing: Entry Level Clinical Track",
-    status: "approved",
-    assignedStatus: "unassigned",
-  },
-  {
-    studentName: "Fatima Suleiman",
-    studentId: 1013,
-    studentImage: "http://mayowafadeni.vercel.app/may.jpg",
-    courseCode: "PSY122",
-    courseStatus: "closed",
-    program: "Master of Science in Psychology",
-    status: "pending",
-    assignedStatus: "unassigned",
-  },
-  {
-    studentName: "Peter Okon",
-    studentId: 1014,
-    studentImage: "http://mayowafadeni.vercel.app/may.jpg",
-    courseCode: "NUR210",
-    courseStatus: "closed",
-    program: "MSc. Nursing: Entry Level Clinical Track",
-    status: "approved",
-    assignedStatus: "unassigned",
-  },
-  {
-    studentName: "Blessing Adeyemi",
-    studentId: 1015,
-    studentImage: "http://mayowafadeni.vercel.app/may.jpg",
-    courseCode: "PSY115",
-    courseStatus: "closed",
-    program: "Master of Science in Psychology",
-    status: "approved",
-    assignedStatus: "unassigned",
-  },
-]);
+const { call, isLoading, data } = useBackendService("/enrollments", "get");
+const enrollments = ref<Enrollment[]>([]);
 
-// enrollments.value = [];
+onMounted(async () => {
+  try {
+    await call();
+    enrollments.value = data.value || [];
+  } catch (err) {
+    console.error("Failed to fetch data:", err);
+  }
+});
 
 const filteredEnrollments = computed(() => {
   if (activeTab.value === "unass") {
@@ -475,9 +330,6 @@ const filteredEnrollments = computed(() => {
 });
 
 const activeTab = ref("unassigned");
-
-// Filter type
-const filterType = ref("all");
 
 const columnHelper = createColumnHelper<Enrollment>();
 
@@ -617,6 +469,8 @@ const calculatePageRange = () => {
   );
 };
 
+const showInviteModal = ref(false);
+
 const handleEdit = async (rowData: Enrollment) => {
   toast.success("Edit clicked" + rowData.studentName);
 };
@@ -628,8 +482,8 @@ const goToPage = (pageIndex: number) => {
   table.setPageIndex(pageIndex);
 };
 
-const viewProgramDetails = (programId: number) => {
-  //   return navigateTo(`/enrollments/${programId}`);
+const viewDetails = (single: Enrollment) => {
+  console.log(single);
 };
 
 definePageMeta({
