@@ -1,9 +1,13 @@
 <template>
   <div class="dashboard-layout">
-    <!-- <AdminSidebar /> -->
-    <component :is="getSidebarComponent" />
+    <!-- Pass both collapsed and mobile open states to sidebar component -->
+    <component
+      :is="getSidebarComponent"
+      :is-collapsed="!sidebarOpen"
+      :is-mobile-open="sidebarOpen"
+    />
 
-    <div class="content-wrapper">
+    <div class="content-wrapper" :class="{ 'sidebar-collapsed': !sidebarOpen }">
       <!-- Header -->
       <header class="dashboard-header">
         <div class="header-left">
@@ -21,8 +25,6 @@
 
           <button class="logout-button" @click="handleLogout">
             <LogoutIcon />
-            <!-- class="logout-icon"  -->
-            <!-- <span>Log out</span> -->
           </button>
 
           <div class="user-profile">
@@ -40,16 +42,17 @@
 </template>
 
 <script setup>
-import MenuIcon from "~/components/icons/MenuIcon.vue";
-import BellIcon from "~/components/icons/BellIcon.vue";
-import LogoutIcon from "~/components/icons/LogoutIcon.vue";
-import { useToast } from "~/composables/useToast";
 import { useRouter } from "vue-router";
 import AdminSidebar from "~/components/AdminSidebar.vue";
-import StudentSidebar from "~/components/StudentSidebar.vue";
+import BellIcon from "~/components/icons/BellIcon.vue";
+import LogoutIcon from "~/components/icons/LogoutIcon.vue";
+import MenuIcon from "~/components/icons/MenuIcon.vue";
 import RegistrarSidebar from "~/components/RegistrarSidebar.vue";
+import StudentSidebar from "~/components/StudentSidebar.vue";
+import { useToast } from "~/composables/useToast";
 
-const sidebarOpen = ref(true);
+// Initialize sidebar as closed on mobile, open on desktop
+const sidebarOpen = ref(process.client ? window.innerWidth > 768 : true);
 const authStore = useAuthStore();
 const { success } = useToast();
 const router = useRouter();
@@ -87,13 +90,13 @@ const getSidebarComponent = computed(() => {
 .content-wrapper {
   flex: 1;
   margin-left: 250px; /* Same as sidebar width */
-  transition: margin 0.3s ease;
+  transition: margin-left 0.3s ease;
   display: flex;
   flex-direction: column;
-}
 
-.sidebar-collapsed + .content-wrapper {
-  margin-left: 70px;
+  &.sidebar-collapsed {
+    margin-left: 70px;
+  }
 }
 
 .dashboard-header {
@@ -123,7 +126,20 @@ const getSidebarComponent = computed(() => {
   background: none;
   border: none;
   cursor: pointer;
-  display: none;
+  border-radius: 0.375rem;
+  padding: 0.5rem;
+  color: $gray-600;
+  transition: background-color 0.2s;
+  width: 30px;
+
+  &:hover {
+    background-color: $gray-100;
+    color: $gray-700;
+  }
+
+  @media (min-width: 769px) {
+    display: block; /* Show on desktop for toggle functionality */
+  }
 }
 
 .icon-button {
@@ -145,7 +161,6 @@ const getSidebarComponent = computed(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  // background-color: $gray-100;
   background-color: transparent;
   border: none;
   border-radius: 0.375rem;
@@ -182,11 +197,11 @@ const getSidebarComponent = computed(() => {
 
 @media (max-width: 768px) {
   .content-wrapper {
-    margin-left: 0;
+    margin-left: 0 !important; /* Always no margin on mobile */
   }
 
-  .menu-toggle {
-    display: block;
+  .dashboard-header {
+    padding: 0 1rem; /* Less padding on mobile */
   }
 }
 </style>

@@ -24,8 +24,8 @@ defineProps<{
   align-items: center;
 
   .logo-icon {
-    width: 80px;
-    height: 80px;
+    width: 31px;
+    height: 31px;
 
     &.logo-full {
       width: auto; // Let the full logo maintain its aspect ratio
