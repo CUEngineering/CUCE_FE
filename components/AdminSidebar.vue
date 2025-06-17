@@ -230,7 +230,7 @@ const currentPath = computed(() => route.path);
     transition: transform 0.3s ease;
 
     &.sidebar-open {
-      transform: translateX(80px);
+      transform: translateX(200%);
     }
   }
 }

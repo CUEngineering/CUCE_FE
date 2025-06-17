@@ -266,8 +266,16 @@
       </div>
     </div>
 
-    <!-- Toast Container -->
-    <ToastContainer />
+    <RejectDialog
+      v-model="showDeleteModal"
+      title="Confirm action!"
+      :message="`Are you sure you want to reject this enrollment for <strong>${selectedEnrollment?.studentName}</strong> in ${selectedEnrollment?.courseCode}?`"
+      variant="warning"
+      :loading="isActionLoading"
+      confirm-button-text="Yes, reject"
+      cancelButtonText="No, cancel"
+      @confirm="handleDeleteAction"
+    />
   </div>
 </template>
 
@@ -287,8 +295,8 @@ import ActionEditIcon from "~/components/icons/ActionEditIcon.vue";
 import FilterIcon from "~/components/icons/FilterIcon.vue";
 import StatusBadge from "~/components/icons/StatusBadge.vue";
 import EmptyState from "~/components/ui/EmptyState.vue";
+import RejectDialog from "~/components/ui/enrollment/RejectDialog.vue";
 import FormInput from "~/components/ui/FormInput.vue";
-import ToastContainer from "~/components/ui/ToastContainer.vue";
 
 interface Enrollment {
   enrollmentId?: number;
@@ -308,14 +316,16 @@ const toast = useToast();
 const { call, isLoading, data } = useBackendService("/enrollments", "get");
 const enrollments = ref<Enrollment[]>([]);
 
-onMounted(async () => {
+onMounted(fetchEnrollments);
+
+async function fetchEnrollments() {
   try {
     await call();
     enrollments.value = data.value || [];
   } catch (err) {
-    console.error("Failed to fetch data:", err);
+    console.error("Failed to fetch enrollments:", err);
   }
-});
+}
 
 const filteredEnrollments = computed(() => {
   if (activeTab.value === "unass") {
@@ -469,21 +479,93 @@ const calculatePageRange = () => {
   );
 };
 
-const showInviteModal = ref(false);
+const showEditModal = ref(false);
+const showDeleteModal = ref(false);
+const showInfoModal = ref(false);
+const isActionLoading = ref(false);
+const selectedEnrollment = ref<Enrollment | null>(null);
 
 const handleEdit = async (rowData: Enrollment) => {
-  toast.success("Edit clicked" + rowData.studentName);
+  if (rowData.status !== "pending") {
+    toast.info("Enrollment cannot be edited");
+    return;
+  } else {
+    selectedEnrollment.value = rowData;
+    showEditModal.value = true;
+  }
 };
 const handleDelete = async (rowData: Enrollment) => {
-  toast.success("Delete clicked" + rowData.studentName);
+  if (rowData.status !== "pending") {
+    toast.info("Enrollment cannot be edited");
+    return;
+  } else {
+    selectedEnrollment.value = rowData;
+    showDeleteModal.value = true;
+  }
+};
+const handleInfo = async (rowData: Enrollment) => {
+  selectedEnrollment.value = rowData;
+  showInfoModal.value = true;
+};
+const handleDeleteAction = async ({
+  reason,
+  customReason,
+}: {
+  reason: string;
+  customReason: string;
+}) => {
+  const { call, isLoading, data } = useBackendService(
+    `/enrollments/${selectedEnrollment.value?.enrollmentId}`,
+    "patch"
+  );
+  const finalReason = reason === "Other reason" ? customReason : reason;
+
+  isActionLoading.value = true;
+  try {
+    await call({
+      enrollment_status: "REJECTED",
+      rejection_reason: finalReason,
+    });
+    toast.success("Enrollment rejected successfully");
+    fetchEnrollments();
+
+    showDeleteModal.value = false;
+    selectedEnrollment.value = null;
+  } catch (error) {
+    toast.error("Failed to reject enrollment");
+  } finally {
+    isActionLoading.value = false;
+  }
+};
+const handleEditAction = async ({}) => {
+  const { call, isLoading, data } = useBackendService(
+    `/enrollments/${selectedEnrollment.value?.enrollmentId}`,
+    "patch"
+  );
+
+  isActionLoading.value = true;
+  try {
+    await call({
+      enrollment_status: "ACCEPTED",
+    });
+    toast.success("Enrollment accepted successfully");
+    fetchEnrollments();
+
+    showDeleteModal.value = false;
+    selectedEnrollment.value = null;
+  } catch (error) {
+    toast.error("Failed to reject enrollment");
+  } finally {
+    isActionLoading.value = false;
+  }
+};
+
+const viewDetails = (single: Enrollment) => {
+  toast.success("view clicked" + single.studentName);
 };
 
 const goToPage = (pageIndex: number) => {
   table.setPageIndex(pageIndex);
-};
-
-const viewDetails = (single: Enrollment) => {
-  console.log(single);
 };
 
 definePageMeta({
