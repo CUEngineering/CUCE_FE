@@ -1,11 +1,7 @@
 <template>
   <div class="dashboard-layout">
     <!-- Pass both collapsed and mobile open states to sidebar component -->
-    <component
-      :is="getSidebarComponent"
-      :is-collapsed="!sidebarOpen"
-      :is-mobile-open="sidebarOpen"
-    />
+    <component :is="getSidebarComponent" :is-collapsed="!sidebarOpen" />
 
     <div class="content-wrapper" :class="{ 'sidebar-collapsed': !sidebarOpen }">
       <!-- Header -->
@@ -198,6 +194,9 @@ const getSidebarComponent = computed(() => {
 @media (max-width: 768px) {
   .content-wrapper {
     margin-left: 0 !important; /* Always no margin on mobile */
+  }
+  .content-wrapper.sidebar-collapsed {
+    margin-left: 70px !important;
   }
 
   .dashboard-header {

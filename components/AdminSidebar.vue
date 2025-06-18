@@ -229,8 +229,8 @@ const currentPath = computed(() => route.path);
     transform: translateX(-100%);
     transition: transform 0.3s ease;
 
-    &.sidebar-open {
-      transform: translateX(200%);
+    &.sidebar-collapsed {
+      transform: translateX(0%);
     }
   }
 }
