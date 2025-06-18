@@ -37,6 +37,30 @@
                 <slot></slot>
               </div>
 
+              <div className="rejection-history">
+                <div className="rejection-history-container">
+                  <div className="rejection-history-content">
+                    <div className="rejection-history-text">
+                      <h3 className="rejection-history-title">
+                        Rejection History
+                      </h3>
+                      <p className="rejection-history-subtitle">
+                        This enrollment has been rejected [{{
+                          props.rejectionCount
+                        }}] time(s).
+                      </p>
+                    </div>
+                  </div>
+
+                  <div @click="viewDetails" className="rejection-history-link">
+                    <span className="rejection-history-link-text"
+                      >View Details -></span
+                    >
+                    <ChevronRight className="rejection-history-arrow" />
+                  </div>
+                </div>
+              </div>
+
               <div style="margin-top: 20px" class="dialog-footer">
                 <Button
                   v-if="showCancelButton"
@@ -63,13 +87,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import ErrorIcon from "~/assets/images/Dialog_Error.svg";
 import SuccessIcon from "~/assets/images/Dialog_Success.svg";
 import WarningIcon from "~/assets/images/Dialog_Warning.svg";
 import CloseCircleIcon from "~/components/icons/CloseCircleIcon.vue";
 import Button from "../Button.vue";
 const toast = useToast();
+
+const form = ref({
+  reason: "",
+  customReason: "",
+});
+const isOtherReason = computed(() => form.value.reason === "Other reason");
 
 interface Props {
   modelValue: boolean;
@@ -84,6 +114,7 @@ interface Props {
   showCloseButton?: boolean;
   persistent?: boolean;
   loading?: boolean;
+  rejectionCount?: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -102,7 +133,12 @@ const emit = defineEmits<{
   (e: "update:modelValue", value: boolean): void;
   (e: "cancel"): void;
   (e: "confirm"): void;
+  (e: "viewDetails"): void;
 }>();
+
+const viewDetails = () => {
+  emit("viewDetails");
+};
 
 const close = () => {
   emit("update:modelValue", false);
@@ -127,7 +163,14 @@ const onOverlayClick = () => {
     cancel();
   }
 };
-
+watch(
+  () => props.modelValue,
+  (val) => {
+    if (val) {
+      form.value = { reason: "", customReason: "" };
+    }
+  }
+);
 const getIconComponent = computed(() => {
   switch (props.variant) {
     case "success":
@@ -141,7 +184,6 @@ const getIconComponent = computed(() => {
       return ErrorIcon;
   }
 });
-
 const confirmButtonVariant = computed(
   (): "primary" | "secondary" | "outline" | "danger" => {
     switch (props.variant) {
@@ -338,5 +380,78 @@ const confirmButtonVariant = computed(
     max-width: 100%;
     gap: 16px;
   }
+}
+.rejection-history {
+  background-image: url("~/assets/images/RejectImage.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  padding: 5px;
+  border-radius: 10px;
+  border: 1px solid #fedf89;
+}
+
+.rejection-history-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rejection-history-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.rejection-history-icon {
+  width: 12px;
+  height: 12px;
+  background-color: #dc6803;
+  transform: rotate(45deg);
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.rejection-history-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.rejection-history-title {
+  color: #101828;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.rejection-history-subtitle {
+  color: #667085;
+  font-size: 12px;
+  margin: 4px 0 0 0;
+}
+
+.rejection-history-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #dc6803;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.rejection-history-link:hover {
+  color: #b54708;
+}
+
+.rejection-history-link-text {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.rejection-history-arrow {
+  width: 16px;
+  height: 16px;
 }
 </style>

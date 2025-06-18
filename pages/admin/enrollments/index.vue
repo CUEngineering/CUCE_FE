@@ -276,6 +276,18 @@
       cancelButtonText="No, cancel"
       @confirm="handleDeleteAction"
     />
+    <AcceptDialog
+      v-model="showEditModal"
+      title="Course Enrollment"
+      :message="`Are you sure you want to approve this enrollment for <strong>${selectedEnrollment?.studentName}</strong> in ${selectedEnrollment?.sessionName}?`"
+      variant="warning"
+      :loading="isActionLoading"
+      :rejectionCount="getRejectionCount(selectedEnrollment?.studentId || 0)"
+      confirm-button-text="Yes, approve"
+      cancelButtonText="No"
+      @confirm="handleEditAction"
+      @viewDetails="handleInfo(selectedEnrollment as Enrollment)"
+    />
   </div>
 </template>
 
@@ -295,6 +307,7 @@ import ActionEditIcon from "~/components/icons/ActionEditIcon.vue";
 import FilterIcon from "~/components/icons/FilterIcon.vue";
 import StatusBadge from "~/components/icons/StatusBadge.vue";
 import EmptyState from "~/components/ui/EmptyState.vue";
+import AcceptDialog from "~/components/ui/enrollment/AcceptDialog.vue";
 import RejectDialog from "~/components/ui/enrollment/RejectDialog.vue";
 import FormInput from "~/components/ui/FormInput.vue";
 
@@ -326,6 +339,15 @@ async function fetchEnrollments() {
     console.error("Failed to fetch enrollments:", err);
   }
 }
+
+const getRejectionCount = (studentId: number): number => {
+  return table.getRowModel().rows.filter((row) => {
+    return (
+      row.original.studentId === studentId &&
+      row.original.status?.toLowerCase() === "rejected"
+    );
+  }).length;
+};
 
 const filteredEnrollments = computed(() => {
   if (activeTab.value === "unass") {
@@ -506,6 +528,9 @@ const handleDelete = async (rowData: Enrollment) => {
 const handleInfo = async (rowData: Enrollment) => {
   selectedEnrollment.value = rowData;
   showInfoModal.value = true;
+  toast.success(
+    `Viewing details for ${rowData.studentName} in ${rowData.courseCode}`
+  );
 };
 const handleDeleteAction = async ({
   reason,
@@ -514,7 +539,7 @@ const handleDeleteAction = async ({
   reason: string;
   customReason: string;
 }) => {
-  const { call, isLoading, data } = useBackendService(
+  const { call } = useBackendService(
     `/enrollments/${selectedEnrollment.value?.enrollmentId}`,
     "patch"
   );
@@ -537,8 +562,8 @@ const handleDeleteAction = async ({
     isActionLoading.value = false;
   }
 };
-const handleEditAction = async ({}) => {
-  const { call, isLoading, data } = useBackendService(
+const handleEditAction = async () => {
+  const { call } = useBackendService(
     `/enrollments/${selectedEnrollment.value?.enrollmentId}`,
     "patch"
   );
@@ -546,12 +571,12 @@ const handleEditAction = async ({}) => {
   isActionLoading.value = true;
   try {
     await call({
-      enrollment_status: "ACCEPTED",
+      enrollment_status: "APPROVED",
     });
     toast.success("Enrollment accepted successfully");
     fetchEnrollments();
 
-    showDeleteModal.value = false;
+    showEditModal.value = false;
     selectedEnrollment.value = null;
   } catch (error) {
     toast.error("Failed to reject enrollment");
