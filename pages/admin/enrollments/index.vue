@@ -106,7 +106,7 @@
           <tr
             v-for="row in table.getRowModel().rows"
             :key="row.id"
-            @click="viewDetails(row.original)"
+            @click="handleInfo(row.original)"
             class="table-row"
           >
             <td
@@ -282,7 +282,13 @@
       :message="`Are you sure you want to approve this enrollment for <strong>${selectedEnrollment?.studentName}</strong> in ${selectedEnrollment?.sessionName}?`"
       variant="warning"
       :loading="isActionLoading"
-      :rejectionCount="getRejectionCount(selectedEnrollment?.studentId || 0)"
+      :rejectionCount="
+        getRejectionCount(
+          selectedEnrollment?.studentId || '',
+          selectedEnrollment?.sessionName || '',
+          selectedEnrollment?.courseCode || ''
+        )
+      "
       confirm-button-text="Yes, approve"
       cancelButtonText="No"
       @confirm="handleEditAction"
@@ -314,7 +320,7 @@ import FormInput from "~/components/ui/FormInput.vue";
 interface Enrollment {
   enrollmentId?: number;
   studentName: string;
-  studentId: number;
+  studentId: string;
   studentImage: string;
   courseCode: string;
   courseStatus: string;
@@ -324,6 +330,9 @@ interface Enrollment {
   assignedRegistrarImage?: string;
   assignedStatus: "unassigned" | "toOthers" | "toMe";
   sessionName: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  reason?: string;
 }
 const toast = useToast();
 const { call, isLoading, data } = useBackendService("/enrollments", "get");
@@ -340,11 +349,52 @@ async function fetchEnrollments() {
   }
 }
 
-const getRejectionCount = (studentId: number): number => {
+interface RejectionHistory {
+  enrollmentId?: number;
+  reason?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+const getRejectionHistory = (
+  studentId: string,
+  sessionName: string,
+  courseCode: string
+): RejectionHistory[] => {
+  return table
+    .getRowModel()
+    .rows.filter((row) => {
+      const original = row.original;
+      return (
+        original.studentId === studentId &&
+        original.sessionName === sessionName &&
+        original.courseCode === courseCode &&
+        original.status?.toLowerCase() === "rejected"
+      );
+    })
+    .map((row) => {
+      const original = row.original;
+      return {
+        enrollmentId: original.enrollmentId,
+        reason: original.reason,
+        createdAt: original.createdAt,
+        updatedAt: original.updatedAt,
+      };
+    });
+};
+
+const getRejectionCount = (
+  studentId: string,
+  sessionName: string,
+  courseCode: string
+): number => {
   return table.getRowModel().rows.filter((row) => {
+    const original = row.original;
     return (
-      row.original.studentId === studentId &&
-      row.original.status?.toLowerCase() === "rejected"
+      original.studentId === studentId &&
+      original.sessionName === sessionName &&
+      original.courseCode === courseCode &&
+      original.status?.toLowerCase() === "rejected"
     );
   }).length;
 };
@@ -433,7 +483,6 @@ const columns = computed(() => {
   return cols;
 });
 
-const globalFilter = ref("");
 const tableState = reactive({
   pagination: {
     pageIndex: 0,
@@ -516,6 +565,7 @@ const handleEdit = async (rowData: Enrollment) => {
     showEditModal.value = true;
   }
 };
+
 const handleDelete = async (rowData: Enrollment) => {
   if (rowData.status !== "pending") {
     toast.info("Enrollment cannot be edited");
@@ -525,12 +575,10 @@ const handleDelete = async (rowData: Enrollment) => {
     showDeleteModal.value = true;
   }
 };
+
 const handleInfo = async (rowData: Enrollment) => {
   selectedEnrollment.value = rowData;
   showInfoModal.value = true;
-  toast.success(
-    `Viewing details for ${rowData.studentName} in ${rowData.courseCode}`
-  );
 };
 const handleDeleteAction = async ({
   reason,
@@ -583,10 +631,6 @@ const handleEditAction = async () => {
   } finally {
     isActionLoading.value = false;
   }
-};
-
-const viewDetails = (single: Enrollment) => {
-  toast.success("view clicked" + single.studentName);
 };
 
 const goToPage = (pageIndex: number) => {
