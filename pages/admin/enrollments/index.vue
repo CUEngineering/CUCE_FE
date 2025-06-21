@@ -73,196 +73,223 @@
           </div>
           <div
             style="margin: auto; margin-left: 20px"
-            class="profile-count pill p-grey pill-sm"
+            class="web profile-count pill p-grey pill-sm"
           >
             ({{ startRecord }} - {{ endRecord }}) of {{ totalRecords }}
           </div>
         </div>
 
-        <div class="header-actions">
+        <div class="web header-actions">
           <FilterIcon class="avatar" />
         </div>
       </div>
 
-      <table class="enrollments-table table-container">
-        <thead>
-          <tr>
-            <th
-              v-for="header in table.getHeaderGroups()[0].headers"
-              :key="header.id"
-              @click="header.column.getToggleSortingHandler()"
-              class="table-header"
-            >
-              <div class="header-content">
-                {{ header.column.columnDef.header }}
-                <span v-if="header.column.getIsSorted()" class="sort-indicator">
-                  {{ header.column.getIsSorted() === "desc" ? "▼" : "▲" }}
-                </span>
-              </div>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="row in table.getRowModel().rows"
-            :key="row.id"
-            @click="handleInfo(row.original)"
-            class="table-row"
-          >
-            <td
-              v-for="cell in row.getVisibleCells()"
-              :key="cell.id"
-              class="table-cell"
-            >
-              <template v-if="typeof cell.column.columnDef.cell === 'function'">
-                <div v-if="cell.column.id === 'actions'" class="action-cell">
-                  <button
-                    class="action-button delete-button"
-                    @click.stop="handleDelete(row.original)"
+      <div class="web-table">
+        <table class="enrollments-table table-container">
+          <thead>
+            <tr>
+              <th
+                v-for="header in table.getHeaderGroups()[0].headers"
+                :key="header.id"
+                @click="header.column.getToggleSortingHandler()"
+                class="table-header"
+              >
+                <div class="header-content">
+                  {{ header.column.columnDef.header }}
+                  <span
+                    v-if="header.column.getIsSorted()"
+                    class="sort-indicator"
                   >
-                    <ActionCancelIcon />
-                  </button>
-                  <button
-                    class="action-button edit-button"
-                    @click.stop="handleEdit(row.original)"
-                  >
-                    <ActionEditIcon />
-                  </button>
+                    {{ header.column.getIsSorted() === "desc" ? "▼" : "▲" }}
+                  </span>
                 </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="row in table.getRowModel().rows"
+              :key="row.id"
+              @click="handleInfo(row.original)"
+              class="table-row"
+            >
+              <td
+                v-for="cell in row.getVisibleCells()"
+                :key="cell.id"
+                class="table-cell"
+              >
+                <template
+                  v-if="typeof cell.column.columnDef.cell === 'function'"
+                >
+                  <div v-if="cell.column.id === 'actions'" class="action-cell">
+                    <button
+                      class="action-button delete-button"
+                      @click.stop="handleDelete(row.original)"
+                    >
+                      <ActionCancelIcon />
+                    </button>
+                    <button
+                      class="action-button edit-button"
+                      @click.stop="handleEdit(row.original)"
+                    >
+                      <ActionEditIcon />
+                    </button>
+                  </div>
 
-                <div
-                  v-else-if="cell.column.id === 'status'"
-                  class="status-badge"
-                  :class="getStatusClass(cell.renderValue() as string)"
-                >
-                  <span class="status-dot"></span>
-                  {{ capitalizeFirst(cell.renderValue() as string) }}
-                </div>
-                <div
-                  v-else-if="cell.column.id === 'studentName'"
-                  class="student-info"
-                >
-                  <img
-                    :src="cell.row.original.studentImage"
-                    :alt="cell.row.original.studentName"
-                    class="avatar"
-                  />
-                  <div class="student-details">
-                    <div class="student-name">
-                      {{ cell.row.original.studentName }}
-                    </div>
-                    <div class="student-id">
-                      @{{ cell.row.original.studentId }}
-                    </div>
-                  </div>
-                </div>
-                <div
-                  v-else-if="cell.column.id === 'assignedRegistrar'"
-                  style="padding: 5px"
-                  class="student-info status-badge profile-count pill p-grey"
-                >
-                  <img
-                    :src="cell.row.original.assignedRegistrarImage"
-                    :alt="cell.row.original.assignedRegistrar"
-                    class="avatar"
-                  />
-                  <div class="student-details">
-                    <div class="student-name">
-                      {{ cell.row.original.assignedRegistrar }}
-                    </div>
-                  </div>
-                </div>
-                <div
-                  v-else-if="cell.column.id === 'courseCode'"
-                  class="courses-cell"
-                  style="display: flex; flex-direction: row"
-                >
                   <div
-                    style="padding: 3px 12px; text-align: center"
-                    class="profile-count pill p-grey status-badge"
+                    v-else-if="cell.column.id === 'status'"
+                    class="status-badge"
+                    :class="getStatusClass(cell.renderValue() as string)"
                   >
+                    <span class="status-dot"></span>
+                    {{ capitalizeFirst(cell.renderValue() as string) }}
+                  </div>
+                  <div
+                    v-else-if="cell.column.id === 'studentName'"
+                    class="student-info"
+                  >
+                    <img
+                      :src="cell.row.original.studentImage"
+                      :alt="cell.row.original.studentName"
+                      class="avatar"
+                    />
+                    <div class="student-details">
+                      <div class="student-name">
+                        {{ cell.row.original.studentName }}
+                      </div>
+                      <div class="student-id">
+                        @{{ cell.row.original.studentId }}
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    v-else-if="cell.column.id === 'assignedRegistrar'"
+                    style="padding: 5px"
+                    class="student-info status-badge profile-count pill p-grey"
+                  >
+                    <img
+                      :src="cell.row.original.assignedRegistrarImage"
+                      :alt="cell.row.original.assignedRegistrar"
+                      class="avatar"
+                    />
+                    <div class="student-details">
+                      <div class="student-name">
+                        {{ cell.row.original.assignedRegistrar }}
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    v-else-if="cell.column.id === 'courseCode'"
+                    class="courses-cell"
+                    style="display: flex; flex-direction: row"
+                  >
+                    <div
+                      style="padding: 3px 12px; text-align: center"
+                      class="profile-count pill p-grey status-badge"
+                    >
+                      {{ cell.renderValue() }}
+                    </div>
+                    <div
+                      v-if="cell.row.original.courseStatus === 'CLOSED'"
+                      style="text-align: center; margin-left: 10px"
+                      class="status-badge status-deactivated"
+                    >
+                      <span><StatusBadge /></span>
+                      {{ cell.row.original.courseStatus }}
+                    </div>
+                  </div>
+
+                  <div v-else>
                     {{ cell.renderValue() }}
                   </div>
-                  <div
-                    v-if="cell.row.original.courseStatus === 'closed'"
-                    style="text-align: center; margin-left: 10px"
-                    class="status-badge status-deactivated"
-                  >
-                    <span><StatusBadge /></span>
-                    {{ cell.row.original.courseStatus }}
-                  </div>
-                </div>
+                </template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
-                <div v-else>
-                  {{ cell.renderValue() }}
-                </div>
-              </template>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <!-- Pagination -->
-      <div class="pagination">
-        <div class="pagination-controls">
-          <button
-            @click="table.previousPage()"
-            :disabled="!table.getCanPreviousPage()"
-            class="pagination-button"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M10 12L6 8L10 4"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-            Previous
-          </button>
-          <div class="pagination-pages">
+        <!-- Pagination -->
+        <div class="pagination">
+          <div class="pagination-controls">
             <button
-              v-for="page in calculatePageRange()"
-              :key="page"
-              @click="goToPage(page - 1)"
-              class="page-button"
-              :class="{
-                active: table.getState().pagination.pageIndex === page - 1,
-              }"
+              @click="table.previousPage()"
+              :disabled="!table.getCanPreviousPage()"
+              class="pagination-button"
             >
-              {{ page }}
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M10 12L6 8L10 4"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Previous
+            </button>
+            <div class="pagination-pages">
+              <button
+                v-for="page in calculatePageRange()"
+                :key="page"
+                @click="goToPage(page - 1)"
+                class="page-button"
+                :class="{
+                  active: table.getState().pagination.pageIndex === page - 1,
+                }"
+              >
+                {{ page }}
+              </button>
+            </div>
+            <button
+              @click="table.nextPage()"
+              :disabled="!table.getCanNextPage()"
+              class="pagination-button"
+            >
+              Next
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M6 4L10 8L6 12"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
             </button>
           </div>
-          <button
-            @click="table.nextPage()"
-            :disabled="!table.getCanNextPage()"
-            class="pagination-button"
-          >
-            Next
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M6 4L10 8L6 12"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </button>
         </div>
+      </div>
+      <div class="mobile-table">
+        <MobileEnrollment
+          v-for="(selectedEnroll, index) in filteredEnrollments"
+          :key="index"
+          :selectedEnrollment="selectedEnroll"
+          @activate="
+            () => {
+              selectedEnrollment = selectedEnroll;
+              showEditModal = true;
+            }
+          "
+          @deactivate="
+            () => {
+              selectedEnrollment = selectedEnroll;
+              showDeleteModal = true;
+            }
+          "
+          @viewDetails="handleInfo(selectedEnroll as Enrollment)"
+        />
       </div>
     </div>
 
@@ -294,6 +321,30 @@
       @confirm="handleEditAction"
       @viewDetails="handleInfo(selectedEnrollment as Enrollment)"
     />
+    <DetailsDialog
+      v-model="showInfoModal"
+      :loading="isActionLoading"
+      :selectedEnrollment="selectedEnrollment"
+      @confirm="
+        () => {
+          selectedEnrollment = selectedEnrollment;
+          showEditModal = true;
+        }
+      "
+      @cancel="
+        () => {
+          selectedEnrollment = selectedEnrollment;
+          showDeleteModal = true;
+        }
+      "
+      :rejectionHistory="
+        getRejectionHistory(
+          selectedEnrollment?.studentId || '',
+          selectedEnrollment?.sessionName || '',
+          selectedEnrollment?.courseCode || ''
+        )
+      "
+    />
   </div>
 </template>
 
@@ -314,8 +365,11 @@ import FilterIcon from "~/components/icons/FilterIcon.vue";
 import StatusBadge from "~/components/icons/StatusBadge.vue";
 import EmptyState from "~/components/ui/EmptyState.vue";
 import AcceptDialog from "~/components/ui/enrollment/AcceptDialog.vue";
+import DetailsDialog from "~/components/ui/enrollment/DetailsDialog.vue";
+import MobileEnrollment from "~/components/ui/enrollment/MobileEnrollment.vue";
 import RejectDialog from "~/components/ui/enrollment/RejectDialog.vue";
 import FormInput from "~/components/ui/FormInput.vue";
+import { capitalizeFirst, getStatusClass } from "~/helper/formatData";
 
 interface Enrollment {
   enrollmentId?: number;
@@ -575,7 +629,6 @@ const handleDelete = async (rowData: Enrollment) => {
     showDeleteModal.value = true;
   }
 };
-
 const handleInfo = async (rowData: Enrollment) => {
   selectedEnrollment.value = rowData;
   showInfoModal.value = true;
@@ -641,23 +694,6 @@ definePageMeta({
   layout: "dashboard",
 });
 
-const getStatusClass = (status: string) => {
-  switch (status.toLowerCase()) {
-    case "approved":
-      return "status-active";
-    case "pending":
-      return "status-suspended";
-    case "rejected":
-      return "status-deactivated";
-    default:
-      return "";
-  }
-};
-
-const capitalizeFirst = (text: string) => {
-  if (!text) return "";
-  return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
-};
 const totalRecords = computed(() => filteredEnrollments.value.length);
 
 const startRecord = computed(() => {
@@ -923,6 +959,22 @@ const endRecord = computed(() => {
         background-color: $primary-color;
         color: $white;
       }
+    }
+  }
+  .mobile-table {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    .web-table {
+      display: none;
+    }
+    .web {
+      display: none;
+    }
+
+    .mobile-table {
+      display: block;
     }
   }
 }

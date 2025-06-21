@@ -7,76 +7,137 @@
             <div
               v-if="modelValue"
               class="dialog"
-              :class="[variant]"
               @click.stop
               role="dialog"
               aria-modal="true"
             >
               <div class="dialog-header">
-                <div
-                  v-if="icon"
-                  class="dialog-icon"
-                  :class="`dialog-icon-${variant}`"
-                >
-                  <img :src="getIconComponent" :alt="`${variant} icon`" />
+                <div class="dialog-icon">
+                  <img
+                    class="roundedImage"
+                    :src="props.selectedEnrollment?.studentImage"
+                    :alt="'icon'"
+                  />
                 </div>
-                <h3 class="dialog-title">{{ title }}</h3>
+                <div class="student-details">
+                  <div class="student-name">
+                    {{ props.selectedEnrollment?.studentName }}
+                  </div>
+                  <div class="student-id">
+                    @{{ props.selectedEnrollment?.studentId }}
+                  </div>
+                </div>
+                <div
+                  class="status-badge"
+                  :class="getStatusClass(props.selectedEnrollment?.status)"
+                >
+                  <span class="status-dot"></span>
+                  {{ capitalizeFirst(props.selectedEnrollment?.status) }}
+                </div>
+                <div class="registrar-stats">
+                  <div class="stat-group">
+                    <div class="stat-item">
+                      <div class="stat-label">Requested Course</div>
+                      <div class="course-arrange">
+                        <div
+                          class="stat-value profile-count pill p-grey status-badge"
+                        >
+                          {{ props.selectedEnrollment?.courseCode }}
+                        </div>
+                        <div
+                          v-if="
+                            props.selectedEnrollment?.courseStatus === 'CLOSED'
+                          "
+                          style="text-align: center; margin-left: 10px"
+                          class="status-badge status-deactivated"
+                        >
+                          <span><StatusBadge /></span>
+                          {{ props.selectedEnrollment?.courseStatus }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="stat-group">
+                    <div class="stat-item">
+                      <div class="stat-label">Assigned Registrar</div>
+                      <div class="stat-value">
+                        <div class="student-info profile-count p-grey">
+                          <img
+                            :src="
+                              props.selectedEnrollment?.assignedRegistrarImage
+                            "
+                            :alt="props.selectedEnrollment?.studentName"
+                            class="avatar"
+                          />
+                          <div class="student-details">
+                            <div class="student-name">
+                              {{ props.selectedEnrollment?.assignedRegistrar }}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="stat-group">
+                    <div class="stat-item">
+                      <div class="stat-label">Enrolled Programme</div>
+                      <div
+                        class="stat-value profile-count pill p-grey status-badge"
+                      >
+                        <IconsCalendarIcon style="width: 15px" />
+                        {{ props.selectedEnrollment?.program }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="rejection-history"
+                  v-if="props.rejectionHistory?.length"
+                >
+                  <h5 class="recon">Rejection History</h5>
+                  <table class="enrollments-table table-container">
+                    <thead>
+                      <tr>
+                        <th class="table-header">S/N</th>
+                        <th class="table-header">Reason for Rejection</th>
+                        <th class="table-header">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        v-for="(item, index) in props.rejectionHistory"
+                        :key="index"
+                        class="table-row"
+                      >
+                        <td class="table-cell pill p-grey status-badg">
+                          0{{ index + 1 }}
+                        </td>
+                        <td class="table-cell">{{ item.reason }}</td>
+                        <td class="table-cell">
+                          {{ formatDateToDMY(item.updatedAt) }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div style="margin-top: 20px" class="dialog-footer">
+                  <Button variant="danger" @click="cancel"> Reject </Button>
+                  <Button
+                    variant="secondary"
+                    @click="confirm"
+                    :loading="loading"
+                  >
+                    Approve
+                  </Button>
+                </div>
                 <button
-                  v-if="showCloseButton"
                   class="dialog-close"
                   @click="close"
                   aria-label="Close dialog"
                 >
                   <CloseCircleIcon />
                 </button>
-              </div>
-
-              <div class="dialog-content">
-                <p v-if="message" class="dialog-message" v-html="message"></p>
-
-                <slot></slot>
-              </div>
-
-              <div className="rejection-history">
-                <div className="rejection-history-container">
-                  <div className="rejection-history-content">
-                    <div className="rejection-history-text">
-                      <h3 className="rejection-history-title">
-                        Rejection History
-                      </h3>
-                      <p className="rejection-history-subtitle">
-                        This enrollment has been rejected [{{
-                          props.rejectionCount
-                        }}] time(s).
-                      </p>
-                    </div>
-                  </div>
-
-                  <div @click="viewDetails" className="rejection-history-link">
-                    <span className="rejection-history-link-text"
-                      >View Details -></span
-                    >
-                    <ChevronRight className="rejection-history-arrow" />
-                  </div>
-                </div>
-              </div>
-
-              <div style="margin-top: 20px" class="dialog-footer">
-                <Button
-                  v-if="showCancelButton"
-                  variant="outline"
-                  @click="cancel"
-                >
-                  {{ cancelButtonText }}
-                </Button>
-                <Button
-                  v-if="showConfirmButton"
-                  :variant="confirmButtonVariant"
-                  @click="confirm"
-                  :loading="loading"
-                >
-                  {{ confirmButtonText }}
-                </Button>
               </div>
             </div>
           </Transition>
@@ -87,58 +148,36 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import ErrorIcon from "~/assets/images/Dialog_Error.svg";
-import SuccessIcon from "~/assets/images/Dialog_Success.svg";
-import WarningIcon from "~/assets/images/Dialog_Warning.svg";
+import { IconsCalendarIcon } from "#components";
 import CloseCircleIcon from "~/components/icons/CloseCircleIcon.vue";
+import StatusBadge from "~/components/icons/StatusBadge.vue";
+import {
+  capitalizeFirst,
+  formatDateToDMY,
+  getStatusClass,
+} from "~/helper/formatData";
 import Button from "../Button.vue";
 const toast = useToast();
 
-const form = ref({
-  reason: "",
-  customReason: "",
-});
-const isOtherReason = computed(() => form.value.reason === "Other reason");
-
 interface Props {
   modelValue: boolean;
-  title: string;
-  message?: string;
-  variant?: "default" | "warning" | "danger" | "success";
-  icon?: boolean;
-  cancelButtonText?: string;
-  confirmButtonText?: string;
-  showCancelButton?: boolean;
-  showConfirmButton?: boolean;
-  showCloseButton?: boolean;
   persistent?: boolean;
   loading?: boolean;
-  rejectionCount?: number;
+  selectedEnrollment?: any;
+  rejectionHistory?: any[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  variant: "default",
-  icon: true,
-  cancelButtonText: "Cancel",
-  confirmButtonText: "Confirm",
-  showCancelButton: true,
-  showConfirmButton: true,
-  showCloseButton: true,
   persistent: false,
   loading: false,
 });
+console.log(props.selectedEnrollment);
 
 const emit = defineEmits<{
   (e: "update:modelValue", value: boolean): void;
   (e: "cancel"): void;
   (e: "confirm"): void;
-  (e: "viewDetails"): void;
 }>();
-
-const viewDetails = () => {
-  emit("viewDetails");
-};
 
 const close = () => {
   emit("update:modelValue", false);
@@ -163,42 +202,6 @@ const onOverlayClick = () => {
     cancel();
   }
 };
-watch(
-  () => props.modelValue,
-  (val) => {
-    if (val) {
-      form.value = { reason: "", customReason: "" };
-    }
-  }
-);
-const getIconComponent = computed(() => {
-  switch (props.variant) {
-    case "success":
-      return SuccessIcon;
-    case "danger":
-      return ErrorIcon;
-    case "warning":
-      return WarningIcon;
-    case "default":
-    default:
-      return ErrorIcon;
-  }
-});
-const confirmButtonVariant = computed(
-  (): "primary" | "secondary" | "outline" | "danger" => {
-    switch (props.variant) {
-      case "danger":
-        return "danger";
-      case "warning":
-        return "secondary";
-      case "success":
-        return "primary";
-      case "default":
-      default:
-        return "primary";
-    }
-  }
-);
 </script>
 
 <style lang="scss" scoped>
@@ -259,20 +262,20 @@ const confirmButtonVariant = computed(
   background-color: $white;
   border-radius: 16px;
   width: 100%;
-  max-width: 480px;
+  max-width: 600px;
   max-height: calc(100vh - 32px);
   overflow: auto;
   box-shadow: 0px 24px 48px -12px rgba(16, 24, 40, 0.18);
   display: flex;
   flex-direction: column;
-  padding: 36px;
-  gap: 24px;
+  padding: 10px;
+  gap: 12px;
 
   .dialog-header {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 24px;
+    gap: 12px;
     position: relative;
 
     .dialog-icon {
@@ -339,12 +342,13 @@ const confirmButtonVariant = computed(
 
   .dialog-footer {
     display: flex;
-    justify-content: center;
+    justify-content: flex-end;
     gap: 16px;
+    width: 100%;
 
     > * {
       flex: 1;
-      max-width: 200px;
+      max-width: 80px;
     }
 
     button {
@@ -374,84 +378,175 @@ const confirmButtonVariant = computed(
   transform: scale(0.95);
   opacity: 0;
 }
+.roundedImage {
+  border-radius: 20%;
+  width: 100px;
+  height: 100px;
+}
+.student-details {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.student-name {
+  font-weight: 600;
+}
+
+.student-id {
+  font-size: 0.85rem;
+  color: #777;
+}
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px 1px 6px;
+  border-radius: 16px;
+  font-size: $text-xxs;
+  font-weight: 500;
+  line-height: 1.8;
+  white-space: nowrap;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-active {
+  background-color: $success-50;
+  color: $gray-700;
+  border: 1px solid $success-400;
+
+  .status-dot {
+    background-color: $success-400;
+  }
+}
+
+.status-suspended {
+  background-color: $primary-color-50;
+  color: $primary-color-500;
+  border: 1px solid $primary-color-500;
+
+  .status-dot {
+    background-color: $primary-color-500;
+  }
+}
+
+.status-deactivated {
+  background-color: $error-50;
+  color: $error-700;
+  border: 1px solid $error-200;
+
+  .status-dot {
+    background-color: $error-400;
+  }
+}
+.registrar-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  gap: 10px;
+  flex-wrap: wrap;
+  width: 70vw;
+  max-width: -webkit-fill-available;
+}
+
+.stat-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  width: 70vw;
+  // min-width: 79px;
+  // max-width: 120px;
+}
+
+.stat-item {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-label {
+  font-size: $text-xxs;
+  line-height: 1.302;
+  color: $gray-500;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  .card-deactivated & {
+    color: $gray-400;
+  }
+}
+
+.stat-value {
+  font-size: $text-sm;
+  line-height: 1.43;
+  color: $black;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  .card-deactivated & {
+    color: $gray-400;
+  }
+}
+.course-arrange {
+  display: flex;
+  flex-direction: row;
+}
+.rejection-history {
+  // display: flex;
+  // flex-direction: column;
+  // align-items: flex-start;
+  width: 100%;
+}
+.enrollments-table {
+  max-height: 300px;
+  overflow-y: auto;
+  border-radius: 20px;
+  .courses-cell {
+    .core-count {
+      display: inline-block;
+      margin-left: $spacing-2;
+      padding: 2px $spacing-2;
+      background-color: $primary-color-100;
+      color: $primary-color-700;
+      border-radius: 4px;
+      font-size: $text-xs;
+      font-weight: 500;
+    }
+  }
+}
+.status-badg {
+  display: inline-flex;
+  padding: 5px 10px;
+  margin: 10px 10px;
+  border-radius: 10px;
+}
+.recon {
+  text-align: left;
+}
 
 @media (max-width: $breakpoint-md) {
   .dialog {
     max-width: 100%;
     gap: 16px;
   }
-}
-.rejection-history {
-  background-image: url("~/assets/images/RejectImage.png");
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
-  padding: 5px;
-  border-radius: 10px;
-  border: 1px solid #fedf89;
-}
-
-.rejection-history-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.rejection-history-content {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.rejection-history-icon {
-  width: 12px;
-  height: 12px;
-  background-color: #dc6803;
-  transform: rotate(45deg);
-  margin-top: 4px;
-  flex-shrink: 0;
-}
-
-.rejection-history-text {
-  display: flex;
-  flex-direction: column;
-}
-
-.rejection-history-title {
-  color: #101828;
-  font-weight: 600;
-  font-size: 15px;
-  line-height: 1.2;
-  margin: 0;
-}
-
-.rejection-history-subtitle {
-  color: #667085;
-  font-size: 12px;
-  margin: 4px 0 0 0;
-}
-
-.rejection-history-link {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: #dc6803;
-  text-decoration: none;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-.rejection-history-link:hover {
-  color: #b54708;
-}
-
-.rejection-history-link-text {
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.rejection-history-arrow {
-  width: 16px;
-  height: 16px;
+  .enrollments-table {
+    border-radius: 20px;
+    width: 90vw;
+  }
 }
 </style>

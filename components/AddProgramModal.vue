@@ -163,15 +163,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch, computed, nextTick, onMounted } from "vue";
-import Button from "./ui/Button.vue";
-import CloseCircleIcon from "./icons/CloseCircleIcon.vue";
-import ChevronDownIcon from "./icons/ChevronDownIcon.vue";
-import CloseIcon from "./icons/CloseIcon.vue";
-import FormInput from "./ui/FormInput.vue";
+import { onClickOutside } from "@vueuse/core";
+import { computed, nextTick, onMounted, reactive, ref, watch } from "vue";
 import { useToast } from "~/composables/useToast";
 import type { ProgramOutput } from "~/types/program";
-import { onClickOutside } from "@vueuse/core";
+import ChevronDownIcon from "./icons/ChevronDownIcon.vue";
+import CloseCircleIcon from "./icons/CloseCircleIcon.vue";
+import CloseIcon from "./icons/CloseIcon.vue";
+import Button from "./ui/Button.vue";
+import FormInput from "./ui/FormInput.vue";
 
 interface Course {
   id: number;
