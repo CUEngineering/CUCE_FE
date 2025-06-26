@@ -138,7 +138,7 @@ const handleLogin = async () => {
   if (!password.value) {
     passwordError.value = "Password is required.";
   } else if (password.value.length > 8) {
-    passwordError.value = "Password is required.";
+    passwordError.value = "Password must not be longer than 8 characters.";
   }
 
   if (emailError.value || passwordError.value) return;

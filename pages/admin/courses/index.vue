@@ -42,12 +42,12 @@
     <EmptyState
       v-if="!programs.length"
       class="dashlet"
-      title="No programs found"
-      description="Add your first program to get started"
+      title="No Existing courses"
+      description="To begin, kindly create a course"
     >
       <template #icon>
         <img
-          src="~/assets/images/EmptyProgram.svg"
+          src="~/assets/images/course.svg"
           alt="Users Illustration"
           class="empty-state-illustration"
         />
@@ -57,7 +57,7 @@
           <template #icon>
             <PlusIcon />
           </template>
-          Add a program
+          Add a course
         </Button>
       </template>
     </EmptyState>
@@ -296,7 +296,7 @@ const programs = ref<Program[]>([
   },
 ]);
 
-// programs.value = [];
+programs.value = [];
 
 // Filter type
 const filterType = ref("all");
@@ -424,7 +424,7 @@ const showAddProgramModal = ref(false);
 
 // Methods
 const openAddProgramModal = () => {
-  showAddProgramModal.value = true;
+  // showAddProgramModal.value = true;
 };
 
 const handleProgramAdded = (programOutput: ProgramOutput) => {

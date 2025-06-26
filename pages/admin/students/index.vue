@@ -42,12 +42,12 @@
     <EmptyState
       v-if="!programs.length"
       class="dashlet"
-      title="No programs found"
-      description="Add your first program to get started"
+      title="No Students Added"
+      description="This will show a list of all students added to this session"
     >
       <template #icon>
         <img
-          src="~/assets/images/EmptyProgram.svg"
+          src="~/assets/images/student.svg"
           alt="Users Illustration"
           class="empty-state-illustration"
         />
@@ -57,7 +57,7 @@
           <template #icon>
             <PlusIcon />
           </template>
-          Add a program
+          Invite student
         </Button>
       </template>
     </EmptyState>
@@ -424,7 +424,7 @@ const showAddProgramModal = ref(false);
 
 // Methods
 const openAddProgramModal = () => {
-  showAddProgramModal.value = true;
+  // showAddProgramModal.value = true;
 };
 
 const handleProgramAdded = (programOutput: ProgramOutput) => {

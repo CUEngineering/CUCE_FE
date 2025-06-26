@@ -19,25 +19,36 @@
       </NuxtLink>
 
       <NuxtLink
-        to="/student/enrollments"
+        to="/student/courses"
         class="nav-item"
-        :class="{ active: currentPath === '/student/enrollments' }"
+        :class="{ active: currentPath === '/student/courses' }"
       >
         <span class="icon">
           <IconsEnrollmentIcon />
         </span>
-        <span class="label">Enrollments</span>
+        <span class="label">Courses</span>
       </NuxtLink>
 
       <NuxtLink
-        to="/student/students"
+        to="/student/requests"
         class="nav-item"
-        :class="{ active: currentPath === '/student/students' }"
+        :class="{ active: currentPath === '/student/requests' }"
       >
         <span class="icon">
           <IconsAcademicCapIcon />
         </span>
-        <span class="label">Students</span>
+        <span class="label">Requests</span>
+      </NuxtLink>
+
+      <NuxtLink
+        to="/student/hub"
+        class="nav-item"
+        :class="{ active: currentPath === '/student/hub' }"
+      >
+        <span class="icon">
+          <IconsAcademicCapIcon />
+        </span>
+        <span class="label">My Hub</span>
       </NuxtLink>
     </nav>
 
