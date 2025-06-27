@@ -164,7 +164,6 @@
                   </div>
                   <div
                     v-else-if="cell.column.id === 'assignedRegistrar'"
-                    style="padding: 5px"
                     class="student-info status-badge profile-count pill p-grey"
                   >
                     <img

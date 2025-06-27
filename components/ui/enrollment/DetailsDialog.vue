@@ -61,12 +61,16 @@
                     <div class="stat-item">
                       <div class="stat-label">Assigned Registrar</div>
                       <div class="stat-value">
-                        <div class="student-info profile-count p-grey">
+                        <div
+                          v-if="props.selectedEnrollment?.assignedRegistrar"
+                          style="display: flex"
+                          class="student-info profile-count p-grey"
+                        >
                           <img
                             :src="
                               props.selectedEnrollment?.assignedRegistrarImage
                             "
-                            :alt="props.selectedEnrollment?.studentName"
+                            :alt="props.selectedEnrollment?.assignedRegistrar"
                             class="avatar"
                           />
                           <div class="student-details">
@@ -74,6 +78,9 @@
                               {{ props.selectedEnrollment?.assignedRegistrar }}
                             </div>
                           </div>
+                        </div>
+                        <div v-else class="status-badge status-unassigned">
+                          Unassigned
                         </div>
                       </div>
                     </div>
@@ -424,6 +431,16 @@ const onOverlayClick = () => {
 
   .status-dot {
     background-color: $success-400;
+  }
+}
+
+.status-unassigned {
+  background-color: $warning-50;
+  color: $warning-700;
+  border: 1px solid $warning-300;
+
+  .status-dot {
+    background-color: $primary-color-500;
   }
 }
 

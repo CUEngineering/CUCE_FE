@@ -71,14 +71,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import Logo from "~/components/Logo.vue";
-import Carousel from "~/components/ui/Carousel.vue";
-import FormInput from "~/components/ui/FormInput.vue";
-import Button from "~/components/ui/Button.vue";
 import EyeIcon from "~/components/icons/EyeIcon.vue";
 import EyeOffIcon from "~/components/icons/EyeOffIcon.vue";
+import Logo from "~/components/Logo.vue";
+import Button from "~/components/ui/Button.vue";
+import Carousel from "~/components/ui/Carousel.vue";
+import FormInput from "~/components/ui/FormInput.vue";
 import { useBackendService } from "~/composables/useBackendService";
 import { useToast } from "~/composables/useToast";
 
@@ -112,6 +112,10 @@ const handleResetPassword = async () => {
   const code = otp.value.join("").trim();
   if (code.length !== 6 || !password.value || !email.value) {
     authError.value = "Please enter the 6-digit code and new password.";
+    return;
+  }
+  if (password.value.length < 8) {
+    authError.value = "Password must be at least 8 characters long.";
     return;
   }
 
