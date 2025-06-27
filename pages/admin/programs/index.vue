@@ -294,7 +294,7 @@ const programs = ref<Program[]>([
   },
 ]);
 
-programs.value = [];
+// programs.value = [];
 
 // Filter type
 const filterType = ref("all");
