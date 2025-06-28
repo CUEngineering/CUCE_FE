@@ -206,89 +206,87 @@
             </tr>
           </tbody>
         </table>
-
-        <!-- Pagination -->
-        <div class="pagination">
-          <div class="pagination-controls">
-            <button
-              @click="table.previousPage()"
-              :disabled="!table.getCanPreviousPage()"
-              class="pagination-button"
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M10 12L6 8L10 4"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-              Previous
-            </button>
-            <div class="pagination-pages">
-              <button
-                v-for="page in calculatePageRange()"
-                :key="page"
-                @click="goToPage(page - 1)"
-                class="page-button"
-                :class="{
-                  active: table.getState().pagination.pageIndex === page - 1,
-                }"
-              >
-                {{ page }}
-              </button>
-            </div>
-            <button
-              @click="table.nextPage()"
-              :disabled="!table.getCanNextPage()"
-              class="pagination-button"
-            >
-              Next
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M6 4L10 8L6 12"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
       </div>
       <div class="mobile-table">
         <MobileEnrollment
-          v-for="(selectedEnroll, index) in filteredEnrollments"
-          :key="index"
-          :selectedEnrollment="selectedEnroll"
+          v-for="row in table.getRowModel().rows"
+          :key="row.id"
+          :selectedEnrollment="row.original"
           @activate="
             () => {
-              selectedEnrollment = selectedEnroll;
+              selectedEnrollment = row.original;
               showEditModal = true;
             }
           "
           @deactivate="
             () => {
-              selectedEnrollment = selectedEnroll;
+              selectedEnrollment = row.original;
               showDeleteModal = true;
             }
           "
-          @viewDetails="handleInfo(selectedEnroll as Enrollment)"
+          @viewDetails="handleInfo(row.original as Enrollment)"
         />
+      </div>
+      <div class="pagination">
+        <div class="pagination-controls">
+          <button
+            @click="table.previousPage()"
+            :disabled="!table.getCanPreviousPage()"
+            class="pagination-button"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10 12L6 8L10 4"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            Previous
+          </button>
+          <div class="pagination-pages">
+            <button
+              v-for="page in calculatePageRange()"
+              :key="page"
+              @click="goToPage(page - 1)"
+              class="page-button"
+              :class="{
+                active: table.getState().pagination.pageIndex === page - 1,
+              }"
+            >
+              {{ page }}
+            </button>
+          </div>
+          <button
+            @click="table.nextPage()"
+            :disabled="!table.getCanNextPage()"
+            class="pagination-button"
+          >
+            Next
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M6 4L10 8L6 12"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -358,15 +356,15 @@ import {
   useVueTable,
 } from "@tanstack/vue-table";
 import { computed, h, reactive, ref } from "vue";
+import AcceptDialog from "~/components/enrollment/AcceptDialog.vue";
+import DetailsDialog from "~/components/enrollment/DetailsDialog.vue";
+import MobileEnrollment from "~/components/enrollment/MobileEnrollment.vue";
+import RejectDialog from "~/components/enrollment/RejectDialog.vue";
 import ActionCancelIcon from "~/components/icons/ActionCancelIcon.vue";
 import ActionEditIcon from "~/components/icons/ActionEditIcon.vue";
 import FilterIcon from "~/components/icons/FilterIcon.vue";
 import StatusBadge from "~/components/icons/StatusBadge.vue";
 import EmptyState from "~/components/ui/EmptyState.vue";
-import AcceptDialog from "~/components/ui/enrollment/AcceptDialog.vue";
-import DetailsDialog from "~/components/ui/enrollment/DetailsDialog.vue";
-import MobileEnrollment from "~/components/ui/enrollment/MobileEnrollment.vue";
-import RejectDialog from "~/components/ui/enrollment/RejectDialog.vue";
 import FormInput from "~/components/ui/FormInput.vue";
 import { capitalizeFirst, getStatusClass } from "~/helper/formatData";
 
@@ -702,7 +700,6 @@ const startRecord = computed(() => {
     1
   );
 });
-
 const endRecord = computed(() => {
   const possibleEnd =
     (table.getState().pagination.pageIndex + 1) *

@@ -52,6 +52,10 @@ export const getStatusClass = (status: string) => {
       return "status-suspended";
     case "rejected":
       return "status-deactivated";
+    case "active":
+      return "status-active";
+    case "closed":
+      return "status-deactivated";
     default:
       return "";
   }
@@ -69,3 +73,28 @@ export function formatDateToDMY(dateString: string | number | Date) {
   const year = date.getFullYear();
   return `${day}/${month}/${year}`;
 }
+
+export function formatDate(dateString: string | number | Date) {
+  const date = new Date(dateString);
+
+  const options = { year: "numeric", month: "short", day: "numeric" };
+
+  return date.toLocaleDateString("en-US", options as any);
+}
+
+export const getStatusText = (status: string): string => {
+  switch (status.toLowerCase()) {
+    case "approved":
+      return "Approved";
+    case "pending":
+      return "Awaiting Approval";
+    case "closed":
+      return "Past";
+    case "active":
+      return "Ongoing";
+    case "pending":
+      return "Upcoming";
+    default:
+      return "Unknown";
+  }
+};

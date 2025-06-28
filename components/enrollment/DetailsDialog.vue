@@ -163,7 +163,7 @@ import {
   formatDateToDMY,
   getStatusClass,
 } from "~/helper/formatData";
-import Button from "../Button.vue";
+import Button from "../ui/Button.vue";
 const toast = useToast();
 
 interface Props {
