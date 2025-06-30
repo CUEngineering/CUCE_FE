@@ -1,5 +1,10 @@
 <template>
-  <div class="registrar-card" :class="cardClass">
+  <div
+    style="cursor: pointer"
+    @click="$emit('view-session', session)"
+    class="registrar-card"
+    :class="cardClass"
+  >
     <div class="registrar-header">
       <div class="registrar-info">
         <div class="name-status-wrapper">
@@ -162,6 +167,7 @@ defineEmits([
   "start-session",
   "delete-session",
   "close-session",
+  "view-session",
 ]);
 
 // Create a unique ID for this card instance

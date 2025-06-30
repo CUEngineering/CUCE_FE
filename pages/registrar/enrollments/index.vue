@@ -359,15 +359,15 @@ import {
   useVueTable,
 } from "@tanstack/vue-table";
 import { computed, h, reactive, ref } from "vue";
+import AcceptDialog from "~/components/enrollment/AcceptDialog.vue";
+import DetailsDialog from "~/components/enrollment/DetailsDialog.vue";
+import MobileEnrollment from "~/components/enrollment/MobileEnrollment.vue";
+import RejectDialog from "~/components/enrollment/RejectDialog.vue";
 import ActionCancelIcon from "~/components/icons/ActionCancelIcon.vue";
 import ActionEditIcon from "~/components/icons/ActionEditIcon.vue";
 import FilterIcon from "~/components/icons/FilterIcon.vue";
 import StatusBadge from "~/components/icons/StatusBadge.vue";
 import EmptyState from "~/components/ui/EmptyState.vue";
-import AcceptDialog from "~/components/ui/enrollment/AcceptDialog.vue";
-import DetailsDialog from "~/components/ui/enrollment/DetailsDialog.vue";
-import MobileEnrollment from "~/components/ui/enrollment/MobileEnrollment.vue";
-import RejectDialog from "~/components/ui/enrollment/RejectDialog.vue";
 import FormInput from "~/components/ui/FormInput.vue";
 import { capitalizeFirst, getStatusClass } from "~/helper/formatData";
 

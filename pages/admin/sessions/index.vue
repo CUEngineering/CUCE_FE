@@ -69,6 +69,7 @@
           @start-session="handleStartSession"
           @delete-session="handleDeleteSession"
           @close-session="handleCloseSession"
+          @view-session="handleViewSession"
         />
       </div>
       <div v-if="filteredSessions.length > 0" class="programs-content dashlet">
@@ -410,6 +411,9 @@ const goToPage = (pageIndex: number) => {
   table.setPageIndex(pageIndex);
 };
 
+const handleViewSession = (session: Session) => {
+  return navigateTo(`/admin/sessions/${session.sessionId}`);
+};
 const handleEditSession = (session: Session) => {
   toast.success(
     `Editing session: ${session.sessionName || session.sessionName}`
