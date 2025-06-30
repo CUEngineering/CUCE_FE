@@ -25,40 +25,53 @@
           </button>
           <transition name="dropdown">
             <div v-if="dropdownOpen" class="dropdown-menu" @click.stop>
-              <button class="dropdown-item">
+              <button
+                class="dropdown-item"
+                @click="$emit('edit-session', session)"
+              >
                 <span class="dropdown-icon">
                   <EditIcon />
                 </span>
                 Edit Session
               </button>
-              <button class="dropdown-item">
+
+              <button
+                class="dropdown-item"
+                @click="$emit('adjust-enrollment', session)"
+              >
                 <span class="dropdown-icon">
                   <AlarmIcon />
                 </span>
                 Adjust Enrollment
               </button>
+
               <button
                 v-if="session.sessionStatus !== 'ACTIVE'"
                 class="dropdown-item"
+                @click="$emit('start-session', session)"
               >
                 <span class="dropdown-icon">
                   <PlayIcon />
                 </span>
                 Start Session
               </button>
+
               <button
                 v-if="session.sessionStatus !== 'ACTIVE'"
                 style="color: red"
                 class="dropdown-item"
+                @click="$emit('delete-session', session)"
               >
                 <span class="dropdown-icon">
                   <DeleteIcon />
                 </span>
                 Delete Session
               </button>
+
               <button
                 v-if="session.sessionStatus === 'ACTIVE'"
                 class="dropdown-item"
+                @click="$emit('close-session', session)"
               >
                 <span class="dropdown-icon">
                   <CloseCircleIcon />
@@ -143,6 +156,13 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+defineEmits([
+  "edit-session",
+  "adjust-enrollment",
+  "start-session",
+  "delete-session",
+  "close-session",
+]);
 
 // Create a unique ID for this card instance
 const cardId = Symbol("registrar-card");

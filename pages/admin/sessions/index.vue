@@ -64,6 +64,11 @@
           v-for="(session, index) in filteredSessions"
           :key="index"
           :session="session"
+          @edit-session="handleEditSession"
+          @adjust-enrollment="handleAdjustEnrollment"
+          @start-session="handleStartSession"
+          @delete-session="handleDeleteSession"
+          @close-session="handleCloseSession"
         />
       </div>
       <div v-if="filteredSessions.length > 0" class="programs-content dashlet">
@@ -298,7 +303,6 @@ const { call: fetchClosedSessions, data: closedData } = useBackendService(
 
 const sessions = ref<Session[]>([]);
 const closedSessions = ref<Session[]>([]);
-
 const filteredSessions = computed(() => {
   if (!searchQuery.value.trim()) return sessions.value;
   const query = searchQuery.value.toLowerCase();
@@ -306,7 +310,6 @@ const filteredSessions = computed(() => {
     registrar.sessionName.toLowerCase().includes(query)
   );
 });
-
 onMounted(async () => {
   try {
     await fetchSessions({ status: "not_closed" });
@@ -405,6 +408,32 @@ const calculatePageRange = () => {
 };
 const goToPage = (pageIndex: number) => {
   table.setPageIndex(pageIndex);
+};
+
+const handleEditSession = (session: Session) => {
+  toast.success(
+    `Editing session: ${session.sessionName || session.sessionName}`
+  );
+};
+
+const handleAdjustEnrollment = (session: Session) => {
+  toast.success(
+    `Adjusting enrollment for: ${session.sessionName || session.sessionName}`
+  );
+};
+
+const handleStartSession = (session: Session) => {
+  toast.success(
+    `Starting session: ${session.sessionName || session.sessionId}`
+  );
+};
+
+const handleDeleteSession = (session: Session) => {
+  toast.success(`Deleted session: ${session.sessionName || session.sessionId}`);
+};
+
+const handleCloseSession = (session: Session) => {
+  toast.success(`Closed session: ${session.sessionName || session.sessionId}`);
 };
 </script>
 
