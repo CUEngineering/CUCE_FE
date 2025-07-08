@@ -1,7 +1,10 @@
 <template>
   <div class="form-field">
     <label :for="id" class="form-label">{{ label }}</label>
-    <div class="input-wrapper" :class="{ 'with-button': !!$slots.button }">
+    <div
+      class="input-wrapper"
+      :class="{ 'with-button': !!$slots.button, 'with-icon': type === 'date' }"
+    >
       <input
         :id="id"
         :type="type"
@@ -12,7 +15,10 @@
         :placeholder="placeholder"
         :required="required"
         class="form-input"
-        :class="[size, { 'has-error': error }]"
+        :class="[
+          size,
+          { 'has-error': error, 'with-icon-padding': type === 'date' },
+        ]"
       />
 
       <div class="form-icon" v-if="$slots.button">

@@ -93,14 +93,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  computed,
-  ref,
-  onMounted,
-  onBeforeUnmount,
-  inject,
-  provide,
-} from "vue";
+import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
 import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
 import MinusCircleIcon from "~/components/icons/MinusCircleIcon.vue";
 import CloseCircleIcon from "./icons/CloseCircleIcon.vue";
@@ -445,7 +438,7 @@ const isDeactivated = computed(
 
 .status-active {
   background-color: $success-50;
-  color: $gray-700;
+  color: $success-400;
   border: 1px solid $success-400;
 
   .status-dot {

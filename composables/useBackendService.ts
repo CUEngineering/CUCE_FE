@@ -18,7 +18,9 @@ export const useBackendService = (endpoint: string, method: string) => {
   const baseURL = config.public.apiBaseUrl;
 
   const call = async (payload: any = {}, customConfig: any = {}) => {
-    const url = `${baseURL}/api/v1${endpoint}`;
+    // const url = `${baseURL}/api/v1${endpoint}`;
+    const url = `${baseURL}${endpoint}`;
+
     const headers: Record<string, any> = {
       ...customConfig.headers,
       Authorization: token ? `Bearer ${token}` : undefined,

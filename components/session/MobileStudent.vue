@@ -1,174 +1,65 @@
 <template>
-  <div
-    style="cursor: pointer"
-    @click="$emit('view-session', session)"
-    class="registrar-card"
-    :class="cardClass"
-  >
+  <div class="registrar-card card-active">
     <div class="registrar-header">
+      <div class="registrar-avatar">
+        <img :src="props.profilePicture" alt="Registrar avatar" />
+      </div>
       <div class="registrar-info">
         <div class="name-status-wrapper">
-          <h3 class="registrar-name">{{ session.sessionName }}</h3>
-          <div
-            class="status-badge"
-            :class="getStatusClass(session.sessionStatus)"
-          >
-            <span class="status-dot"></span>
-            {{ getStatusText(session.sessionStatus) }}
+          <h3 class="registrar-name">
+            {{ props.firstName }}{{ " " }}{{ props.lastName }}
+          </h3>
+          <div class="status-badge" :class="getStatusClass(props.program.type)">
+            {{ capitalizeFirst(props.program.type) }}
           </div>
         </div>
+        <p class="registrar-email">@{{ props.email }}</p>
       </div>
-      <div v-if="session.sessionStatus !== 'CLOSED'" class="registrar-actions">
+      <div class="registrar-actions">
         <div class="dropdown">
           <button
-            @click.stop="toggleDropdown"
+            @click="deactivate"
             class="action-button"
             aria-haspopup="true"
             :aria-expanded="dropdownOpen"
           >
-            <DotsVerticalIcon />
+            <DeleteIcon />
           </button>
-          <transition name="dropdown">
-            <div v-if="dropdownOpen" class="dropdown-menu" @click.stop>
-              <button
-                class="dropdown-item"
-                @click="$emit('edit-session', session)"
-              >
-                <span class="dropdown-icon">
-                  <EditIcon />
-                </span>
-                Edit Session
-              </button>
-
-              <button
-                class="dropdown-item"
-                @click="$emit('adjust-enrollment', session)"
-              >
-                <span class="dropdown-icon">
-                  <AlarmIcon />
-                </span>
-                Adjust Enrollment
-              </button>
-
-              <button
-                v-if="session.sessionStatus !== 'ACTIVE'"
-                class="dropdown-item"
-                @click="$emit('start-session', session)"
-              >
-                <span class="dropdown-icon">
-                  <PlayIcon />
-                </span>
-                Start Session
-              </button>
-
-              <button
-                v-if="session.sessionStatus !== 'ACTIVE'"
-                style="color: red"
-                class="dropdown-item"
-                @click="$emit('delete-session', session)"
-              >
-                <span class="dropdown-icon">
-                  <DeleteIcon />
-                </span>
-                Delete Session
-              </button>
-
-              <button
-                v-if="session.sessionStatus === 'ACTIVE'"
-                class="dropdown-item"
-                @click="$emit('close-session', session)"
-              >
-                <span class="dropdown-icon">
-                  <CloseCircleIcon />
-                </span>
-                Close Session
-              </button>
-            </div>
-          </transition>
         </div>
       </div>
     </div>
 
-    <div class="registrar-stats" :class="boxClass">
+    <div class="registrar-stats">
       <div class="stat-group">
         <div class="stat-divider"></div>
         <div class="stat-item">
-          <div class="stat-label">Enrollment Deadline</div>
-          <div class="stat-value">
-            {{ formatDate(session.enrollmentDeadline) }}
-          </div>
+          <div class="stat-label">Programme</div>
+          <div class="stat-value">{{ props.program.name }}</div>
         </div>
-      </div>
-      <div class="stat-group">
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <div class="stat-label">Courses</div>
-          <div class="stat-value">{{ session.numberOfOpenCourses }}</div>
-        </div>
-      </div>
-      <div class="stat-group">
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <div class="stat-label">Students</div>
-          <div class="stat-value">{{ session.numberOfStudents }}</div>
-        </div>
-      </div>
-    </div>
-    <div
-      style="
-        width: max-content;
-        padding: 10px;
-        margin-top: 10px;
-        display: flex;
-        flex-direction: column;
-      "
-      class="profile-count pill p-grey"
-    >
-      <p style="font-size: small">Duration</p>
-      <div>
-        <span><SessionIcon /></span>
-        {{ formatDate(session.startDate) }} -
-        {{ formatDate(session.endDate) }}
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
-import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
-import { formatDate, getStatusClass, getStatusText } from "~/helper/formatData";
-import AlarmIcon from "../icons/AlarmIcon.vue";
-import CloseCircleIcon from "../icons/CloseCircleIcon.vue";
+import { computed, inject, ref } from "vue";
+import { capitalizeFirst, getStatusClass } from "~/helper/formatData";
 import DeleteIcon from "../icons/DeleteIcon.vue";
-import EditIcon from "../icons/EditIcon.vue";
-import PlayIcon from "../icons/PlayIcon.vue";
-import SessionIcon from "../icons/sessionIcon.vue";
 
-interface Session {
-  sessionId: number;
-  sessionName: string;
-  startDate: string;
-  endDate: string;
-  enrollmentDeadline: string;
-  sessionStatus: string;
-  numberOfOpenCourses: number;
-  numberOfStudents: number;
+interface DataCardProps {
+  firstName: string;
+  lastName: string;
+  profilePicture: string;
+  email: string;
+  program?: any;
+  studentId: number;
 }
 
-interface Props {
-  session: Session;
-}
+const props = defineProps<DataCardProps>();
 
-const props = defineProps<Props>();
-defineEmits([
-  "edit-session",
-  "adjust-enrollment",
-  "start-session",
-  "delete-session",
-  "close-session",
-  "view-session",
-]);
+const emit = defineEmits<{
+  (e: "action", value: any): void;
+}>();
 
 // Create a unique ID for this card instance
 const cardId = Symbol("registrar-card");
@@ -186,45 +77,10 @@ const dropdownOpen = computed({
   },
 });
 
-// Toggle dropdown
-const toggleDropdown = (event: MouseEvent) => {
-  event.stopPropagation(); // Prevent event bubbling
-  dropdownOpen.value = !dropdownOpen.value;
+// Actions
+const deactivate = () => {
+  emit("action", props.studentId);
 };
-
-// Close dropdown when clicking outside
-const closeDropdown = (event: MouseEvent) => {
-  if (dropdownOpen.value) {
-    dropdownOpen.value = false;
-  }
-};
-
-// Add and remove event listeners
-onMounted(() => {
-  document.addEventListener("click", closeDropdown);
-});
-
-onBeforeUnmount(() => {
-  document.removeEventListener("click", closeDropdown);
-});
-
-// Card class based on status
-const cardClass = computed(() => {
-  const status = props.session.sessionStatus.toLowerCase();
-  return {
-    "card-suspended": status === "suspended",
-    "card-deactivated": status === "closed",
-    "card-active": status === "active",
-  };
-});
-const boxClass = computed(() => {
-  const status = props.session.sessionStatus.toLowerCase();
-  return {
-    "blue-box": status === "pending",
-    "grey-box": status === "closed",
-    "green-box": status === "active",
-  };
-});
 </script>
 
 <style lang="scss" scoped>
@@ -232,23 +88,19 @@ const boxClass = computed(() => {
    Card Base Styles
    ==================== */
 .registrar-card {
-  background-color: $white;
+  background-color: $primary-color-25;
   border-radius: 12px;
   padding: 16px;
   box-shadow: none;
-  border: 1px solid rgb(210, 210, 210);
+  border: 1px solid $primary-color-200;
   position: relative;
-  width: 100%;
+  width: 96%;
+  margin: 10px;
   /* max-width: 400px; */
   transition: all 0.2s ease-in-out;
+  cursor: pointer;
 
-  &.card-deactivated {
-    background-color: $white;
-    border-color: $gray-200;
-    opacity: 0.8;
-  }
-
-  &.card-suspended {
+  &.card-active {
     background-color: $white;
     border-color: $gray-200;
   }
@@ -260,7 +112,7 @@ const boxClass = computed(() => {
 .registrar-header {
   display: flex;
   align-items: flex-start;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
   gap: 16px;
   width: 100%;
 }
@@ -367,25 +219,12 @@ const boxClass = computed(() => {
    ==================== */
 .registrar-stats {
   display: flex;
-  justify-content: space-between;
+  // justify-content: space-around;
   align-items: center;
   padding: 10px 16px;
   gap: 10px;
   flex-wrap: wrap;
-}
-.green-box {
-  background-color: $success-50;
-  border: 1px solid $success-400;
-  border-radius: 10px;
-}
-.blue-box {
-  background-color: $primary-color-25;
-  border: 1px solid $primary-color-400;
-  border-radius: 10px;
-}
-.grey-box {
   background-color: $gray-50;
-  border: 1px solid $gray-300;
   border-radius: 10px;
 }
 
@@ -401,15 +240,8 @@ const boxClass = computed(() => {
 .stat-divider {
   width: 2px;
   height: 24px;
-  background-color: $primary-color-200;
+  background-color: $primary-color-500;
   transition: background-color 0.2s ease;
-
-  .green-box & {
-    background-color: $success-400;
-  }
-  .blue-box & {
-    background-color: $primary-color-400;
-  }
 
   .card-suspended &,
   .card-deactivated & {
@@ -442,7 +274,7 @@ const boxClass = computed(() => {
   line-height: 1.43;
   color: $black;
   white-space: nowrap;
-  overflow: hidden;
+  // overflow: hidden;
   text-overflow: ellipsis;
 
   .card-deactivated & {
@@ -493,12 +325,12 @@ const boxClass = computed(() => {
 }
 
 .status-deactivated {
-  background-color: $gray-50;
-  color: $gray-700;
-  border: 1px solid $gray-200;
+  background-color: $error-50;
+  color: $error-700;
+  border: 1px solid $error-200;
 
   .status-dot {
-    background-color: $gray-400;
+    background-color: $error-400;
   }
 }
 

@@ -5,7 +5,7 @@
   >
     <div class="page-header dashlet">
       <div class="title-and-filter">
-        <h2 class="heading-txt">Programs</h2>
+        <h2 class="heading-txt">Courses</h2>
         <div v-if="programs.length > 0" class="programs-filter">
           <select v-model="filterType" class="filter-select">
             <option value="all">All ({{ programs.length }})</option>
@@ -209,26 +209,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, h } from "vue";
+import type { ColumnSort } from "@tanstack/vue-table";
 import {
   createColumnHelper,
-  FlexRender,
-  useVueTable,
   getCoreRowModel,
-  getPaginationRowModel,
   getFilteredRowModel,
+  getPaginationRowModel,
   getSortedRowModel,
+  useVueTable,
 } from "@tanstack/vue-table";
-import type { ColumnSort } from "@tanstack/vue-table";
+import { computed, h, reactive, ref } from "vue";
+import AddProgramModal from "~/components/AddProgramModal.vue";
+import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
+import PlusIcon from "~/components/icons/PlusIcon.vue";
 import Button from "~/components/ui/Button.vue";
 import EmptyState from "~/components/ui/EmptyState.vue";
-import PlusIcon from "~/components/icons/PlusIcon.vue";
-import DocumentIcon from "~/components/icons/DocumentIcon.vue";
-import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
-import AddProgramModal from "~/components/AddProgramModal.vue";
+import FormInput from "~/components/ui/FormInput.vue";
 import ToastContainer from "~/components/ui/ToastContainer.vue";
 import type { ProgramOutput } from "~/types/program";
-import FormInput from "~/components/ui/FormInput.vue";
 
 interface Program {
   id: number;
@@ -424,7 +422,7 @@ const showAddProgramModal = ref(false);
 
 // Methods
 const openAddProgramModal = () => {
-  // showAddProgramModal.value = true;
+  showAddProgramModal.value = true;
 };
 
 const handleProgramAdded = (programOutput: ProgramOutput) => {
@@ -440,13 +438,12 @@ const handleProgramAdded = (programOutput: ProgramOutput) => {
 };
 
 const viewProgramDetails = (programId: number) => {
-  return navigateTo(`/programs/${programId}`);
+  return navigateTo(`/admin/course/${programId}`);
 };
 
 // Define that this page uses the dashboard layout
 definePageMeta({
   layout: "dashboard",
-  // middleware: ["auth"],
 });
 </script>
 

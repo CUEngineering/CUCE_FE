@@ -426,7 +426,7 @@ const onOverlayClick = () => {
 
 .status-active {
   background-color: $success-50;
-  color: $gray-700;
+  color: $success-400;
   border: 1px solid $success-400;
 
   .status-dot {

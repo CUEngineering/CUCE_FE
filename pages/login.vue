@@ -86,13 +86,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import Logo from "~/components/Logo.vue";
-import FormInput from "~/components/ui/FormInput.vue";
-import Carousel from "~/components/ui/Carousel.vue";
+import { onMounted, ref } from "vue";
 import EyeIcon from "~/components/icons/EyeIcon.vue";
 import EyeOffIcon from "~/components/icons/EyeOffIcon.vue";
+import Logo from "~/components/Logo.vue";
 import Button from "~/components/ui/Button.vue";
+import Carousel from "~/components/ui/Carousel.vue";
+import FormInput from "~/components/ui/FormInput.vue";
 import { useBackendService } from "~/composables/useBackendService";
 
 // State
@@ -137,38 +137,48 @@ const handleLogin = async () => {
 
   if (!password.value) {
     passwordError.value = "Password is required.";
-  } else if (password.value.length > 8) {
-    passwordError.value = "Password must not be longer than 8 characters.";
+  } else if (password.value.length < 8) {
+    passwordError.value = "Password must not be lesser than 8 characters.";
   }
 
   if (emailError.value || passwordError.value) return;
 
   try {
-    await call({
-      email: email.value,
-      password: password.value,
-    });
+    // await call({
+    //   email: email.value,
+    //   password: password.value,
+    // });
 
     authStore.setAuth(
-      data.value.session.access_token,
-      data.value.role,
-      data.value.user
+      // data.value.session.access_token,
+      // data.value.role,
+      // data.value.user
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
+      "ADMIN",
+      {
+        first_name: "Jane",
+        last_name: "Doe",
+        email: "jane.doe@example.com",
+        profile_picture: "https://your-cdn.com/images/jane.jpg",
+        reg_number: "REG20251001",
+        program_id: "PRG12345",
+      }
     );
 
     toast.success("Login successful!");
-    switch (data.value.role) {
-      case "REGISTRAR":
-        router.push("/registrar/dashboard");
-        break;
-      case "STUDENT":
-        router.push("/student/dashboard");
-        break;
+    // switch (data.value.role) {
+    switch ("ADMIN") {
+      // case "REGISTRAR":
+      //   router.push("/registrar/dashboard");
+      //   break;
+      // case "STUDENT":
+      //   router.push("/student/dashboard");
+      //   break;
       case "ADMIN":
         router.push("/admin/dashboard");
         break;
     }
   } catch (err: any) {
-    console.error("Login error:", err);
     authError.value = "Invalid email or password";
     emailError.value = " ";
     passwordError.value = " ";

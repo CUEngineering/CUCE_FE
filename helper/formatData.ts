@@ -48,14 +48,20 @@ export const getStatusClass = (status: string) => {
   switch (status.toLowerCase()) {
     case "approved":
       return "status-active";
+    case "undergraduate":
+      return "status-active";
     case "pending":
       return "status-suspended";
     case "rejected":
       return "status-deactivated";
     case "active":
       return "status-active";
+    case "graduate":
+      return "status-active";
     case "closed":
       return "status-deactivated";
+    case "masters":
+      return "status-suspended";
     default:
       return "";
   }

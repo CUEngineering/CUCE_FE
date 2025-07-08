@@ -253,17 +253,14 @@ const showDeactivateDialog = (registrar: Registrar) => {
   selectedRegistrar.value = registrar;
   showDeactivateConfirm.value = true;
 };
-
 const showSuspendDialog = (registrar: Registrar) => {
   selectedRegistrar.value = registrar;
   showSuspendConfirm.value = true;
 };
-
 const showDeleteDialog = (registrar: Registrar) => {
   selectedRegistrar.value = registrar;
   showDeleteConfirm.value = true;
 };
-
 // Direct actions (no confirmation dialog)
 const activateRegistrar = async (registrar: Registrar) => {
   const {
@@ -294,7 +291,6 @@ const activateRegistrar = async (registrar: Registrar) => {
     isActionLoading.value = false;
   }
 };
-
 const unsuspendRegistrar = async (registrar: Registrar) => {
   const {
     call: unsuspendRegistrar,
@@ -325,7 +321,6 @@ const unsuspendRegistrar = async (registrar: Registrar) => {
     isActionLoading.value = false;
   }
 };
-
 // Confirm actions
 const confirmDeactivate = async () => {
   const {
@@ -363,7 +358,6 @@ const confirmDeactivate = async () => {
     showDeactivateConfirm.value = false;
   }
 };
-
 const confirmSuspend = async () => {
   const {
     call: confirmSuspend,
@@ -399,7 +393,6 @@ const confirmSuspend = async () => {
     showSuspendConfirm.value = false;
   }
 };
-
 // Handle invite actions
 const showCancelInviteDialog = (invite: Invite) => {
   selectedInvite.value = invite;

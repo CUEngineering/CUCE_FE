@@ -22,7 +22,7 @@
               </div>
             </template>
           </FormInput>
-          <Button variant="primary" size="sm">
+          <Button @click="add" variant="secondary" size="sm">
             <template #icon>
               <PlusIcon />
             </template>
@@ -248,6 +248,40 @@
             </button>
           </div>
         </div>
+
+        <EditSession
+          v-model="showAddModal"
+          mode="add"
+          @sessionUpdate="handleAddSession"
+        />
+
+        <Dialog
+          v-model="showStartConfirm"
+          title="Start Session?"
+          :message="`Are you sure you want to close ${selectedSession?.sessionName} Session? Once closed, it can no longer be opened.`"
+          variant="warning"
+          :loading="isActionLoading"
+          confirm-button-text="Remove"
+          @confirm="confirmStart"
+        />
+        <Dialog
+          v-model="showSuspendConfirm"
+          title="Close Session?"
+          :message="`Are you sure you want to close ${selectedSession?.sessionName} Session? Once closed, it can no longer be opened.`"
+          variant="danger"
+          :loading="isActionLoading"
+          confirm-button-text="Remove"
+          @confirm="confirmClose"
+        />
+        <Dialog
+          v-model="showDeleteConfirm"
+          title="Delete Session?"
+          :message="`Are you sure you want to delete ${selectedSession?.sessionName} Session? Once closed, it can no longer be opened.`"
+          variant="danger"
+          :loading="isActionLoading"
+          confirm-button-text="Remove"
+          @confirm="confirmDelete"
+        />
       </div>
     </div>
 
@@ -269,13 +303,17 @@ import {
 import { ref } from "vue";
 import PlusIcon from "~/components/icons/PlusIcon.vue";
 import SessionIcon from "~/components/icons/sessionIcon.vue";
+import Loader from "~/components/Loader.vue";
 import Card from "~/components/session/card.vue";
+import EditSession from "~/components/session/EditSession.vue";
 import Button from "~/components/ui/Button.vue";
+import Dialog from "~/components/ui/Dialog.vue";
 import EmptyState from "~/components/ui/EmptyState.vue";
 import FormInput from "~/components/ui/FormInput.vue";
 import ToastContainer from "~/components/ui/ToastContainer.vue";
 import { useToast } from "~/composables/useToast";
 import { formatDate } from "~/helper/formatData";
+import type { SessionCourse, SessionStudent } from "./[id].vue";
 
 definePageMeta({
   layout: "dashboard",
@@ -290,8 +328,24 @@ interface Session {
   numberOfOpenCourses: number;
   numberOfStudents: number;
 }
+interface CamelCAse {
+  session_id: number;
+  session_name: string;
+  start_date: string;
+  end_date: string;
+  enrollment_deadline: string;
+  session_status: string;
+  created_at: string;
+  updated_at: string;
+  session_courses: SessionCourse[];
+  session_students: SessionStudent[];
+}
 const toast = useToast();
-
+const showAddModal = ref(false);
+const { call: create } = useBackendService(`/sessions`, "post");
+const add = () => {
+  showAddModal.value = true;
+};
 const {
   call: fetchSessions,
   isLoading: loadinSessions,
@@ -414,30 +468,118 @@ const goToPage = (pageIndex: number) => {
 const handleViewSession = (session: Session) => {
   return navigateTo(`/admin/sessions/${session.sessionId}`);
 };
-const handleEditSession = (session: Session) => {
-  toast.success(
-    `Editing session: ${session.sessionName || session.sessionName}`
-  );
+const handleAddSession = async (session: Partial<CamelCAse>) => {
+  await create({
+    session_name: session.session_name,
+    start_date: session.start_date,
+    end_date: session.end_date,
+    enrollment_deadline: session.enrollment_deadline,
+  });
+  toast.success(`Adding session completed`);
 };
+const handleEditSession = (session: Session) => {
+  return navigateTo(`/admin/sessions/${session.sessionId}`);
+};
+const showStartConfirm = ref(false);
+const showSuspendConfirm = ref(false);
+const showDeleteConfirm = ref(false);
+const isActionLoading = ref(false);
+const selectedSession = ref<Session | null>(null);
 
 const handleAdjustEnrollment = (session: Session) => {
-  toast.success(
-    `Adjusting enrollment for: ${session.sessionName || session.sessionName}`
-  );
+  selectedSession.value = session;
+  showSuspendConfirm.value = true;
 };
 
 const handleStartSession = (session: Session) => {
-  toast.success(
-    `Starting session: ${session.sessionName || session.sessionId}`
-  );
+  selectedSession.value = session;
+  showStartConfirm.value = true;
 };
 
 const handleDeleteSession = (session: Session) => {
-  toast.success(`Deleted session: ${session.sessionName || session.sessionId}`);
+  selectedSession.value = session;
+  showDeleteConfirm.value = true;
 };
 
 const handleCloseSession = (session: Session) => {
-  toast.success(`Closed session: ${session.sessionName || session.sessionId}`);
+  selectedSession.value = session;
+  showSuspendConfirm.value = true;
+};
+
+const confirmStart = async () => {
+  const { call: confirmDeactivate } = useBackendService(
+    `/sessions/${selectedSession.value?.sessionId}`,
+    "patch"
+  );
+
+  if (!selectedSession.value) return;
+
+  isActionLoading.value = true;
+  try {
+    await confirmDeactivate({ session_status: "ACTIVE" });
+
+    toast.success(`${selectedSession.value.sessionName} is now active`);
+    await fetchSessions({ status: "not_closed" });
+    sessions.value = currentData.value || [];
+    await fetchClosedSessions({ status: "closed" });
+    closedSessions.value = closedData.value || [];
+  } catch (error) {
+    // Error case
+    toast.error("Failed to process");
+  } finally {
+    isActionLoading.value = false;
+    showStartConfirm.value = false;
+  }
+};
+const confirmClose = async () => {
+  const { call: confirmDeactivate } = useBackendService(
+    `/sessions/${selectedSession.value?.sessionId}`,
+    "patch"
+  );
+
+  if (!selectedSession.value) return;
+
+  isActionLoading.value = true;
+  try {
+    await confirmDeactivate({ session_status: "CLOSED" });
+
+    toast.success(`${selectedSession.value.sessionName} is now active`);
+    await fetchSessions({ status: "not_closed" });
+    sessions.value = currentData.value || [];
+    await fetchClosedSessions({ status: "closed" });
+    closedSessions.value = closedData.value || [];
+  } catch (error) {
+    // Error case
+    toast.error("Failed to process");
+  } finally {
+    isActionLoading.value = false;
+    showSuspendConfirm.value = false;
+  }
+};
+const confirmDelete = async () => {
+  const { call: confirmDeactivate } = useBackendService(
+    `/sessions/${selectedSession.value?.sessionId}`,
+    "delete"
+  );
+
+  if (!selectedSession.value) return;
+
+  isActionLoading.value = true;
+  try {
+    await confirmDeactivate();
+
+    toast.success(`${selectedSession.value.sessionName} is now active`);
+    await fetchSessions({ status: "not_closed" });
+    sessions.value = currentData.value || [];
+    await fetchClosedSessions({ status: "closed" });
+    closedSessions.value = closedData.value || [];
+  } catch (error) {
+    // Error case
+    toast.error("Failed to process");
+  } finally {
+    isActionLoading.value = false;
+    showDeleteConfirm.value = false;
+  }
 };
 </script>
 
