@@ -144,36 +144,25 @@ const handleLogin = async () => {
   if (emailError.value || passwordError.value) return;
 
   try {
-    // await call({
-    //   email: email.value,
-    //   password: password.value,
-    // });
+    await call({
+      email: email.value,
+      password: password.value,
+    });
 
     authStore.setAuth(
-      // data.value.session.access_token,
-      // data.value.role,
-      // data.value.user
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
-      "ADMIN",
-      {
-        first_name: "Jane",
-        last_name: "Doe",
-        email: "jane.doe@example.com",
-        profile_picture: "https://your-cdn.com/images/jane.jpg",
-        reg_number: "REG20251001",
-        program_id: "PRG12345",
-      }
+      data.value.session.access_token,
+      data.value.role,
+      data.value.user
     );
 
     toast.success("Login successful!");
-    // switch (data.value.role) {
-    switch ("ADMIN") {
-      // case "REGISTRAR":
-      //   router.push("/registrar/dashboard");
-      //   break;
-      // case "STUDENT":
-      //   router.push("/student/dashboard");
-      //   break;
+    switch (data.value.role) {
+      case "REGISTRAR":
+        router.push("/registrar/dashboard");
+        break;
+      case "STUDENT":
+        router.push("/student/dashboard");
+        break;
       case "ADMIN":
         router.push("/admin/dashboard");
         break;
