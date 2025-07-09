@@ -817,12 +817,12 @@ onMounted(async () => {
 
   if (isNaN(id)) {
     toast.error("Invalid program ID");
-    return navigateTo("/programs");
+    return navigateTo("/admin/programs");
   }
 
   if (!programData[id]) {
     toast.error("Program not found");
-    return navigateTo("/programs");
+    return navigateTo("/admin/programs");
   }
 
   try {
@@ -930,7 +930,7 @@ const confirmRemoveCourse = async () => {
 
 // Navigation methods
 const navigateBack = () => {
-  navigateTo("/programs");
+  navigateTo("/admin/programs");
 };
 
 const fetchProgramData = async (programId: number): Promise<ProgramData> => {

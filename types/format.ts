@@ -23,6 +23,16 @@ export interface Registrar {
   stats?: RegistrarStats;
 }
 
+export interface FormattedProgram {
+  id: number;
+  name: string;
+  enrolledStudents: number;
+  courses: number;
+  coreCount: number;
+  type: string;
+  credits: number;
+}
+
 export interface FormattedRegistrar {
   id: number;
   name: string;

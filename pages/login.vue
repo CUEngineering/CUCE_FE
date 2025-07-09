@@ -148,6 +148,7 @@ const handleLogin = async () => {
       email: email.value,
       password: password.value,
     });
+    console.log(data.value);
 
     authStore.setAuth(
       data.value.session.access_token,
@@ -168,6 +169,7 @@ const handleLogin = async () => {
         break;
     }
   } catch (err: any) {
+    console.log(err);
     authError.value = "Invalid email or password";
     emailError.value = " ";
     passwordError.value = " ";

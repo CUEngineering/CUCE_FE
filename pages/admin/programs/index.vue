@@ -39,6 +39,7 @@
     </div>
 
     <!-- Empty state for when no programs exist -->
+    <Loader v-if="loading" />
     <EmptyState
       v-if="!programs.length"
       class="dashlet"
@@ -226,6 +227,7 @@ import Button from "~/components/ui/Button.vue";
 import EmptyState from "~/components/ui/EmptyState.vue";
 import FormInput from "~/components/ui/FormInput.vue";
 import ToastContainer from "~/components/ui/ToastContainer.vue";
+import { formatPrograms } from "~/helper/formatData";
 import type { ProgramOutput } from "~/types/program";
 
 interface Program {
@@ -237,64 +239,27 @@ interface Program {
   type: string;
   credits: number;
 }
+const programs = ref<Program[]>([]);
+const {
+  call: fetchPrograms,
+  isLoading: loading,
+  data: programsData,
+} = useBackendService("/programs", "get");
 
-// interface ProgramOutput {
-//   id: number;
-//   name: string;
-//   type: string;
-//   credits: number;
-// }
+const loadPrograms = async () => {
+  try {
+    await fetchPrograms();
+    programs.value = formatPrograms(programsData.value) || [];
+  } catch (err) {
+    console.error("Failed to fetch programs:", err);
+    programs.value = [];
+  }
+};
 
-// Mock data - replace with API call in production
-const programs = ref<Program[]>([
-  {
-    id: 1,
-    name: "Master of Science in Psychology",
-    enrolledStudents: 36,
-    courses: 12,
-    coreCount: 14,
-    type: "Undergraduate",
-    credits: 64,
-  },
-  {
-    id: 2,
-    name: "MSc. Nursing: Entry Level Clinical Track",
-    enrolledStudents: 201,
-    courses: 15,
-    coreCount: 18,
-    type: "Undergraduate",
-    credits: 72,
-  },
-  {
-    id: 3,
-    name: "MSc. Nursing: Leadership and Management",
-    enrolledStudents: 117,
-    courses: 4,
-    coreCount: 6,
-    type: "Masters",
-    credits: 100,
-  },
-  {
-    id: 4,
-    name: "Master of Public Health",
-    enrolledStudents: 103,
-    courses: 3,
-    coreCount: 3,
-    type: "Doctorate",
-    credits: 46,
-  },
-  {
-    id: 5,
-    name: "Master of Physiotherapy",
-    enrolledStudents: 201,
-    courses: 3,
-    coreCount: 7,
-    type: "Masters",
-    credits: 75,
-  },
-]);
-
-// programs.value = [];
+// Load data on component mount
+onMounted(async () => {
+  await loadPrograms();
+});
 
 // Filter type
 const filterType = ref("all");

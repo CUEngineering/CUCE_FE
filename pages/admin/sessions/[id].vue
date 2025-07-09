@@ -194,7 +194,9 @@
                     </div>
 
                     <button v-else class="action-button edit-button">
-                      <DeleteIcon />
+                      <DeleteIcon
+                        @click="handleDeleteStudent(cell.row.original)"
+                      />
                     </button>
                   </div>
 
@@ -316,7 +318,7 @@
             v-for="row in table.getRowModel().rows"
             :key="row.id"
             v-bind="row.original"
-            @action="() => {}"
+            @action="handleDeleteStudent(row.original)"
           />
         </div>
         <div v-if="activeTab === 'courses'">
@@ -396,6 +398,15 @@
       :session="sessions"
       @sessionUpdate="handleEditSession"
     />
+    <Dialog
+      v-model="showDeleteConfirm"
+      title="Remove Student?"
+      :message="`Are you sure you want to remove (${selectedStudent?.firstName} ${selectedStudent?.lastName}) from this session (${sessions?.session_name} session)`"
+      variant="danger"
+      :loading="isActionLoading"
+      confirm-button-text="Yes, Remove"
+      @confirm="confirmDeleteStudent"
+    />
   </div>
 </template>
 
@@ -419,6 +430,7 @@ import EditSession from "~/components/session/EditSession.vue";
 import MobileCourses from "~/components/session/MobileCourses.vue";
 import MobileStudent from "~/components/session/MobileStudent.vue";
 import Button from "~/components/ui/Button.vue";
+import Dialog from "~/components/ui/Dialog.vue";
 import FormInput from "~/components/ui/FormInput.vue";
 import {
   capitalizeFirst,
@@ -465,7 +477,76 @@ export interface Session {
   session_courses: SessionCourse[];
   session_students: SessionStudent[];
 }
+export interface Student {
+  id: number;
+  student_id: number;
+  firstName: string;
+  lastName: string;
+  email?: string;
+  profilePicture?: string;
+  program: {
+    name: string;
+    type: string;
+  };
+  status?: string;
+  regNumber?: string;
+  type?: string;
+}
 const toast = useToast();
+const showDeleteConfirm = ref(false);
+const isActionLoading = ref(false);
+
+const selectedStudent = ref<Student | null>(null);
+const sessions = ref<Session | null>(null);
+const students = ref<any[]>([]);
+const courses = ref<any[]>([]);
+
+const handleDeleteStudent = (student: Student) => {
+  selectedStudent.value = student;
+  showDeleteConfirm.value = true;
+};
+
+const confirmDeleteStudent = async () => {
+  if (!selectedStudent.value) return;
+
+  const { call: deleteStudentFromSession } = useBackendService(
+    `/sessions/${sessionId}/students/${selectedStudent.value.student_id}`,
+    "delete"
+  );
+
+  isActionLoading.value = true;
+
+  try {
+    await deleteStudentFromSession();
+
+    toast.success(
+      `${selectedStudent.value.firstName} ${selectedStudent.value.lastName} has been removed from the session`
+    );
+
+    // Refresh the session data to reflect the changes
+    await refreshSessionData();
+  } catch (error) {
+    console.error("Error removing student:", error);
+    toast.error("Failed to remove student from session");
+  } finally {
+    isActionLoading.value = false;
+    showDeleteConfirm.value = false;
+    selectedStudent.value = null;
+  }
+};
+const refreshSessionData = async () => {
+  try {
+    const { call: fetchSession } = useBackendService(
+      `/sessions/${sessionId}`,
+      "get"
+    );
+    const sessionData = await fetchSession();
+    sessions.value = sessionData;
+  } catch (error) {
+    console.error("Error refreshing session data:", error);
+    toast.error("Failed to refresh session data");
+  }
+};
 
 const { call, isLoading, data } = useBackendService(
   `/sessions/${sessionId}`,
@@ -484,10 +565,6 @@ const { call: updated, isLoading: studentLoading } = useBackendService(
   `/sessions/${sessionId}`,
   "patch"
 );
-
-const sessions = ref<Session | null>(null);
-const students = ref<any[]>([]);
-const courses = ref<any[]>([]);
 
 const handleEditSession = async (update: Partial<Session>) => {
   if (sessions.value) {

@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import type {
   FormattedInvitee,
+  FormattedProgram,
   FormattedRegistrar,
   Invitee,
   Registrar,
@@ -28,6 +29,17 @@ export function formatRegistrars(
     enrollRequests: r.stats?.totalEnrollments || 0,
     approvals: r.stats?.approvedEnrollments || 0,
     denials: r.stats?.rejectedEnrollments || 0,
+  }));
+}
+export function formatPrograms(rawPrograms: any[]): FormattedProgram[] {
+  return rawPrograms.map((p) => ({
+    id: p.programId,
+    name: p.programName,
+    type: p.programType,
+    credits: p.totalCredits,
+    enrolledStudents: p.numberOfStudents,
+    courses: p.numberOfCourses,
+    coreCount: 0, // default or placeholder, if not provided in data
   }));
 }
 
