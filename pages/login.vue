@@ -148,7 +148,6 @@ const handleLogin = async () => {
       email: email.value,
       password: password.value,
     });
-    console.log(data.value);
 
     authStore.setAuth(
       data.value.session.access_token,

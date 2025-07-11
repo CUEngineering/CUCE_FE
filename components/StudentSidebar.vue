@@ -2,7 +2,8 @@
   <div class="sidebar" :class="{ 'sidebar-collapsed': isCollapsed }">
     <!-- Logo -->
     <div class="logo-container">
-      <Logo type="full" />
+      <Logo type="full" v-if="!isCollapsed" />
+      <Logo type="compact" v-else />
     </div>
 
     <!-- Navigation Links -->
@@ -76,14 +77,13 @@
 </template>
 
 <script setup lang="ts">
+// Accept props from parent component
+defineProps<{
+  isCollapsed?: boolean;
+}>();
+
 const route = useRoute();
 const currentPath = computed(() => route.path);
-const isCollapsed = ref(false);
-
-// Toggle sidebar function (can be used for mobile responsiveness)
-function toggleSidebar() {
-  isCollapsed.value = !isCollapsed.value;
-}
 </script>
 
 <style lang="scss" scoped>
@@ -107,6 +107,19 @@ function toggleSidebar() {
     .label {
       display: none;
     }
+
+    .logo-container {
+      justify-content: center;
+    }
+
+    .nav-item {
+      justify-content: center;
+      padding: $spacing-3;
+
+      .icon {
+        margin-right: 0;
+      }
+    }
   }
 
   .logo-container {
@@ -115,6 +128,7 @@ function toggleSidebar() {
     justify-content: flex-start;
     align-items: center;
     border-bottom: 1px solid $gray-200;
+    transition: justify-content 0.3s ease;
   }
 
   .navigation {
@@ -131,10 +145,11 @@ function toggleSidebar() {
     padding: $spacing-3 $spacing-6;
     color: $gray-600;
     text-decoration: none;
-    transition: background-color 0.2s, color 0.2s;
+    transition: all 0.2s ease;
     border-radius: 8px;
     font-size: $text-sm;
     font-family: $font-family;
+    position: relative;
 
     &:hover {
       background-color: $gray-100;
@@ -154,6 +169,14 @@ function toggleSidebar() {
       display: flex;
       justify-content: center;
       align-items: center;
+      flex-shrink: 0;
+      transition: margin-right 0.3s ease;
+    }
+
+    .label {
+      white-space: nowrap;
+      overflow: hidden;
+      transition: opacity 0.3s ease;
     }
   }
 
@@ -167,9 +190,10 @@ function toggleSidebar() {
 
   @media (max-width: $breakpoint-md) {
     transform: translateX(-100%);
+    transition: transform 0.3s ease;
 
-    &.active {
-      transform: translateX(0);
+    &.sidebar-collapsed {
+      transform: translateX(0%);
     }
   }
 }

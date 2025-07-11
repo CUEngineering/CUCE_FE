@@ -63,13 +63,6 @@
             >
               Assigned to Me
             </button>
-            <button
-              class="tab-button"
-              :class="{ active: activeTab === 'toOthers' }"
-              @click="activeTab = 'toOthers'"
-            >
-              Assigned to Others
-            </button>
           </div>
           <div
             style="margin: auto; margin-left: 20px"
