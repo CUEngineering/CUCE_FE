@@ -45,7 +45,7 @@
     <!-- Bottom Section -->
     <div class="sidebar-bottom">
       <div class="help-section">
-        <NuxtLink to="/help" class="nav-item">
+        <NuxtLink to="/registrar/help" class="nav-item">
           <span class="icon">
             <IconsHelpIcon />
           </span>
@@ -54,7 +54,7 @@
       </div>
 
       <div class="settings-section">
-        <NuxtLink to="/settings" class="nav-item">
+        <NuxtLink to="/registrar/settings" class="nav-item">
           <span class="icon">
             <IconsSettingsIcon />
           </span>

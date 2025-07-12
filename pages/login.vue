@@ -70,7 +70,7 @@
 
         <!-- Copyright -->
         <div class="copyright">
-          <p>© 2024 Charisma All rights reserved</p>
+          <p>© 2025 Charisma All rights reserved</p>
         </div>
       </div>
 
