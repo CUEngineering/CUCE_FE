@@ -26,6 +26,7 @@
                 type="email"
                 placeholder="Enter email"
                 required
+                :error="emailError"
               />
 
               <FormInput
@@ -35,6 +36,7 @@
                 :type="showPassword ? 'text' : 'password'"
                 placeholder="Enter password"
                 required
+                :error="passwordError"
               >
                 <template #button>
                   <button
@@ -55,6 +57,7 @@
                 :type="showPassword ? 'text' : 'password'"
                 placeholder="Confirm password"
                 required
+                :error="passwordError"
               />
 
               <Button type="button" variant="primary" @click="nextStep">
@@ -72,6 +75,7 @@
                 type="text"
                 placeholder="Enter first name"
                 required
+                :error="firstName"
               />
 
               <FormInput
@@ -81,6 +85,7 @@
                 type="text"
                 placeholder="Enter last name"
                 required
+                :error="lastName"
               />
 
               <div class="form-group">
@@ -148,6 +153,11 @@ import { useBackendService } from "~/composables/useBackendService";
 const step = ref(1);
 const showPassword = ref(false);
 const formError = ref("");
+const emailError = ref("");
+const passwordError = ref("");
+const firstName = ref("");
+const lastName = ref("");
+
 const toast = useToast();
 
 const form = ref({
@@ -186,14 +196,17 @@ const nextStep = () => {
     !form.value.confirmPassword
   ) {
     formError.value = "Please fill out all fields.";
+    emailError.value = "Email is required";
     return;
   }
   if (form.value.password !== form.value.confirmPassword) {
-    formError.value = "Passwords do not match.";
+    passwordError.value = "Passwords do not match.";
     return;
   }
   if (!validateEmail(form.value.email)) {
     formError.value = "Invalid email format.";
+    emailError.value = "Enter a valid email address.";
+
     return;
   }
   step.value = 2;
@@ -222,6 +235,8 @@ const handleSubmit = async () => {
 
   if (!form.value.firstName || !form.value.lastName) {
     formError.value = "Please fill out all personal details.";
+    firstName.value = "First name is required";
+    lastName.value = "Last name is required";
     return;
   }
 
