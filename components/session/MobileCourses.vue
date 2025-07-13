@@ -12,9 +12,19 @@
       </div>
       <div class="registrar-actions">
         <div class="dropdown">
-          <button @click="deactivate" class="action-button">
-            <!-- <Toggle /> -->
-          </button>
+          <!-- <button @click="deactivate" class="action-button"> -->
+          <label class="switch">
+            <!-- <input type="checkbox" id="toggle" /> -->
+            <input
+              type="checkbox"
+              :id="`toggle-${props.courseId}`"
+              :checked="props.status === 'OPEN'"
+              @change="deactivate"
+            />
+            <span class="slider"></span>
+          </label>
+          <!-- <Toggle /> -->
+          <!-- </button> -->
         </div>
       </div>
     </div>
@@ -48,6 +58,7 @@ interface DataCardProps {
   type: string;
   credits: number;
   numberOfStudents: number;
+  status: string;
 }
 
 const props = defineProps<DataCardProps>();
@@ -79,6 +90,50 @@ const deactivate = () => {
 </script>
 
 <style lang="scss" scoped>
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: background-color 0.4s;
+  border-radius: 34px;
+}
+
+.slider::before {
+  content: "";
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: transform 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #2a50ad;
+}
+
+input:checked + .slider::before {
+  transform: translateX(22px);
+}
 /* ====================
    Card Base Styles
    ==================== */

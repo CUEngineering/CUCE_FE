@@ -103,7 +103,22 @@
                 </div>
                 <div
                   v-else-if="cell.column.id === 'courses'"
-                  class="courses-cell"
+                  class="courses-cell profile-count pill p-grey pill-lg"
+                  style="width: fit-content"
+                >
+                  {{ cell.renderValue() }}
+                </div>
+                <div
+                  v-else-if="cell.column.id === 'enrolledStudents'"
+                  class="courses-cell profile-count pill p-grey pill-lg"
+                  style="width: fit-content"
+                >
+                  {{ cell.renderValue() }}
+                </div>
+                <div
+                  v-else-if="cell.column.id === 'credits'"
+                  class="courses-cell profile-count pill p-grey pill-lg"
+                  style="width: fit-content"
                 >
                   {{ cell.renderValue() }}
                 </div>
@@ -121,7 +136,7 @@
                         : 'p-blue'
                     "
                   >
-                    {{ row.original.type }}
+                    {{ capitalizeFirst(row.original.type.toLowerCase()) }}
                   </span>
                 </div>
                 <div v-else>
@@ -227,7 +242,7 @@ import Button from "~/components/ui/Button.vue";
 import EmptyState from "~/components/ui/EmptyState.vue";
 import FormInput from "~/components/ui/FormInput.vue";
 import ToastContainer from "~/components/ui/ToastContainer.vue";
-import { formatPrograms } from "~/helper/formatData";
+import { capitalizeFirst, formatPrograms } from "~/helper/formatData";
 import type { ProgramOutput } from "~/types/program";
 
 interface Program {
@@ -276,7 +291,7 @@ const columns = [
     cell: (props) => props.getValue(),
   }),
   columnHelper.accessor("courses", {
-    header: "Courses",
+    header: "Courses associated",
     cell: (props) => {
       const coreCount = props.row.original.coreCount;
       return `${props.getValue()} ${coreCount ? `+${coreCount} core` : ""}`;

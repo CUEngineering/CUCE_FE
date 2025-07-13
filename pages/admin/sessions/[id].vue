@@ -139,7 +139,7 @@
             style="margin-left: 10px; margin-right: 10px"
             v-if="activeTab === 'students'"
           >
-            <Button variant="primary" size="sm">
+            <Button @click="handleAddStudent" variant="primary" size="sm">
               <template #icon>
                 <PlusIcon />
               </template>
@@ -196,9 +196,7 @@
                           type="checkbox"
                           :id="`toggle-${cell.row.original.courseId}`"
                           :checked="cell.row.original.status === 'OPEN'"
-                          @change="
-                            handleToggleChange(cell.row.original, $event)
-                          "
+                          @change="handleToggleChange(cell.row.original)"
                         />
                         <span class="slider"></span>
                       </label>
@@ -337,7 +335,7 @@
             v-for="row in table.getRowModel().rows"
             :key="row.id"
             v-bind="row.original"
-            @action="() => {}"
+            @action="handleToggleChange(row.original)"
           />
         </div>
       </div>
@@ -403,6 +401,7 @@
         </div>
       </div>
     </div>
+    <AddStudentModal v-model="showAddStudent" :available-students="students" />
     <EditSession
       v-model="showEditModal"
       mode="edit"
@@ -451,6 +450,7 @@ import DeleteIcon from "~/components/icons/DeleteIcon.vue";
 import FilterIcon from "~/components/icons/FilterIcon.vue";
 import PlusIcon from "~/components/icons/PlusIcon.vue";
 import SessionIcon from "~/components/icons/sessionIcon.vue";
+import AddStudentModal from "~/components/session/AddStudentModal.vue";
 import EditSession from "~/components/session/EditSession.vue";
 import MobileCourses from "~/components/session/MobileCourses.vue";
 import MobileStudent from "~/components/session/MobileStudent.vue";
@@ -523,6 +523,7 @@ export interface Course {
   status: "OPEN" | "CLOSED";
 }
 const toast = useToast();
+const showAddStudent = ref(false);
 const showDeleteConfirm = ref(false);
 const isActionLoading = ref(false);
 
@@ -536,17 +537,18 @@ const sessions = ref<Session | null>(null);
 const students = ref<any[]>([]);
 const courses = ref<any[]>([]);
 
+const handleAddStudent = () => {
+  showAddStudent.value = true;
+};
+
 const handleDeleteStudent = (student: Student) => {
   selectedStudent.value = student;
   showDeleteConfirm.value = true;
 };
-const handleToggleChange = (course: Course, event: Event) => {
-  event.preventDefault();
-  const target = event.target as HTMLInputElement;
+const handleToggleChange = (course: Course) => {
   const isCurrentlyOpen = course.status === "OPEN";
   selectedCourse.value = course;
   courseStatusAction.value = isCurrentlyOpen ? "close" : "open";
-  pendingToggleEvent.value = event;
   showCourseStatusModal.value = true;
 };
 

@@ -6,11 +6,6 @@
     <div class="page-header dashlet">
       <div class="title-and-filter">
         <h2 class="heading-txt">Courses</h2>
-        <div v-if="programs.length > 0" class="programs-filter">
-          <select v-model="filterType" class="filter-select">
-            <option value="all">All ({{ programs.length }})</option>
-          </select>
-        </div>
       </div>
       <div v-if="programs.length > 0" class="search-and-actions">
         <div class="search-container">
@@ -18,7 +13,7 @@
             id="program-search"
             label=""
             v-model="searchQuery"
-            placeholder="Find a program"
+            placeholder="Find a course"
             size="sm"
           >
             <template #button>
@@ -33,14 +28,17 @@
           <template #icon>
             <PlusIcon />
           </template>
-          New Program
+          New Course
         </Button>
       </div>
     </div>
 
+    <!-- Loading state -->
+    <Loader v-if="loading" />
+
     <!-- Empty state for when no programs exist -->
     <EmptyState
-      v-if="!programs.length"
+      v-else-if="!programs.length"
       class="dashlet"
       title="No Existing courses"
       description="To begin, kindly create a course"
@@ -100,28 +98,39 @@
                     <DotsVerticalIcon />
                   </button>
                 </div>
+
                 <div
-                  v-else-if="cell.column.id === 'courses'"
-                  class="courses-cell"
-                >
-                  {{ cell.renderValue() }}
-                </div>
-                <div
-                  v-else-if="cell.column.id === 'type'"
+                  v-else-if="cell.column.id === 'course_type'"
                   class="program-type-cell"
                 >
                   <span
                     class="pill pill-md"
                     :class="
-                      row.original.type.toLowerCase() === 'undergraduate'
+                      row.original.course_type.toLowerCase() === 'undergraduate'
                         ? 'p-green'
-                        : row.original.type.toLowerCase() === 'doctorate'
+                        : row.original.course_type.toLowerCase() === 'doctorate'
                         ? 'p-yellow'
                         : 'p-blue'
                     "
                   >
-                    {{ row.original.type }}
+                    {{
+                      capitalizeFirst(row.original.course_type.toLowerCase())
+                    }}
                   </span>
+                </div>
+                <div
+                  v-else-if="cell.column.id === 'course_credits'"
+                  class="courses-cell profile-count pill p-grey pill-lg"
+                  style="width: fit-content"
+                >
+                  {{ cell.renderValue() || 0 }}
+                </div>
+                <div
+                  v-else-if="cell.column.id === 'enrolledStudents'"
+                  class="courses-cell profile-count pill p-grey pill-lg"
+                  style="width: fit-content"
+                >
+                  {{ cell.renderValue() || 0 }}
                 </div>
                 <div v-else>
                   {{ cell.renderValue() }}
@@ -197,7 +206,7 @@
     </div>
 
     <!-- Add Program Modal -->
-    <AddProgramModal
+    <AddCourseModal
       v-if="showAddProgramModal"
       v-model="showAddProgramModal"
       @program-added="handleProgramAdded"
@@ -218,112 +227,74 @@ import {
   getSortedRowModel,
   useVueTable,
 } from "@tanstack/vue-table";
-import { computed, h, reactive, ref } from "vue";
-import AddProgramModal from "~/components/AddProgramModal.vue";
+import { computed, h, onMounted, reactive, ref, watch } from "vue";
+import AddCourseModal from "~/components/AddCourseModal.vue";
 import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
 import PlusIcon from "~/components/icons/PlusIcon.vue";
 import Button from "~/components/ui/Button.vue";
 import EmptyState from "~/components/ui/EmptyState.vue";
 import FormInput from "~/components/ui/FormInput.vue";
 import ToastContainer from "~/components/ui/ToastContainer.vue";
+import { capitalizeFirst } from "~/helper/formatData";
 import type { ProgramOutput } from "~/types/program";
 
 interface Program {
-  id: number;
-  name: string;
-  enrolledStudents: number;
-  courses: number;
-  coreCount: number;
-  type: string;
-  credits: number;
+  id: string;
+  course_title: string;
+  course_code: string;
+  course_credits: number;
+  course_type: string;
+  createdAt: string;
+  enrolledStudents?: number;
 }
 
-// interface ProgramOutput {
-//   id: number;
-//   name: string;
-//   type: string;
-//   credits: number;
-// }
+const {
+  call: fetchPrograms,
+  isLoading: loading,
+  data: programsData,
+} = useBackendService("/courses", "get");
 
-// Mock data - replace with API call in production
-const programs = ref<Program[]>([
-  {
-    id: 1,
-    name: "Master of Science in Psychology",
-    enrolledStudents: 36,
-    courses: 12,
-    coreCount: 14,
-    type: "Undergraduate",
-    credits: 64,
-  },
-  {
-    id: 2,
-    name: "MSc. Nursing: Entry Level Clinical Track",
-    enrolledStudents: 201,
-    courses: 15,
-    coreCount: 18,
-    type: "Undergraduate",
-    credits: 72,
-  },
-  {
-    id: 3,
-    name: "MSc. Nursing: Leadership and Management",
-    enrolledStudents: 117,
-    courses: 4,
-    coreCount: 6,
-    type: "Masters",
-    credits: 100,
-  },
-  {
-    id: 4,
-    name: "Master of Public Health",
-    enrolledStudents: 103,
-    courses: 3,
-    coreCount: 3,
-    type: "Doctorate",
-    credits: 46,
-  },
-  {
-    id: 5,
-    name: "Master of Physiotherapy",
-    enrolledStudents: 201,
-    courses: 3,
-    coreCount: 7,
-    type: "Masters",
-    credits: 75,
-  },
-]);
+const programs = ref<Program[]>([]);
 
-programs.value = [];
+watch(
+  programsData,
+  (newData) => {
+    if (newData && Array.isArray(newData)) {
+      programs.value = newData.map((program: any) => ({
+        ...program,
+        enrolledStudents: 0,
+      }));
+    }
+  },
+  { immediate: true }
+);
 
-// Filter type
-const filterType = ref("all");
+onMounted(() => {
+  fetchPrograms();
+});
 
 const columnHelper = createColumnHelper<Program>();
 
 const columns = [
-  columnHelper.accessor("name", {
-    header: "Program Name",
+  columnHelper.accessor("course_title", {
+    header: "Course Title",
+    cell: (props) => props.getValue(),
+  }),
+  columnHelper.accessor("course_code", {
+    header: "Course Code",
     cell: (props) => props.getValue(),
   }),
   columnHelper.accessor("enrolledStudents", {
     header: "Enrolled Students",
+    cell: (props) => props.getValue() || 0,
+  }),
+  columnHelper.accessor("course_type", {
+    header: "Course Type",
     cell: (props) => props.getValue(),
   }),
-  columnHelper.accessor("courses", {
-    header: "Courses",
-    cell: (props) => {
-      const coreCount = props.row.original.coreCount;
-      return `${props.getValue()} ${coreCount ? `+${coreCount} core` : ""}`;
-    },
-  }),
-  columnHelper.accessor("type", {
-    header: "Type",
-    cell: (props) => props.getValue(),
-  }),
-  columnHelper.accessor("credits", {
-    header: "Credits",
-    cell: (props) => props.getValue(),
+  columnHelper.accessor("course_credits", {
+    header: "Credits Value",
+    cell: (props) => props.getValue() || 0,
   }),
   columnHelper.display({
     id: "actions",
@@ -334,7 +305,6 @@ const columns = [
         {
           onClick: (e) => {
             e.stopPropagation();
-            // Action logic here
           },
           class: "action-button",
         },
@@ -426,18 +396,12 @@ const openAddProgramModal = () => {
 };
 
 const handleProgramAdded = (programOutput: ProgramOutput) => {
-  const newProgram: Program = {
-    ...programOutput,
-    enrolledStudents: 0, // Default value
-    courses: 0, // Default value
-    coreCount: 0, // Default value
-  };
-
-  programs.value.push(newProgram);
+  // Refresh the programs list after adding a new program
+  fetchPrograms();
   showAddProgramModal.value = false;
 };
 
-const viewProgramDetails = (programId: number) => {
+const viewProgramDetails = (programId: string) => {
   return navigateTo(`/admin/course/${programId}`);
 };
 
@@ -475,6 +439,19 @@ definePageMeta({
       :deep(.base-button) {
         width: unset;
       }
+    }
+  }
+
+  // Loading state
+  .loading-state {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+
+    .loading-spinner {
+      font-size: $text-lg;
+      color: $gray-600;
     }
   }
 
