@@ -190,7 +190,18 @@
                 >
                   <div v-if="cell.column.id === 'actions'" class="action-cell">
                     <div v-if="activeTab === 'courses'">
-                      <!-- <Toggle /> -->
+                      <label class="switch">
+                        <!-- <input type="checkbox" id="toggle" /> -->
+                        <input
+                          type="checkbox"
+                          :id="`toggle-${cell.row.original.courseId}`"
+                          :checked="cell.row.original.status === 'OPEN'"
+                          @change="
+                            handleToggleChange(cell.row.original, $event)
+                          "
+                        />
+                        <span class="slider"></span>
+                      </label>
                     </div>
 
                     <button v-else class="action-button edit-button">
@@ -407,6 +418,20 @@
       confirm-button-text="Yes, Remove"
       @confirm="confirmDeleteStudent"
     />
+
+    <Dialog
+      v-model="showCourseStatusModal"
+      :title="courseStatusAction === 'open' ? 'Open Course?' : 'Close Course?'"
+      :message="`Are you sure you want to ${courseStatusAction} this course (${
+        selectedCourse?.title || 'this course'
+      })?`"
+      :variant="courseStatusAction === 'open' ? 'success' : 'warning'"
+      :loading="isActionLoading"
+      :confirm-button-text="
+        courseStatusAction === 'open' ? 'Yes, Open' : 'Yes, Close'
+      "
+      @confirm="confirmCourseStatusChange"
+    />
   </div>
 </template>
 
@@ -492,11 +517,21 @@ export interface Student {
   regNumber?: string;
   type?: string;
 }
+export interface Course {
+  courseId: number;
+  title?: string;
+  status: "OPEN" | "CLOSED";
+}
 const toast = useToast();
 const showDeleteConfirm = ref(false);
 const isActionLoading = ref(false);
 
 const selectedStudent = ref<Student | null>(null);
+const selectedCourse = ref<Course | null>(null);
+const courseStatusAction = ref<"open" | "close">("open");
+const pendingToggleEvent = ref<Event | null>(null);
+const showCourseStatusModal = ref(false);
+
 const sessions = ref<Session | null>(null);
 const students = ref<any[]>([]);
 const courses = ref<any[]>([]);
@@ -504,6 +539,62 @@ const courses = ref<any[]>([]);
 const handleDeleteStudent = (student: Student) => {
   selectedStudent.value = student;
   showDeleteConfirm.value = true;
+};
+const handleToggleChange = (course: Course, event: Event) => {
+  event.preventDefault();
+  const target = event.target as HTMLInputElement;
+  const isCurrentlyOpen = course.status === "OPEN";
+  selectedCourse.value = course;
+  courseStatusAction.value = isCurrentlyOpen ? "close" : "open";
+  pendingToggleEvent.value = event;
+  showCourseStatusModal.value = true;
+};
+
+const confirmCourseStatusChange = async () => {
+  if (!selectedCourse.value) return;
+
+  const newStatus = courseStatusAction.value === "open" ? "OPEN" : "CLOSED";
+
+  const { call: updateCourseStatus } = useBackendService(
+    `/sessions/${sessionId}/courses/${selectedCourse.value.courseId}/status`,
+    "patch"
+  );
+
+  isActionLoading.value = true;
+
+  try {
+    await updateCourseStatus({
+      status: newStatus,
+    });
+
+    const courseIndex = courses.value.findIndex(
+      (c) => c.courseId === selectedCourse.value?.courseId
+    );
+    if (courseIndex !== -1) {
+      courses.value[courseIndex].status = newStatus;
+    }
+
+    toast.success(
+      `Course has been ${
+        courseStatusAction.value === "open" ? "opened" : "closed"
+      } successfully`
+    );
+
+    if (pendingToggleEvent.value) {
+      const target = pendingToggleEvent.value.target as HTMLInputElement;
+      target.checked = newStatus === "OPEN";
+    }
+
+    await refreshSessionData();
+  } catch (error) {
+    console.error("Error updating course status:", error);
+    toast.error(`Failed to ${courseStatusAction.value} course`);
+  } finally {
+    isActionLoading.value = false;
+    showCourseStatusModal.value = false;
+    selectedCourse.value = null;
+    pendingToggleEvent.value = null;
+  }
 };
 
 const confirmDeleteStudent = async () => {
@@ -523,7 +614,6 @@ const confirmDeleteStudent = async () => {
       `${selectedStudent.value.firstName} ${selectedStudent.value.lastName} has been removed from the session`
     );
 
-    // Refresh the session data to reflect the changes
     await refreshSessionData();
   } catch (error) {
     console.error("Error removing student:", error);
@@ -824,6 +914,50 @@ const endRecord = computed(() => {
 </script>
 
 <style lang="scss" scoped>
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: background-color 0.4s;
+  border-radius: 34px;
+}
+
+.slider::before {
+  content: "";
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: transform 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #2a50ad;
+}
+
+input:checked + .slider::before {
+  transform: translateX(22px);
+}
 .program-detail-page {
   max-width: 100%;
 }
@@ -1115,4 +1249,5 @@ const endRecord = computed(() => {
   font-size: 0.85rem;
   color: #777;
 }
+/* Container */
 </style>
