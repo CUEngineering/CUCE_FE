@@ -5,7 +5,7 @@ definePageMeta({
 </script>
 
 <template>
-  <div>PlaceHolder Content</div>
+  <div></div>
 </template>
 
 <style scoped>
