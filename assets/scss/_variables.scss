@@ -1,0 +1,104 @@
+//Base Colors
+$white: #ffffff;
+$black: #000000;
+
+//Primary Colors
+$primary-color: #2a50ad;
+$primary-color-25: #f4f8ff;
+$primary-color-50: #edf5ff;
+$primary-color-100: #d7e8ff;
+$primary-color-200: #c0dcfd;
+$primary-color-300: #88c0ff;
+$primary-color-400: #62a8f8;
+$primary-color-500: #3d86f4;
+$primary-color-600: #2a50ad;
+$primary-color-700: #254383;
+
+//Gray Colors
+$gray-25: #fcfcfd;
+$gray-50: #f9fafb;
+$gray-100: #f3f4f6;
+$gray-200: #e5e7eb;
+$gray-300: #d1d5db;
+$gray-400: #98a2b3;
+$gray-500: #667085;
+$gray-600: #475467;
+$gray-700: #344054;
+$gray-800: #1d2939;
+$gray-900: #101828;
+
+//Warning Colors
+$warning-50: #fffaeb;
+$warning-200: #fedf89;
+$warning-300: #fec84b;
+$warning-500: #f79009;
+$warning-700: #b54708;
+
+//Success Colors
+$success-50: #ecfdf3;
+$success-200: #abeec6;
+$success-300: #75e0a7;
+$success-400: #47cd89;
+$success-500: #17b26a;
+$success-700: #067647;
+
+//Error Colors
+$error-50: #fef3f2;
+$error-100: #fee4e2;
+$error-200: #fecdca;
+$error-300: #fda29b;
+$error-400: #f43f5e;
+$error-500: #f04438;
+$error-700: #b42318;
+
+//Secondary Colors
+$secondary-color: #60a5fa;
+
+//Text Colors
+$text-color: #1f2937;
+
+$border-color: #e5e7eb;
+
+// Typography
+$font-family: "DM Sans", sans-serif;
+$font-family-heading: "Plus Jakarta Sans", sans-serif;
+
+// Font Sizes
+$text-xxxs: 0.5rem; // 8px
+$text-xxs: 0.625rem; // 10px
+$text-xs: 0.75rem; // 12px
+$text-sm: 0.875rem; // 14px
+$text-base: 1rem; // 16px
+$text-lg: 1.125rem; // 18px
+$text-xl: 1.25rem; // 20px
+$text-2xl: 1.5rem; // 24px
+$text-3xl: 1.875rem; // 30px
+$text-4xl: 2.25rem; // 36px
+$text-5xl: 3rem; // 48px
+$text-6xl: 3.75rem; // 60px
+
+// Breakpoints
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+
+// Spacing scale
+$spacing-0: 0;
+$spacing-1: 0.25rem; // 4px
+$spacing-2: 0.5rem; // 8px
+$spacing-3: 0.75rem; // 12px
+$spacing-4: 1rem; // 16px
+$spacing-5: 1.25rem; // 20px
+$spacing-6: 1.5rem; // 24px
+$spacing-8: 2rem; // 32px
+$spacing-10: 2.5rem; // 40px
+$spacing-12: 3rem; // 48px
+$spacing-16: 4rem; // 64px
+$spacing-20: 5rem; // 80px
+$spacing-24: 6rem; // 96px
+$spacing-32: 8rem; // 128px
+$spacing-40: 10rem; // 160px
+$spacing-48: 12rem; // 192px
+$spacing-56: 14rem; // 224px
+$spacing-64: 16rem; // 256px
