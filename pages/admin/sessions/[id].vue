@@ -1,6 +1,6 @@
 <template>
   <div class="programs-page dashlet-wrapper">
-    <Loader v-if="isLoading || courseLoading || studentLoading" />
+    <Loader v-if="isLoading || courseLoading || studentLoad" />
 
     <div class="page-header dashlet">
       <div class="page-title">
@@ -255,7 +255,11 @@
                             getStatusClass(cell.row.original.program.type || '')
                           "
                         >
-                          {{ cell.row.original.program.type }}
+                          {{
+                            capitalizeFirst(
+                              cell.row.original.program.type.toLowerCase()
+                            )
+                          }}
                         </div>
                       </div>
                     </div>
@@ -270,7 +274,11 @@
                           class="status-badge"
                           :class="getStatusClass(cell.row.original.type)"
                         >
-                          {{ cell.row.original.type }}
+                          {{
+                            capitalizeFirst(
+                              cell.row.original.type.toLowerCase()
+                            )
+                          }}
                         </div>
                       </div>
                     </div>
@@ -424,7 +432,7 @@
       :message="`Are you sure you want to ${courseStatusAction} this course (${
         selectedCourse?.title || 'this course'
       })?`"
-      :variant="courseStatusAction === 'open' ? 'success' : 'warning'"
+      :variant="courseStatusAction === 'open' ? 'warning' : 'warning'"
       :loading="isActionLoading"
       :confirm-button-text="
         courseStatusAction === 'open' ? 'Yes, Open' : 'Yes, Close'
@@ -533,6 +541,7 @@ const courseStatusAction = ref<"open" | "close">("open");
 const pendingToggleEvent = ref<Event | null>(null);
 const showCourseStatusModal = ref(false);
 
+const originalCourseStatus = ref<string | null>(null);
 const sessions = ref<Session | null>(null);
 const students = ref<any[]>([]);
 const courses = ref<any[]>([]);
@@ -547,6 +556,7 @@ const handleDeleteStudent = (student: Student) => {
 };
 const handleToggleChange = (course: Course) => {
   const isCurrentlyOpen = course.status === "OPEN";
+  originalCourseStatus.value = course.status;
   selectedCourse.value = course;
   courseStatusAction.value = isCurrentlyOpen ? "close" : "open";
   showCourseStatusModal.value = true;
@@ -582,22 +592,51 @@ const confirmCourseStatusChange = async () => {
       } successfully`
     );
 
-    if (pendingToggleEvent.value) {
-      const target = pendingToggleEvent.value.target as HTMLInputElement;
-      target.checked = newStatus === "OPEN";
-    }
-
-    await refreshSessionData();
+    await fetchSession();
   } catch (error) {
-    console.error("Error updating course status:", error);
     toast.error(`Failed to ${courseStatusAction.value} course`);
+    revertToggleSwitch();
   } finally {
     isActionLoading.value = false;
     showCourseStatusModal.value = false;
-    selectedCourse.value = null;
-    pendingToggleEvent.value = null;
+    resetModalState();
   }
 };
+const handleModalClose = () => {
+  if (!isActionLoading.value) {
+    revertToggleSwitch();
+  }
+  resetModalState();
+};
+
+const revertToggleSwitch = () => {
+  if (selectedCourse.value && originalCourseStatus.value) {
+    const toggleInput = document.getElementById(
+      `toggle-${selectedCourse.value.courseId}`
+    ) as HTMLInputElement;
+    if (toggleInput) {
+      toggleInput.checked = originalCourseStatus.value === "OPEN";
+    }
+
+    const courseIndex = courses.value.findIndex(
+      (c) => c.courseId === selectedCourse.value?.courseId
+    );
+    if (courseIndex !== -1) {
+      courses.value[courseIndex].status = originalCourseStatus.value;
+    }
+  }
+};
+
+const resetModalState = () => {
+  selectedCourse.value = null;
+  originalCourseStatus.value = null;
+  pendingToggleEvent.value = null;
+};
+watch(showCourseStatusModal, (newValue, oldValue) => {
+  if (!newValue && oldValue && selectedCourse.value) {
+    handleModalClose();
+  }
+});
 
 const confirmDeleteStudent = async () => {
   if (!selectedStudent.value) return;
@@ -616,7 +655,7 @@ const confirmDeleteStudent = async () => {
       `${selectedStudent.value.firstName} ${selectedStudent.value.lastName} has been removed from the session`
     );
 
-    await refreshSessionData();
+    await fetchSession();
   } catch (error) {
     console.error("Error removing student:", error);
     toast.error("Failed to remove student from session");
@@ -624,19 +663,6 @@ const confirmDeleteStudent = async () => {
     isActionLoading.value = false;
     showDeleteConfirm.value = false;
     selectedStudent.value = null;
-  }
-};
-const refreshSessionData = async () => {
-  try {
-    const { call: fetchSession } = useBackendService(
-      `/sessions/${sessionId}`,
-      "get"
-    );
-    const sessionData = await fetchSession();
-    sessions.value = sessionData;
-  } catch (error) {
-    console.error("Error refreshing session data:", error);
-    toast.error("Failed to refresh session data");
   }
 };
 
@@ -649,10 +675,11 @@ const {
   isLoading: courseLoading,
   data: courseData,
 } = useBackendService(`/sessions/${sessionId}/courses`, "get");
-const { call: studentCall, data: studentData } = useBackendService(
-  `/sessions/${sessionId}/students`,
-  "get"
-);
+const {
+  call: studentCall,
+  isLoading: studentLoad,
+  data: studentData,
+} = useBackendService(`/sessions/${sessionId}/students`, "get");
 const { call: updated, isLoading: studentLoading } = useBackendService(
   `/sessions/${sessionId}`,
   "patch"

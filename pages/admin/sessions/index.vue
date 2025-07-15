@@ -34,7 +34,7 @@
         class="registrars-list dashlet"
         :class="{ 'is-empty': filteredSessions.length === 0 }"
       >
-        <Loader v-if="loadinSessions" />
+        <Loader v-if="loadinSessions || LoadingPast" />
         <!-- Empty state for registrars -->
         <EmptyState
           v-if="filteredSessions.length === 0"
@@ -351,10 +351,11 @@ const {
   isLoading: loadinSessions,
   data: currentData,
 } = useBackendService("/sessions", "get");
-const { call: fetchClosedSessions, data: closedData } = useBackendService(
-  "/sessions",
-  "get"
-);
+const {
+  call: fetchClosedSessions,
+  data: closedData,
+  isLoading: LoadingPast,
+} = useBackendService("/sessions", "get");
 
 const sessions = ref<Session[]>([]);
 const closedSessions = ref<Session[]>([]);
