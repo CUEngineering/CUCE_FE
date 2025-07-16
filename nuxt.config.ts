@@ -19,7 +19,8 @@ export default defineNuxtConfig({
 
     // Public keys (exposed to client)
     public: {
-      apiBaseUrl: process.env.API_BASE_URL,
+      apiBaseUrl:
+        process.env.API_BASE_URL || "https://cuce-api.charisma.edu.eu",
     },
   },
   // Add global middleware to protect all routes
