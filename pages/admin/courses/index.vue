@@ -84,7 +84,7 @@
           <tr
             v-for="row in table.getRowModel().rows"
             :key="row.id"
-            @click="viewProgramDetails(row.original.id)"
+            @click="viewCourseDetails(row.original.course_id)"
             class="table-row"
           >
             <td
@@ -126,7 +126,7 @@
                   {{ cell.renderValue() || 0 }}
                 </div>
                 <div
-                  v-else-if="cell.column.id === 'enrolledStudents'"
+                  v-else-if="cell.column.id === 'total_enrolled_students'"
                   class="courses-cell profile-count pill p-grey pill-lg"
                   style="width: fit-content"
                 >
@@ -239,13 +239,13 @@ import { capitalizeFirst } from "~/helper/formatData";
 import type { ProgramOutput } from "~/types/program";
 
 interface Program {
-  id: string;
+  course_id: string;
   course_title: string;
   course_code: string;
   course_credits: number;
   course_type: string;
   createdAt: string;
-  enrolledStudents?: number;
+  total_enrolled_students?: number;
 }
 
 const {
@@ -262,7 +262,6 @@ watch(
     if (newData && Array.isArray(newData)) {
       programs.value = newData.map((program: any) => ({
         ...program,
-        enrolledStudents: 0,
       }));
     }
   },
@@ -284,7 +283,7 @@ const columns = [
     header: "Course Code",
     cell: (props) => props.getValue(),
   }),
-  columnHelper.accessor("enrolledStudents", {
+  columnHelper.accessor("total_enrolled_students", {
     header: "Enrolled Students",
     cell: (props) => props.getValue() || 0,
   }),
@@ -401,8 +400,8 @@ const handleProgramAdded = (programOutput: ProgramOutput) => {
   showAddProgramModal.value = false;
 };
 
-const viewProgramDetails = (programId: string) => {
-  return navigateTo(`/admin/course/${programId}`);
+const viewCourseDetails = (id: string) => {
+  return navigateTo(`/admin/courses/${id}`);
 };
 
 // Define that this page uses the dashboard layout

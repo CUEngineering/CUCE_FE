@@ -409,7 +409,11 @@
         </div>
       </div>
     </div>
-    <AddStudentModal v-model="showAddStudent" :available-students="students" />
+    <AddStudentModal
+      v-model="showAddStudent"
+      :available-students="students"
+      :sessionId="sessionId"
+    />
     <EditSession
       v-model="showEditModal"
       mode="edit"
@@ -512,7 +516,7 @@ export interface Session {
 }
 export interface Student {
   id: number;
-  student_id: number;
+  studentId: number;
   firstName: string;
   lastName: string;
   email?: string;
@@ -642,7 +646,7 @@ const confirmDeleteStudent = async () => {
   if (!selectedStudent.value) return;
 
   const { call: deleteStudentFromSession } = useBackendService(
-    `/sessions/${sessionId}/students/${selectedStudent.value.student_id}`,
+    `/sessions/${sessionId}/students/${selectedStudent.value.studentId}`,
     "delete"
   );
 

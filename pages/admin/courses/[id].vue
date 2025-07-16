@@ -331,41 +331,32 @@
 </template>
 
 <script setup lang="ts">
-import {
-  ref,
-  reactive,
-  computed,
-  onMounted,
-  h,
-  watch,
-  defineComponent,
-} from "vue";
-import { useRoute } from "vue-router";
+import type { ColumnSort } from "@tanstack/vue-table";
 import {
   createColumnHelper,
   FlexRender,
-  useVueTable,
   getCoreRowModel,
-  getPaginationRowModel,
   getFilteredRowModel,
+  getPaginationRowModel,
   getSortedRowModel,
+  useVueTable,
 } from "@tanstack/vue-table";
-import type { ColumnSort } from "@tanstack/vue-table";
-import Button from "~/components/ui/Button.vue";
-import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
-import { useToast } from "~/composables/useToast";
-import PencilIcon from "~/components/icons/PencilIcon.vue";
-import ArrowLeftIcon from "~/components/icons/ArrowLeftIcon.vue";
-import FormInput from "~/components/ui/FormInput.vue";
-import TrashIcon from "~/components/icons/TrashIcon.vue";
+import { computed, h, onMounted, reactive, ref } from "vue";
+import { useRoute } from "vue-router";
 import AddProgramModal from "~/components/AddProgramModal.vue";
-import Dialog from "~/components/ui/Dialog.vue";
+import IconsGraduationCapIcon from "~/components/icons/AcademicCapIcon.vue";
+import ArrowLeftIcon from "~/components/icons/ArrowLeftIcon.vue";
+import IconsBookIcon from "~/components/icons/BookOpenIcon.vue";
+import PencilIcon from "~/components/icons/PencilIcon.vue";
 import IconsPlusIcon from "~/components/icons/PlusIcon.vue";
 import IconsSearchIcon from "~/components/icons/SearchIcon.vue";
-import type { ProgramOutput } from "~/types/program";
-import IconsGraduationCapIcon from "~/components/icons/AcademicCapIcon.vue";
-import IconsBookIcon from "~/components/icons/BookOpenIcon.vue";
+import TrashIcon from "~/components/icons/TrashIcon.vue";
 import IconsUsersIcon from "~/components/icons/UsersIcon.vue";
+import Button from "~/components/ui/Button.vue";
+import Dialog from "~/components/ui/Dialog.vue";
+import FormInput from "~/components/ui/FormInput.vue";
+import { useToast } from "~/composables/useToast";
+import type { ProgramOutput } from "~/types/program";
 
 // Define that this page uses the dashboard layout
 definePageMeta({
@@ -939,7 +930,7 @@ const confirmRemoveCourse = async () => {
 
 // Navigation methods
 const navigateBack = () => {
-  navigateTo("/programs");
+  navigateTo("/admin/courses");
 };
 
 const fetchProgramData = async (programId: number): Promise<ProgramData> => {

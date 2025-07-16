@@ -25,63 +25,72 @@
                     ref="studentInput"
                     label=""
                     v-model="studentSearchQuery"
-                    placeholder="Enter student names"
-                    @input="handleStudentSearch"
+                    placeholder="Enter student name(s)"
                   />
                 </div>
-
-                <!-- Students list container -->
-                <div class="students-container">
-                  <!-- Header with count and select all -->
-                  <div class="students-header">
-                    <div class="selected-count">
-                      {{ selectedStudents.length }} selected
-                    </div>
-                    <div class="select-all">
-                      <input
-                        type="checkbox"
-                        id="select-all"
-                        :checked="isAllSelected"
-                        :indeterminate="isIndeterminate"
-                        @change="toggleSelectAll"
-                        class="checkbox"
-                      />
-                      <label for="select-all" class="checkbox-label"
-                        >Select all</label
-                      >
+                <div style="display: flex; justify-content: space-between">
+                  <div>({{ selectedStudents.length }} SELECTED)</div>
+                  <div>
+                    <div>
+                      <div class="select-all">
+                        <CheckBoxChecked
+                          @click="toggleSelectAll"
+                          v-if="isAllSelected"
+                        />
+                        <CheckBox @click="toggleSelectAll" v-else />
+                        <label for="select-all" class="checkbox-label"
+                          >All students</label
+                        >
+                      </div>
                     </div>
                   </div>
+                </div>
 
-                  <!-- Students list -->
-                  <div class="students-list">
+                <div class="students-container">
+                  <!-- Loading state -->
+                  <div v-if="loadingStudents" class="loading-state">
+                    <div class="loading-message">Loading students...</div>
+                  </div>
+
+                  <div v-else class="students-list">
                     <div
                       v-for="student in filteredStudents"
-                      :key="student.id"
+                      :key="student.studentId"
                       class="student-item"
                       :class="{ selected: isStudentSelected(student) }"
                       @click="toggleStudent(student)"
                     >
-                      <div class="student-info">
-                        <div class="student-name">{{ student.name }}</div>
-                        <div class="student-details">
-                          {{ student.email }} • {{ student.studentId }}
+                      <div
+                        class="student-info"
+                        style="
+                          display: flex;
+                          align-items: center;
+                          flex-direction: row;
+                          gap: 10px;
+                        "
+                      >
+                        <img
+                          :src="student.profilePicture || '/default-avatar.png'"
+                          class="avatar"
+                        />
+                        <div class="student-name">
+                          {{ student.firstName }} {{ student.lastName }}
                         </div>
                       </div>
-                      <div class="student-checkbox">
-                        <input
-                          type="checkbox"
-                          :id="`student-${student.id}`"
-                          :checked="isStudentSelected(student)"
-                          @click.stop
-                          @change="toggleStudent(student)"
-                          class="checkbox"
-                        />
+                      <div
+                        class="student-checkbox"
+                        @click.stop="toggleStudent(student)"
+                      >
+                        <div class="checkbox-wrapper">
+                          <CheckBoxChecked v-if="isStudentSelected(student)" />
+                          <CheckBox v-else />
+                        </div>
                       </div>
                     </div>
 
                     <!-- Empty state -->
                     <div
-                      v-if="filteredStudents.length === 0"
+                      v-if="filteredStudents.length === 0 && !loadingStudents"
                       class="empty-state"
                     >
                       <div class="empty-message">
@@ -107,7 +116,7 @@
                 :disabled="isLoading || selectedStudents.length === 0"
                 :loading="isLoading"
                 @click="handleSubmit"
-                style="width: 20vw"
+                style="width: 5vw"
               >
                 Finish
               </Button>
@@ -120,17 +129,35 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useToast } from "~/composables/useToast";
+import CheckBox from "../icons/CheckBox.vue";
+import CheckBoxChecked from "../icons/CheckBoxChecked.vue";
 import CloseCircleIcon from "../icons/CloseCircleIcon.vue";
 import Button from "../ui/Button.vue";
 import FormInput from "../ui/FormInput.vue";
 
 interface Student {
-  id: number;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  studentId: string;
+  studentId: number;
+  profilePicture: string;
+}
+
+interface BackendStudent {
+  student_id: number;
+  reg_number: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  profile_picture: string | null;
+  program_id: number;
+  program: {
+    program_name: string;
+    program_type: string;
+    total_credits: number;
+  };
 }
 
 interface Props {
@@ -138,43 +165,13 @@ interface Props {
   loading?: boolean;
   persistent?: boolean;
   availableStudents?: Student[];
+  sessionId: any;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   loading: false,
   persistent: false,
-  availableStudents: () => [
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john.doe@example.com",
-      studentId: "STU001",
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      email: "jane.smith@example.com",
-      studentId: "STU002",
-    },
-    {
-      id: 3,
-      name: "Mike Johnson",
-      email: "mike.johnson@example.com",
-      studentId: "STU003",
-    },
-    {
-      id: 4,
-      name: "Sarah Wilson",
-      email: "sarah.wilson@example.com",
-      studentId: "STU004",
-    },
-    {
-      id: 5,
-      name: "David Brown",
-      email: "david.brown@example.com",
-      studentId: "STU005",
-    },
-  ],
+  availableStudents: () => [],
 });
 
 const emit = defineEmits<{
@@ -188,46 +185,61 @@ const studentSearchQuery = ref("");
 const studentInput = ref<typeof FormInput | null>(null);
 const toast = useToast();
 
-// Computed properties
+const {
+  call: fetchStudents,
+  isLoading: loadingStudents,
+  data: studentsData,
+} = useBackendService("/students", "get");
+
+const transformBackendStudent = (backendStudent: BackendStudent): Student => {
+  return {
+    studentId: backendStudent.student_id,
+    firstName: backendStudent.first_name,
+    lastName: backendStudent.last_name,
+    email: backendStudent.email,
+    profilePicture: backendStudent.profile_picture || "/default-avatar.png",
+  };
+};
+
+const availableStudentsForSelection = computed(() => {
+  if (!studentsData.value) return [];
+
+  const availableStudentIds = props.availableStudents.map((s) => s.studentId);
+
+  return studentsData.value
+    .filter((student: any) => !availableStudentIds.includes(student.student_id))
+    .map(transformBackendStudent);
+});
+
 const filteredStudents = computed(() => {
   if (!studentSearchQuery.value.trim()) {
-    return props.availableStudents;
+    return availableStudentsForSelection.value;
   }
 
   const query = studentSearchQuery.value.toLowerCase();
-  return props.availableStudents.filter(
-    (student) =>
-      student.name.toLowerCase().includes(query) ||
+  return availableStudentsForSelection.value.filter(
+    (student: any) =>
+      student.firstName.toLowerCase().includes(query) ||
       student.email.toLowerCase().includes(query) ||
-      student.studentId.toLowerCase().includes(query)
+      student.lastName.toLowerCase().includes(query)
   );
 });
 
 const isAllSelected = computed(() => {
   return (
     filteredStudents.value.length > 0 &&
-    filteredStudents.value.every((student) => isStudentSelected(student))
+    filteredStudents.value.every((student: any) => isStudentSelected(student))
   );
 });
 
-const isIndeterminate = computed(() => {
-  const selectedCount = filteredStudents.value.filter((student) =>
-    isStudentSelected(student)
-  ).length;
-  return selectedCount > 0 && selectedCount < filteredStudents.value.length;
-});
-
-// Student selection methods
-const handleStudentSearch = () => {
-  // Search functionality is handled by computed filteredStudents
-};
-
 const isStudentSelected = (student: Student) => {
-  return selectedStudents.value.some((s) => s.id === student.id);
+  return selectedStudents.value.some((s) => s.studentId === student.studentId);
 };
 
 const toggleStudent = (student: Student) => {
-  const index = selectedStudents.value.findIndex((s) => s.id === student.id);
+  const index = selectedStudents.value.findIndex(
+    (s) => s.studentId === student.studentId
+  );
   if (index === -1) {
     selectedStudents.value.push(student);
   } else {
@@ -237,26 +249,28 @@ const toggleStudent = (student: Student) => {
 
 const toggleSelectAll = () => {
   if (isAllSelected.value) {
-    // Deselect all filtered students
-    filteredStudents.value.forEach((student) => {
+    filteredStudents.value.forEach((student: any) => {
       const index = selectedStudents.value.findIndex(
-        (s) => s.id === student.id
+        (s) => s.studentId === student.studentId
       );
       if (index !== -1) {
         selectedStudents.value.splice(index, 1);
       }
     });
   } else {
-    // Select all filtered students
-    filteredStudents.value.forEach((student) => {
+    filteredStudents.value.forEach((student: any) => {
       if (!isStudentSelected(student)) {
         selectedStudents.value.push(student);
       }
     });
   }
 };
+const sessionId = props.sessionId;
+const { call: addStudentsToSession } = useBackendService(
+  `/sessions/${sessionId}/students`,
+  "post"
+);
 
-// Submit handler
 const handleSubmit = async () => {
   if (selectedStudents.value.length === 0) {
     return;
@@ -265,19 +279,16 @@ const handleSubmit = async () => {
   isLoading.value = true;
 
   try {
-    // Simulate network request
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await addStudentsToSession({
+      studentIds: selectedStudents.value.map((student) => student.studentId),
+    });
 
-    emit("students-added", selectedStudents.value);
     toast.success(
       `${selectedStudents.value.length} student${
         selectedStudents.value.length !== 1 ? "s" : ""
       } added successfully`
     );
-
-    close();
   } catch (error) {
-    console.error("Error adding students:", error);
     toast.error("Failed to add students. Please try again.");
   } finally {
     isLoading.value = false;
@@ -299,18 +310,51 @@ const onOverlayClick = () => {
   }
 };
 
-// Reset form when modal closes
+const loadStudents = async () => {
+  try {
+    await fetchStudents();
+  } catch (error) {
+    console.error("Error fetching students:", error);
+    toast.error("Failed to load students. Please try again.");
+  }
+};
+
 watch(
   () => props.modelValue,
   (value) => {
-    if (!value) {
+    if (value) {
+      loadStudents();
+    } else {
       resetForm();
     }
   }
 );
+
+onMounted(() => {
+  if (props.modelValue) {
+    loadStudents();
+  }
+});
 </script>
 
 <style lang="scss" scoped>
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.loading-state {
+  padding: 40px 16px;
+  text-align: center;
+}
+
+.loading-message {
+  color: $gray-600;
+  font-size: $text-sm;
+}
+
 .modal-body {
   .form-section {
     display: flex;
@@ -392,11 +436,6 @@ watch(
     margin-bottom: 2px;
   }
 
-  .student-details {
-    font-size: $text-sm;
-    color: $gray-600;
-  }
-
   .student-checkbox {
     margin-left: 12px;
   }
@@ -412,31 +451,15 @@ watch(
     &:checked {
       background-color: $primary-color-600;
       border-color: $primary-color-600;
+
       position: relative;
 
       &::after {
-        content: "✓";
         position: absolute;
         top: -2px;
         left: 1px;
         color: white;
         font-size: 12px;
-        font-weight: bold;
-      }
-    }
-
-    &:indeterminate {
-      background-color: $primary-color-600;
-      border-color: $primary-color-600;
-      position: relative;
-
-      &::after {
-        content: "−";
-        position: absolute;
-        top: -4px;
-        left: 2px;
-        color: white;
-        font-size: 14px;
         font-weight: bold;
       }
     }
