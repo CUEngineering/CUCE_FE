@@ -89,9 +89,9 @@
                 variant="primary"
                 :disabled="isLoading || !canSubmit"
                 :loading="isLoading"
-                @click="studentform"
+                @click="click"
               >
-                Add Student ->
+                Add Student <RightArrow />
               </Button>
             </div>
           </div>
@@ -105,6 +105,7 @@
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import type { Session } from "~/pages/admin/sessions/[id].vue";
 import CloseCircleIcon from "../icons/CloseCircleIcon.vue";
+import RightArrow from "../icons/RightArrow.vue";
 import Button from "../ui/Button.vue";
 import FormInput from "../ui/FormInput.vue";
 
@@ -135,7 +136,11 @@ const props = defineProps<Props>();
 const emit = defineEmits<{
   (e: "update:modelValue", value: boolean): void;
   (e: "sessionUpdate", session: Partial<Session>): void;
+  (e: "click"): void;
 }>();
+const click = () => {
+  emit("click");
+};
 
 const isLoading = ref(false);
 
@@ -242,7 +247,6 @@ const handleSubmit = async () => {
     isLoading.value = false;
   }
 };
-const studentform = async () => {};
 
 const resetForm = () => {
   form.data = {

@@ -486,6 +486,11 @@ const showSuspendConfirm = ref(false);
 const showDeleteConfirm = ref(false);
 const isActionLoading = ref(false);
 const selectedSession = ref<Session | null>(null);
+const showInviteStudent = ref(false);
+const handleInviteStudent = () => {
+  showAddModal.value = false;
+  showInviteStudent.value = true;
+};
 
 const handleAdjustEnrollment = (session: Session) => {
   selectedSession.value = session;

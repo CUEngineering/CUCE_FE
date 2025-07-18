@@ -91,15 +91,30 @@
                     <!-- Empty state -->
                     <div
                       v-if="filteredStudents.length === 0 && !loadingStudents"
-                      class="empty-state"
                     >
-                      <div class="empty-message">
-                        {{
-                          studentSearchQuery
-                            ? "No students found matching your search"
-                            : "No students available"
-                        }}
-                      </div>
+                      <EmptyState
+                        v-if="filteredStudents.length === 0"
+                        class="empty-state"
+                        title="Didn’t find student?"
+                        description="Can’t find a student on the list? Send an Invite to any students "
+                      >
+                        <template #icon>
+                          <img
+                            src="~/assets/images/EmptyUser.svg"
+                            alt="Users Illustration"
+                            class="empty-state-illustration"
+                            style="width: 80px; height: 80px"
+                          />
+                        </template>
+                        <template #action>
+                          <Button @click="click" variant="outline" size="sm">
+                            <template #icon>
+                              <PlusIcon />
+                            </template>
+                            Invite Student
+                          </Button>
+                        </template>
+                      </EmptyState>
                     </div>
                   </div>
                 </div>
@@ -107,7 +122,10 @@
             </div>
 
             <div style="justify-content: space-between" class="modal-footer">
-              <div style="cursor: pointer; color: #254383; font-weight: 600">
+              <div
+                @click="click"
+                style="cursor: pointer; color: #254383; font-weight: 600"
+              >
                 Invite new student?
               </div>
 
@@ -134,7 +152,9 @@ import { useToast } from "~/composables/useToast";
 import CheckBox from "../icons/CheckBox.vue";
 import CheckBoxChecked from "../icons/CheckBoxChecked.vue";
 import CloseCircleIcon from "../icons/CloseCircleIcon.vue";
+import PlusIcon from "../icons/PlusIcon.vue";
 import Button from "../ui/Button.vue";
+import EmptyState from "../ui/EmptyState.vue";
 import FormInput from "../ui/FormInput.vue";
 
 interface Student {
@@ -177,7 +197,11 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   (e: "update:modelValue", value: boolean): void;
   (e: "students-added", students: Student[]): void;
+  (e: "click"): void;
 }>();
+const click = () => {
+  emit("click");
+};
 
 const isLoading = ref(false);
 const selectedStudents = ref<Student[]>([]);
@@ -473,7 +497,6 @@ onMounted(() => {
   }
 
   .empty-state {
-    padding: 40px 16px;
     text-align: center;
   }
 

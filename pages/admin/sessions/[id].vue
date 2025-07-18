@@ -413,6 +413,7 @@
       v-model="showAddStudent"
       :available-students="students"
       :sessionId="sessionId"
+      @click="handleInviteStudent"
     />
     <EditSession
       v-model="showEditModal"
@@ -536,6 +537,8 @@ export interface Course {
 }
 const toast = useToast();
 const showAddStudent = ref(false);
+const showInviteStudent = ref(false);
+
 const showDeleteConfirm = ref(false);
 const isActionLoading = ref(false);
 
@@ -549,6 +552,11 @@ const originalCourseStatus = ref<string | null>(null);
 const sessions = ref<Session | null>(null);
 const students = ref<any[]>([]);
 const courses = ref<any[]>([]);
+
+const handleInviteStudent = () => {
+  showAddStudent.value = false;
+  showInviteStudent.value = true;
+};
 
 const handleAddStudent = () => {
   showAddStudent.value = true;
