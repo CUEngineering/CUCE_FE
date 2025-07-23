@@ -270,7 +270,7 @@ watch(
 );
 
 onMounted(() => {
-  // fetchPrograms();
+  fetchPrograms();
 });
 
 const columnHelper = createColumnHelper<Program>();

@@ -1,5 +1,5 @@
 <template>
-  <div class="sidebar" :class="{ 'sidebar-collapsed': isCollapsed }">
+  <div class="sidebar">
     <!-- Logo -->
     <div class="logo-container">
       <StudentLogo type="full" v-if="!isCollapsed" />
