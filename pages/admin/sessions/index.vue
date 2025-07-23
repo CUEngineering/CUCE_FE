@@ -285,7 +285,7 @@
           :message="`Are you sure you want to close ${selectedSession?.sessionName} Session? Once closed, it can no longer be opened.`"
           variant="danger"
           :loading="isActionLoading"
-          confirm-button-text="Remove"
+          confirm-button-text="Close"
           @confirm="confirmClose"
         />
         <Dialog
