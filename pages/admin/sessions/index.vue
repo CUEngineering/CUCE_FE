@@ -273,10 +273,10 @@
         <Dialog
           v-model="showStartConfirm"
           title="Start Session?"
-          :message="`Are you sure you want to close ${selectedSession?.sessionName} Session? Once closed, it can no longer be opened.`"
+          :message="`Are you sure you want to start ${selectedSession?.sessionName} Session? Once closed, it can no longer be opened.`"
           variant="warning"
           :loading="isActionLoading"
-          confirm-button-text="Remove"
+          confirm-button-text="Start"
           @confirm="confirmStart"
         />
         <Dialog
