@@ -244,22 +244,28 @@ const handleSubmit = async () => {
   };
 
   try {
-    const {
-      call: addCourse,
-      isLoading: loading,
-      data: courseData,
-    } = useBackendService("/courses", "post");
-    const {
-      call: updateCourse,
-      isLoading,
-      data,
-    } = useBackendService(`/courses/${props.program.value.course_id}`, "patch");
     if (props.mode === "add") {
+      const {
+        call: addCourse,
+        isLoading: loading,
+        data: courseData,
+      } = useBackendService("/courses", "post");
+
       await addCourse(payload);
       emit("program-added", courseData.value);
       toast.success(`Course "${form.data.course_title}" created successfully`);
     } else if (props.mode === "edit" && props.program) {
+      const {
+        call: updateCourse,
+        isLoading,
+        data: courseData,
+      } = useBackendService(
+        `/courses/${props.program.value.course_id}`,
+        "patch"
+      );
+
       updateCourse(payload);
+
       emit("program-updated", courseData.value);
       toast.success(`Course "${form.data.course_title}" updated successfully`);
     }
