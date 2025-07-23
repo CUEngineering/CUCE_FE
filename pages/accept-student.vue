@@ -129,11 +129,11 @@
               </div>
 
               <div class="button-group">
-                <Button type="button" variant="secondary" @click="prevStep"
+                <!-- <Button type="button" variant="secondary" @click="prevStep"
                   >Back</Button
-                >
+                > -->
                 <Button type="submit" variant="primary" :loading="isLoading">
-                  {{ isLoading ? "Submitting..." : "Submit" }}
+                  {{ isLoading ? "Submitting..." : "Sign up" }}
                 </Button>
               </div>
             </div>
@@ -280,7 +280,7 @@ const handleSubmit = async () => {
   }
 
   const payload = new FormData();
-  payload.append("student_number", form.value.studentNumber);
+  payload.append("reg_number", form.value.studentNumber);
   payload.append("email", form.value.email);
   payload.append("password", form.value.password);
   payload.append("first_name", form.value.firstName);
@@ -299,7 +299,7 @@ const handleSubmit = async () => {
       data.value.role,
       data.value.user
     );
-    router.push("/registrar/dashboard");
+    router.push("/student/dashboard");
   } catch (err: any) {
     formError.value = "Failed to submit form.";
   }

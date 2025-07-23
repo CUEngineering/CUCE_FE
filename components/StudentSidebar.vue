@@ -2,7 +2,7 @@
   <div class="sidebar" :class="{ 'sidebar-collapsed': isCollapsed }">
     <!-- Logo -->
     <div class="logo-container">
-      <Logo type="full" v-if="!isCollapsed" />
+      <StudentLogo type="full" v-if="!isCollapsed" />
       <Logo type="compact" v-else />
     </div>
 
@@ -14,7 +14,7 @@
         :class="{ active: currentPath === '/student/dashboard' }"
       >
         <span class="icon">
-          <IconsHomeIcon />
+          <StudentDash />
         </span>
         <span class="label">Dashboard</span>
       </NuxtLink>
@@ -25,7 +25,7 @@
         :class="{ active: currentPath === '/student/courses' }"
       >
         <span class="icon">
-          <IconsEnrollmentIcon />
+          <StudentCourse />
         </span>
         <span class="label">Courses</span>
       </NuxtLink>
@@ -36,7 +36,7 @@
         :class="{ active: currentPath === '/student/requests' }"
       >
         <span class="icon">
-          <IconsAcademicCapIcon />
+          <StudentRequest />
         </span>
         <span class="label">Requests</span>
       </NuxtLink>
@@ -47,7 +47,7 @@
         :class="{ active: currentPath === '/student/hub' }"
       >
         <span class="icon">
-          <IconsAcademicCapIcon />
+          <StudentHub />
         </span>
         <span class="label">My Hub</span>
       </NuxtLink>
@@ -74,9 +74,46 @@
       </div>
     </div>
   </div>
+
+  <div class="mobile-bottom-nav" v-if="isMobile">
+    <NuxtLink
+      to="/student/dashboard"
+      class="bottom-nav-item"
+      :class="{ active: currentPath === '/student/dashboard' }"
+    >
+      <StudentDash />
+    </NuxtLink>
+    <NuxtLink
+      to="/student/courses"
+      class="bottom-nav-item"
+      :class="{ active: currentPath === '/student/courses' }"
+    >
+      <StudentCourse />
+    </NuxtLink>
+    <NuxtLink
+      to="/student/requests"
+      class="bottom-nav-item"
+      :class="{ active: currentPath === '/student/requests' }"
+    >
+      <StudentRequest />
+    </NuxtLink>
+    <NuxtLink
+      to="/student/hub"
+      class="bottom-nav-item"
+      :class="{ active: currentPath === '/student/hub' }"
+    >
+      <StudentHub />
+    </NuxtLink>
+  </div>
 </template>
 
 <script setup lang="ts">
+import StudentCourse from "./icons/StudentCourse.vue";
+import StudentDash from "./icons/StudentDash.vue";
+import StudentHub from "./icons/StudentHub.vue";
+import StudentRequest from "./icons/StudentRequest.vue";
+import StudentLogo from "./StudentLogo.vue";
+
 // Accept props from parent component
 defineProps<{
   isCollapsed?: boolean;
@@ -84,6 +121,8 @@ defineProps<{
 
 const route = useRoute();
 const currentPath = computed(() => route.path);
+
+const isMobile = computed(() => window.innerWidth <= 768);
 </script>
 
 <style lang="scss" scoped>
@@ -129,6 +168,7 @@ const currentPath = computed(() => route.path);
     align-items: center;
     border-bottom: 1px solid $gray-200;
     transition: justify-content 0.3s ease;
+    background-color: #06061b;
   }
 
   .navigation {
@@ -194,6 +234,40 @@ const currentPath = computed(() => route.path);
 
     &.sidebar-collapsed {
       transform: translateX(0%);
+    }
+  }
+}
+@media (max-width: $breakpoint-md) {
+  .sidebar {
+    display: none;
+  }
+}
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background-color: $white;
+  border-top: 1px solid $gray-200;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 20;
+
+  .bottom-nav-item {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    color: $gray-600;
+
+    &.active {
+      color: $primary-color-700;
+    }
+
+    svg {
+      width: 24px;
+      height: 24px;
     }
   }
 }
