@@ -414,6 +414,7 @@
       :available-students="students"
       :sessionId="sessionId"
       @click="handleInviteStudent"
+      mode="single"
     />
     <EditSession
       v-model="showEditModal"

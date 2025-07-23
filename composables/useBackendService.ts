@@ -68,7 +68,7 @@ export const useBackendService = (endpoint: string, method: string) => {
 
         toast.error("Something went wrong");
       } else {
-        toast.error(msg || "Something went wrong");
+        // toast.error(msg || "Something went wrong");
       }
       throw err;
     } finally {

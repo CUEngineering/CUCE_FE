@@ -45,7 +45,16 @@
             <div class="stat-details">
               <div class="stat-value">{{ program.enrolledStudents }}</div>
 
-              <div class="pill pill-md p-blue-dark">+35 new</div>
+              <div class="pill pill-md p-blue-dark">
+                +{{
+                  program.enrolledStudents === 1
+                    ? 1
+                    : program.enrolledStudents > 2
+                    ? program.enrolledStudents - 2
+                    : 0
+                }}
+                new
+              </div>
             </div>
           </div>
           <div class="stat-card">
@@ -58,6 +67,16 @@
 
             <div class="stat-details">
               <div class="stat-value">{{ program.courses }}</div>
+              <div class="pill pill-md p-blue-dark">
+                +{{
+                  program.courses === 1
+                    ? 1
+                    : program.courses > 2
+                    ? program.courses - 2
+                    : 0
+                }}
+                new
+              </div>
             </div>
           </div>
         </div>
@@ -239,10 +258,38 @@
                     :key="cell.id"
                     class="table-cell"
                   >
-                    <FlexRender
+                    <div
+                      v-if="cell.column.id === 'credits'"
+                      class="courses-cell profile-count pill p-grey pill-lg"
+                      style="width: fit-content"
+                    >
+                      {{ cell.renderValue() }}
+                    </div>
+                    <div
+                      v-else-if="cell.column.id === 'enrolledStudents'"
+                      class="courses-cell profile-count pill p-grey pill-lg"
+                      style="width: fit-content"
+                    >
+                      {{ cell.renderValue() }}
+                    </div>
+                    <div
+                      v-else-if="cell.column.id === 'actions'"
+                      class="action-cell"
+                    >
+                      <button
+                        class="action-button delete-button"
+                        @click.stop="openRemoveCourseDialog(row.original)"
+                      >
+                        <IconsTrashIcon />
+                      </button>
+                    </div>
+                    <div v-else>
+                      {{ cell.renderValue() }}
+                    </div>
+                    <!-- <FlexRender
                       :render="cell.column.columnDef.cell"
                       :props="cell.getContext()"
-                    />
+                    /> -->
                   </td>
                 </tr>
               </tbody>
@@ -291,7 +338,10 @@
           </div>
         </div>
 
-        <div v-if="isLoading" class="loading-state">
+        <div
+          v-if="loadingDetails || loadingStudents || loadingCourses"
+          class="loading-state"
+        >
           <div class="loading-spinner"></div>
           <p>Loading program data...</p>
         </div>
@@ -311,6 +361,7 @@
     <AddProgramModal
       v-model="showAddCoursesModal"
       mode="addCourses"
+      :program="program"
       :available-courses="availableCourses"
       :selected-program-courses="programCourses"
       @courses-added="handleCoursesAdded"
@@ -402,272 +453,7 @@ interface ProgramData {
   credits: number;
 }
 
-// Program-specific mock data
-const programData: Record<number, ProgramData> = {
-  1: {
-    // Psychology
-    students: [
-      {
-        id: 1,
-        name: "Alice Johnson",
-        email: "alice.johnson@psych.edu",
-        creditsCompleted: "30/64",
-        avatar: "https://randomuser.me/api/portraits/women/1.jpg",
-      },
-      {
-        id: 2,
-        name: "Bob Smith",
-        email: "bob.smith@psych.edu",
-        creditsCompleted: "45/64",
-        avatar: "https://randomuser.me/api/portraits/women/2.jpg",
-      },
-      {
-        id: 3,
-        name: "Charlie Brown",
-        email: "charlie.brown@psych.edu",
-        creditsCompleted: "60/64",
-        avatar: "https://randomuser.me/api/portraits/women/3.jpg",
-      },
-    ],
-    courses: [
-      {
-        id: 1,
-        title: "Introduction to Psychology",
-        code: "PSY101",
-        credits: 4,
-        enrolledStudents: 12,
-      },
-      {
-        id: 2,
-        title: "Developmental Psychology",
-        code: "PSY201",
-        credits: 3,
-        enrolledStudents: 10,
-      },
-      {
-        id: 3,
-        title: "Abnormal Psychology",
-        code: "PSY301",
-        credits: 4,
-        enrolledStudents: 12,
-      },
-    ],
-    name: "Master of Science in Psychology",
-    type: "Undergraduate",
-    credits: 64,
-  },
-  2: {
-    // Nursing - Entry Level
-    students: [
-      {
-        id: 4,
-        name: "David Wilson",
-        email: "david.wilson@nursing.edu",
-        creditsCompleted: "50/72",
-        avatar: "https://randomuser.me/api/portraits/women/4.jpg",
-      },
-      {
-        id: 5,
-        name: "Eva Green",
-        email: "eva.green@nursing.edu",
-        creditsCompleted: "60/72",
-        avatar: "https://randomuser.me/api/portraits/women/5.jpg",
-      },
-      {
-        id: 6,
-        name: "Frank White",
-        email: "frank.white@nursing.edu",
-        creditsCompleted: "70/72",
-        avatar: "https://randomuser.me/api/portraits/women/6.jpg",
-      },
-    ],
-    courses: [
-      {
-        id: 4,
-        title: "Nursing Fundamentals",
-        code: "NUR101",
-        credits: 3,
-        enrolledStudents: 10,
-      },
-      {
-        id: 5,
-        title: "Anatomy & Physiology",
-        code: "NUR102",
-        credits: 4,
-        enrolledStudents: 12,
-      },
-      {
-        id: 6,
-        title: "Pharmacology Basics",
-        code: "NUR201",
-        credits: 3,
-        enrolledStudents: 10,
-      },
-    ],
-    name: "MSc. Nursing: Entry Level Clinical Track",
-    type: "Undergraduate",
-    credits: 72,
-  },
-  3: {
-    // Nursing - Leadership
-    students: [
-      {
-        id: 7,
-        name: "Grace Lee",
-        email: "grace.lee@nursing.edu",
-        creditsCompleted: "80/100",
-        avatar: "https://randomuser.me/api/portraits/women/7.jpg",
-      },
-      {
-        id: 8,
-        name: "Henry Ford",
-        email: "henry.ford@nursing.edu",
-        creditsCompleted: "90/100",
-        avatar: "https://randomuser.me/api/portraits/women/8.jpg",
-      },
-      {
-        id: 9,
-        name: "Ivy Chen",
-        email: "ivy.chen@nursing.edu",
-        creditsCompleted: "100/100",
-        avatar: "https://randomuser.me/api/portraits/women/9.jpg",
-      },
-    ],
-    courses: [
-      {
-        id: 7,
-        title: "Leadership in Nursing",
-        code: "NUR301",
-        credits: 4,
-        enrolledStudents: 12,
-      },
-      {
-        id: 8,
-        title: "Healthcare Management",
-        code: "NUR302",
-        credits: 3,
-        enrolledStudents: 10,
-      },
-      {
-        id: 9,
-        title: "Advanced Pharmacology",
-        code: "NUR303",
-        credits: 4,
-        enrolledStudents: 12,
-      },
-    ],
-    name: "MSc. Nursing: Leadership",
-    type: "Masters",
-    credits: 100,
-  },
-  4: {
-    // Public Health
-    students: [
-      {
-        id: 10,
-        name: "Jack Black",
-        email: "jack.black@publichealth.edu",
-        creditsCompleted: "30/46",
-        avatar: "https://randomuser.me/api/portraits/women/10.jpg",
-      },
-      {
-        id: 11,
-        name: "Karen White",
-        email: "karen.white@publichealth.edu",
-        creditsCompleted: "40/46",
-        avatar: "https://randomuser.me/api/portraits/women/11.jpg",
-      },
-      {
-        id: 12,
-        name: "Leo Green",
-        email: "leo.green@publichealth.edu",
-        creditsCompleted: "46/46",
-        avatar: "https://randomuser.me/api/portraits/women/12.jpg",
-      },
-    ],
-    courses: [
-      {
-        id: 10,
-        title: "Epidemiology",
-        code: "PH101",
-        credits: 3,
-        enrolledStudents: 10,
-      },
-      {
-        id: 11,
-        title: "Biostatistics",
-        code: "PH102",
-        credits: 4,
-        enrolledStudents: 12,
-      },
-      {
-        id: 12,
-        title: "Health Policy",
-        code: "PH201",
-        credits: 3,
-        enrolledStudents: 10,
-      },
-    ],
-    name: "Master of Public Health",
-    type: "Doctorate",
-    credits: 46,
-  },
-  5: {
-    // Physiotherapy
-    students: [
-      {
-        id: 13,
-        name: "Mia Brown",
-        email: "mia.brown@physio.edu",
-        creditsCompleted: "50/75",
-        avatar: "https://randomuser.me/api/portraits/women/13.jpg",
-      },
-      {
-        id: 14,
-        name: "Noah Smith",
-        email: "noah.smith@physio.edu",
-        creditsCompleted: "60/75",
-        avatar: "https://randomuser.me/api/portraits/women/14.jpg",
-      },
-      {
-        id: 15,
-        name: "Olivia Johnson",
-        email: "olivia.johnson@physio.edu",
-        creditsCompleted: "75/75",
-        avatar: "https://randomuser.me/api/portraits/women/15.jpg",
-      },
-    ],
-    courses: [
-      {
-        id: 13,
-        title: "Anatomy for Physiotherapy",
-        code: "PT101",
-        credits: 4,
-        enrolledStudents: 12,
-      },
-      {
-        id: 14,
-        title: "Exercise Physiology",
-        code: "PT102",
-        credits: 3,
-        enrolledStudents: 10,
-      },
-      {
-        id: 15,
-        title: "Clinical Practice",
-        code: "PT201",
-        credits: 4,
-        enrolledStudents: 12,
-      },
-    ],
-    name: "Master of Physiotherapy",
-    type: "Masters",
-    credits: 75,
-  },
-};
-
 // Add loading states and data refs
-const isLoading = ref(true);
 const program = ref<Program | null>(null);
 
 // Modal and dialog states
@@ -709,17 +495,15 @@ const mockCourseData = ref<Course[]>([]);
 const programCourses = ref<Course[]>([]);
 const availableCourses = ref<Course[]>([]);
 
-// Collection of all available courses across all programs
 const allCourses = computed(() => {
-  // Collect all courses from all programs for the available courses dropdown
   const courses: Course[] = [];
-  Object.values(programData).forEach((data) => {
-    data.courses.forEach((course) => {
-      if (!courses.some((c) => c.id === course.id)) {
-        courses.push(course);
-      }
-    });
-  });
+  // Object.values(programData).forEach((data) => {
+  //   data.courses.forEach((course) => {
+  //     if (!courses.some((c) => c.id === course.id)) {
+  //       courses.push(course);
+  //     }
+  //   });
+  // });
   return courses;
 });
 
@@ -811,35 +595,66 @@ const courseTable = computed(() => {
 // Get toast instance
 const toast = useToast();
 
-// Update program fetch logic
+const id = parseInt(route.params.id as string);
+
+const {
+  call: fetchProgramDetails,
+  isLoading: loadingDetails,
+  data: programDetailsData,
+} = useBackendService(`/programs/${id}`, "get");
+
+const {
+  call: fetchStudents,
+  isLoading: loadingStudents,
+  data: studentsData,
+} = useBackendService(`/programs/${id}/students`, "get");
+
+const {
+  call: fetchCourses,
+  isLoading: loadingCourses,
+  data: coursesData,
+} = useBackendService(`/programs/${id}/courses`, "get");
+
 onMounted(async () => {
-  const id = parseInt(route.params.id as string, 10);
-
-  if (isNaN(id)) {
-    toast.error("Invalid program ID");
-    return navigateTo("/admin/programs");
-  }
-
-  if (!programData[id]) {
-    toast.error("Program not found");
-    return navigateTo("/admin/programs");
-  }
-
   try {
-    const data = await fetchProgramData(id);
-    program.value = {
-      id: id,
-      name: data.name,
-      enrolledStudents: data.students.length,
-      courses: data.courses.length,
-      type: data.type,
-      credits: data.credits,
-    };
-    mockStudentData.value = data.students;
-    mockCourseData.value = data.courses;
-    programCourses.value = [...data.courses];
+    await Promise.all([fetchProgramDetails(), fetchStudents(), fetchCourses()]);
 
-    // Set available courses (all courses minus the ones already in this program)
+    const details = {
+      id: programDetailsData.value.program_id,
+      name: programDetailsData.value.program_name,
+      type:
+        programDetailsData.value.program_type.charAt(0) +
+        programDetailsData.value.program_type.slice(1).toLowerCase(),
+      credits: programDetailsData.value.total_credits,
+    };
+    const students = studentsData.value.map((student: any) => ({
+      id: student.student_id,
+      name: `${student.first_name} ${student.last_name}`,
+      email: student.email,
+      creditsCompleted: `${student.totalCredits}/${programDetailsData.value.total_credits}`,
+      avatar: student.profile_picture,
+    }));
+    const courses = coursesData.value.map((student: any) => ({
+      id: student.course_id,
+      title: student.course_title,
+      code: student.course_code,
+      credits: student.course_credits,
+      enrolledStudents: student.total_enrollments,
+    }));
+
+    program.value = {
+      id,
+      name: details.name,
+      enrolledStudents: students.length,
+      courses: courses.length,
+      type: details.type,
+      credits: details.credits,
+    };
+
+    mockStudentData.value = students;
+    mockCourseData.value = courses;
+    programCourses.value = [...courses];
+
     availableCourses.value = allCourses.value.filter(
       (course) => !programCourses.value.some((c) => c.id === course.id)
     );
@@ -863,7 +678,6 @@ const openRemoveCourseDialog = (course: Course) => {
 };
 
 const handleProgramUpdated = (updatedProgram: ProgramOutput) => {
-  // Update the local program data
   if (program.value) {
     program.value = {
       ...program.value,
@@ -876,16 +690,13 @@ const handleProgramUpdated = (updatedProgram: ProgramOutput) => {
 };
 
 const handleCoursesAdded = (courses: Course[]) => {
-  // Add the new courses to the program
   programCourses.value = [...programCourses.value, ...courses];
   mockCourseData.value = [...programCourses.value];
 
-  // Update the program object with new course count
   if (program.value) {
     program.value.courses = programCourses.value.length;
   }
 
-  // Update available courses by filtering newly added courses
   availableCourses.value = availableCourses.value.filter(
     (c) => !courses.some((newCourse) => newCourse.id === c.id)
   );
@@ -895,13 +706,19 @@ const handleCoursesAdded = (courses: Course[]) => {
 
 const confirmRemoveCourse = async () => {
   if (!courseToRemove.value) return;
+  const courseId = courseToRemove.value.id;
+  const {
+    call: deleteCourse,
+    isLoading: loadingStudents,
+    data: studentsData,
+  } = useBackendService(`/programs/${id}/courses/${courseId}`, "Delete");
 
   try {
     // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await deleteCourse();
 
     // Remove the course from the program
-    const courseId = courseToRemove.value.id;
+
     programCourses.value = programCourses.value.filter(
       (c) => c.id !== courseId
     );
@@ -931,28 +748,6 @@ const confirmRemoveCourse = async () => {
 // Navigation methods
 const navigateBack = () => {
   navigateTo("/admin/programs");
-};
-
-const fetchProgramData = async (programId: number): Promise<ProgramData> => {
-  isLoading.value = true;
-
-  try {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    const data = programData[programId];
-
-    if (!data) {
-      throw new Error(`Data not found for program ID ${programId}`);
-    }
-
-    return data;
-  } catch (error) {
-    toast.error("Failed to load program data");
-    throw error;
-  } finally {
-    isLoading.value = false;
-  }
 };
 
 // Add this computed property

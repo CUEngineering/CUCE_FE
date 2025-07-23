@@ -24,52 +24,57 @@
                     >
                     <div class="radio-group">
                       <div
-                        v-for="option in programTypes"
+                        v-for="option in [
+                          'UNDERGRADUATE',
+                          'MASTERS',
+                          'DOCTORATE',
+                        ]"
                         :key="option"
                         class="radio-option"
-                        :class="{ selected: form.data.type === option }"
-                        @click="form.data.type = option"
+                        :class="{ selected: form.data.course_type === option }"
+                        @click="form.data.course_type = option"
                       >
                         <div class="radio">
                           <div
-                            v-if="form.data.type === option"
+                            v-if="form.data.course_type === option"
                             class="radio-indicator"
                           ></div>
                         </div>
                         <span class="radio-label">{{ option }}</span>
                       </div>
                     </div>
-                    <p v-if="form.errors.type" class="input-error">
-                      {{ form.errors.type }}
+                    <p v-if="form.errors.course_type" class="input-error">
+                      {{ form.errors.course_type }}
                     </p>
                   </div>
 
                   <FormInput
-                    id="program-name"
-                    label="Course Name"
-                    v-model="form.data.name"
-                    placeholder="Enter course name"
+                    id="course-title"
+                    label="Course Title"
+                    v-model="form.data.course_title"
+                    placeholder="Enter course title"
                     required
-                    :error="form.errors.name"
+                    :error="form.errors.course_title"
                   />
                   <div style="display: flex">
                     <FormInput
-                      id="credits"
+                      id="course-code"
                       label="Course Code"
+                      v-model="form.data.course_code"
+                      placeholder="e.g. AI101"
                       style="margin: 5px"
-                      v-model="form.data.credits"
-                      type="number"
-                      placeholder="0"
-                      :error="form.errors.credits"
+                      required
+                      :error="form.errors.course_code"
                     />
                     <FormInput
-                      id="credits"
-                      label="Course Credit"
-                      v-model="form.data.credits"
+                      id="course-credits"
+                      label="Course Credits"
+                      v-model="form.data.course_credits"
                       type="number"
-                      style="margin: 5px"
                       placeholder="0"
-                      :error="form.errors.credits"
+                      style="margin: 5px"
+                      required
+                      :error="form.errors.course_credits"
                     />
                   </div>
                 </template>
@@ -80,7 +85,7 @@
               <Button variant="secondary" @click="close"> Cancel </Button>
               <Button
                 variant="primary"
-                :disabled="isLoading || !canSubmit"
+                :disabled="isLoading"
                 :loading="isLoading"
                 @click="handleSubmit"
               >
@@ -96,7 +101,7 @@
 
 <script setup lang="ts">
 import { onClickOutside } from "@vueuse/core";
-import { computed, nextTick, onMounted, reactive, ref, watch } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useToast } from "~/composables/useToast";
 import type { ProgramOutput } from "~/types/program";
 import CloseCircleIcon from "./icons/CloseCircleIcon.vue";
@@ -111,24 +116,12 @@ interface Course {
   enrolledStudents: number;
 }
 
-interface Program {
-  name: string;
-  type: string;
-  credits: string;
-}
-
-interface Errors {
-  name?: string;
-  type?: string;
-  credits?: string;
-}
-
 interface Props {
   modelValue: boolean;
   loading?: boolean;
   persistent?: boolean;
   mode?: "add" | "edit" | "addCourses";
-  program?: ProgramOutput | null;
+  program?: any | null;
   availableCourses?: Course[];
   selectedProgramCourses?: Course[];
 }
@@ -138,23 +131,6 @@ const props = withDefaults(defineProps<Props>(), {
   persistent: false,
   mode: "add",
   program: null,
-  availableCourses: () => [
-    {
-      id: 1,
-      title: "Course 1",
-      code: "C101",
-      credits: 3,
-      enrolledStudents: 0,
-    },
-    {
-      id: 2,
-      title: "Course 2",
-      code: "C102",
-      credits: 4,
-      enrolledStudents: 0,
-    },
-  ],
-  selectedProgramCourses: () => [],
 });
 
 const emit = defineEmits<{
@@ -165,25 +141,31 @@ const emit = defineEmits<{
 }>();
 
 const isLoading = ref(false);
-const programTypes = ["Undergraduate", "Masters", "Doctorate"];
 const toast = useToast();
 
 // Course selection state
-const selectedCourses = ref<Course[]>([]);
-const courseSearchQuery = ref("");
-const courseError = ref<string | undefined>(undefined);
-const isDropdownOpen = ref(false);
-const courseInput = ref<typeof FormInput | null>(null);
 
-// Form state
+const isDropdownOpen = ref(false);
+
 const form = reactive<{
-  data: Program;
-  errors: Errors;
+  data: {
+    course_title: string;
+    course_code: string;
+    course_credits: string;
+    course_type: string;
+  };
+  errors: {
+    course_title?: string;
+    course_code?: string;
+    course_credits?: string;
+    course_type?: string;
+  };
 }>({
   data: {
-    name: "",
-    type: "",
-    credits: "0",
+    course_title: "",
+    course_code: "",
+    course_credits: "0",
+    course_type: "",
   },
   errors: {},
 });
@@ -224,88 +206,26 @@ const submitButtonText = computed(() => {
   }
 });
 
-const filteredCourses = computed(() => {
-  let courses = [...props.availableCourses];
-
-  // Filter already selected courses
-  const selectedIds = selectedCourses.value.map((c) => c.id);
-  courses = courses.filter((c) => !selectedIds.includes(c.id));
-
-  // Apply search filter
-  if (courseSearchQuery.value.trim()) {
-    const query = courseSearchQuery.value.toLowerCase();
-    courses = courses.filter(
-      (c) =>
-        c.title.toLowerCase().includes(query) ||
-        c.code.toLowerCase().includes(query)
-    );
-  }
-
-  return courses;
-});
-
-const canSubmit = computed(() => {
-  if (props.mode === "add") {
-    return form.data.name && form.data.type;
-  } else if (props.mode === "edit") {
-    return form.data.name && form.data.type;
-  } else if (props.mode === "addCourses") {
-    return selectedCourses.value.length > 0;
-  }
-  return false;
-});
-
-// Course selection methods
-const handleCourseSearch = () => {
-  // Open dropdown when typing
-  isDropdownOpen.value = true;
-};
-
-const toggleDropdown = () => {
-  isDropdownOpen.value = !isDropdownOpen.value;
-  if (isDropdownOpen.value) {
-    nextTick(() => {
-      courseInput.value?.focus();
-    });
-  }
-};
-
-const handleBlur = () => {
-  // Delay closing to allow for click on dropdown items
-  setTimeout(() => {
-    isDropdownOpen.value = false;
-  }, 150);
-};
-
-const isCourseSelected = (course: Course) => {
-  return selectedCourses.value.some((c) => c.id === course.id);
-};
-
-const selectCourse = (course: Course) => {
-  if (!isCourseSelected(course)) {
-    selectedCourses.value.push(course);
-    courseSearchQuery.value = "";
-  }
-};
-
-const removeCourse = (index: number) => {
-  selectedCourses.value.splice(index, 1);
-};
-
-const formatCourseDisplay = (course: Course): string => {
-  return `${course.code} - ${course.title}`;
-};
-
-// Form validation
 const validateForm = (): boolean => {
   form.errors = {};
 
-  if (props.mode !== "addCourses") {
-    form.errors.name = !form.data.name ? "Program name is required" : undefined;
-    form.errors.type = !form.data.type ? "Program type is required" : undefined;
+  if (!form.data.course_title) {
+    form.errors.course_title = "Course title is required";
   }
 
-  return !Object.values(form.errors).some((error) => error !== undefined);
+  if (!form.data.course_code) {
+    form.errors.course_code = "Course code is required";
+  }
+
+  if (!form.data.course_type) {
+    form.errors.course_type = "Course type is required";
+  }
+
+  if (!form.data.course_credits || isNaN(Number(form.data.course_credits))) {
+    form.errors.course_credits = "Valid credits are required";
+  }
+
+  return Object.keys(form.errors).length === 0;
 };
 
 // Submit handler
@@ -316,58 +236,44 @@ const handleSubmit = async () => {
 
   isLoading.value = true;
 
+  const payload = {
+    course_title: form.data.course_title.trim(),
+    course_code: form.data.course_code.trim(),
+    course_credits: Number(form.data.course_credits),
+    course_type: form.data.course_type.trim(),
+  };
+
   try {
-    // Simulate network request
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
+    const {
+      call: addCourse,
+      isLoading: loading,
+      data: courseData,
+    } = useBackendService("/courses", "post");
+    const {
+      call: updateCourse,
+      isLoading,
+      data,
+    } = useBackendService(`/courses/${props.program.value.course_id}`, "patch");
     if (props.mode === "add") {
-      // Create new program
-      const newProgram: ProgramOutput = {
-        id: Math.floor(Math.random() * 1000),
-        name: form.data.name,
-        type: form.data.type,
-        credits: Number(form.data.credits),
-        courses: selectedCourses.value.length,
-      };
-
-      emit("program-added", newProgram);
-      toast.success(`Program "${form.data.name}" added successfully`);
+      await addCourse(payload);
+      emit("program-added", courseData.value);
+      toast.success(`Course "${form.data.course_title}" created successfully`);
     } else if (props.mode === "edit" && props.program) {
-      // Update existing program
-      const updatedProgram: ProgramOutput = {
-        ...props.program,
-        name: form.data.name,
-        type: form.data.type,
-        credits: Number(form.data.credits),
-      };
-
-      emit("program-updated", updatedProgram);
-      toast.success(`Program "${form.data.name}" updated successfully`);
-    } else if (props.mode === "addCourses") {
-      // Add courses to existing program
-      emit("courses-added", selectedCourses.value);
-      toast.success(`${selectedCourses.value.length} courses added to program`);
+      updateCourse(payload);
+      emit("program-updated", courseData.value);
+      toast.success(`Course "${form.data.course_title}" updated successfully`);
     }
 
     close();
-  } catch (error) {
-    console.error("Error processing program:", error);
-    toast.error(`Failed to ${props.mode} program. Please try again.`);
+  } catch (error: any) {
+    console.error("Submission error:", error);
+    toast.error(
+      error.response?.data?.message ||
+        `Failed to ${props.mode} course. Please try again.`
+    );
   } finally {
     isLoading.value = false;
   }
-};
-
-const resetForm = () => {
-  form.data = {
-    name: "",
-    type: "",
-    credits: "0",
-  };
-  form.errors = {};
-  selectedCourses.value = [];
-  courseSearchQuery.value = "";
-  courseError.value = undefined;
 };
 
 const close = () => {
@@ -380,16 +286,12 @@ const onOverlayClick = () => {
   }
 };
 
-// Initialize form with program data when editing
 const initializeForm = () => {
   if (props.mode === "edit" && props.program) {
-    form.data.name = props.program.name;
-    form.data.type = props.program.type;
-    form.data.credits = String(props.program.credits);
-  }
-
-  if (props.mode === "edit") {
-    selectedCourses.value = [...props.selectedProgramCourses];
+    form.data.course_title = props.program?.value.course_title || "";
+    form.data.course_code = props.program?.value.course_code || "";
+    form.data.course_credits = String(props.program?.value.course_credits || 0);
+    form.data.course_type = props.program?.value.course_type || "";
   }
 };
 
@@ -401,8 +303,6 @@ watch(
   (value) => {
     if (value) {
       initializeForm();
-    } else {
-      resetForm();
     }
   }
 );

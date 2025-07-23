@@ -140,7 +140,13 @@
                   </div>
                   <div
                     v-else-if="cell.column.id === 'startDate'"
-                    style="text-align: center; margin-left: 10px"
+                    style="
+                      text-align: center;
+                      margin-left: 10px;
+                      width: max-content;
+                      padding-left: 10px;
+                      padding-right: 10px;
+                    "
                     class="profile-count pill p-grey"
                   >
                     <span><SessionIcon /></span>
@@ -249,10 +255,19 @@
           </div>
         </div>
 
+        <AddStudentModal
+          v-model="showAddStudent"
+          @click="handleAddStudentFromModal"
+          mode="main"
+          @submit-session-form="handleAddStudentFinal"
+        />
+
         <EditSession
           v-model="showAddModal"
           mode="add"
           @sessionUpdate="handleAddSession"
+          @add-student="handleAddStudentFromModal"
+          @submit-session-form="handleAddStudentSubmit"
         />
 
         <Dialog
@@ -304,6 +319,7 @@ import { ref } from "vue";
 import PlusIcon from "~/components/icons/PlusIcon.vue";
 import SessionIcon from "~/components/icons/sessionIcon.vue";
 import Loader from "~/components/Loader.vue";
+import AddStudentModal from "~/components/session/AddStudentModal.vue";
 import Card from "~/components/session/card.vue";
 import EditSession from "~/components/session/EditSession.vue";
 import Button from "~/components/ui/Button.vue";
@@ -318,6 +334,7 @@ import type { SessionCourse, SessionStudent } from "./[id].vue";
 definePageMeta({
   layout: "dashboard",
 });
+
 interface Session {
   sessionId: number;
   sessionName: string;
@@ -342,7 +359,20 @@ interface CamelCAse {
 }
 const toast = useToast();
 const showAddModal = ref(false);
+const showAddStudent = ref(false);
+let newSessionFormData = ref(null);
+
+const handleAddStudentFromModal = () => {
+  showAddModal.value = false;
+  showAddStudent.value = true;
+};
+
 const { call: create } = useBackendService(`/sessions`, "post");
+const { call: createWstudents } = useBackendService(
+  `/sessions/with-students`,
+  "post"
+);
+
 const add = () => {
   showAddModal.value = true;
 };
@@ -469,15 +499,30 @@ const goToPage = (pageIndex: number) => {
 const handleViewSession = (session: Session) => {
   return navigateTo(`/admin/sessions/${session.sessionId}`);
 };
+const handleAddStudentSubmit = async (formData: any) => {
+  newSessionFormData = { ...formData, session_status: "UPCOMING" };
+};
+const handleAddStudentFinal = async (formData: any) => {
+  const payload = {
+    data: newSessionFormData,
+    studentIds: formData,
+  };
+  await createWstudents(payload);
+  showAddStudent.value = false;
+  showAddModal.value = false;
+  toast.success(`Adding session completed with students`);
+};
 const handleAddSession = async (session: Partial<CamelCAse>) => {
   await create({
     session_name: session.session_name,
     start_date: session.start_date,
     end_date: session.end_date,
     enrollment_deadline: session.enrollment_deadline,
+    session_status: "UPCOMING",
   });
   toast.success(`Adding session completed`);
 };
+
 const handleEditSession = (session: Session) => {
   return navigateTo(`/admin/sessions/${session.sessionId}`);
 };
@@ -486,11 +531,6 @@ const showSuspendConfirm = ref(false);
 const showDeleteConfirm = ref(false);
 const isActionLoading = ref(false);
 const selectedSession = ref<Session | null>(null);
-const showInviteStudent = ref(false);
-const handleInviteStudent = () => {
-  showAddModal.value = false;
-  showInviteStudent.value = true;
-};
 
 const handleAdjustEnrollment = (session: Session) => {
   selectedSession.value = session;
@@ -524,7 +564,7 @@ const confirmStart = async () => {
   try {
     await confirmDeactivate({ session_status: "ACTIVE" });
 
-    toast.success(`${selectedSession.value.sessionName} is now active`);
+    toast.success(`${selectedSession.value.sessionName} has now started`);
     await fetchSessions({ status: "not_closed" });
     sessions.value = currentData.value || [];
     await fetchClosedSessions({ status: "closed" });
@@ -549,7 +589,7 @@ const confirmClose = async () => {
   try {
     await confirmDeactivate({ session_status: "CLOSED" });
 
-    toast.success(`${selectedSession.value.sessionName} is now active`);
+    toast.success(`${selectedSession.value.sessionName} is now closed`);
     await fetchSessions({ status: "not_closed" });
     sessions.value = currentData.value || [];
     await fetchClosedSessions({ status: "closed" });
@@ -574,14 +614,14 @@ const confirmDelete = async () => {
   try {
     await confirmDeactivate();
 
-    toast.success(`${selectedSession.value.sessionName} is now active`);
+    toast.success(`${selectedSession.value.sessionName} is now deleted`);
     await fetchSessions({ status: "not_closed" });
     sessions.value = currentData.value || [];
     await fetchClosedSessions({ status: "closed" });
     closedSessions.value = closedData.value || [];
   } catch (error) {
     // Error case
-    toast.error("Failed to process");
+    toast.error("Course has active students, cannot delete");
   } finally {
     isActionLoading.value = false;
     showDeleteConfirm.value = false;

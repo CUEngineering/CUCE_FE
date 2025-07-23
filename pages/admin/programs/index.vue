@@ -65,7 +65,7 @@
 
     <!-- Programs table when programs exist -->
     <div v-else class="programs-content dashlet">
-      <table class="programs-table table-container">
+      <table class="web-table programs-table table-container">
         <thead>
           <tr>
             <th
@@ -147,6 +147,15 @@
           </tr>
         </tbody>
       </table>
+
+      <div class="mobile-table">
+        <MobileMain
+          v-for="row in table.getRowModel().rows"
+          :key="row.id"
+          :selectedCourse="row.original"
+          @viewDetails="viewProgramDetails(row.original.id as any)"
+        />
+      </div>
 
       <!-- Pagination -->
       <div class="pagination">
@@ -238,6 +247,7 @@ import { computed, h, reactive, ref } from "vue";
 import AddProgramModal from "~/components/AddProgramModal.vue";
 import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
 import PlusIcon from "~/components/icons/PlusIcon.vue";
+import MobileMain from "~/components/program/MobileMain.vue";
 import Button from "~/components/ui/Button.vue";
 import EmptyState from "~/components/ui/EmptyState.vue";
 import FormInput from "~/components/ui/FormInput.vue";
@@ -405,16 +415,8 @@ const openAddProgramModal = () => {
   showAddProgramModal.value = true;
 };
 
-const handleProgramAdded = (programOutput: ProgramOutput) => {
-  const newProgram: Program = {
-    ...programOutput,
-    enrolledStudents: 0, // Default value
-    courses: 0, // Default value
-    coreCount: 0, // Default value
-  };
-
-  programs.value.push(newProgram);
-  showAddProgramModal.value = false;
+const handleProgramAdded = async (programOutput: ProgramOutput) => {
+  await loadPrograms();
 };
 
 const viewProgramDetails = (programId: number) => {
@@ -551,6 +553,22 @@ definePageMeta({
         background-color: $primary-color;
         color: $white;
       }
+    }
+  }
+
+  .mobile-table {
+    display: none;
+  }
+  @media (max-width: 768px) {
+    .web-table {
+      display: none;
+    }
+    .web {
+      display: none;
+    }
+
+    .mobile-table {
+      display: block;
     }
   }
 }

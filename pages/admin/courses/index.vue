@@ -62,7 +62,7 @@
 
     <!-- Programs table when programs exist -->
     <div v-else class="programs-content dashlet">
-      <table class="programs-table table-container">
+      <table class="web-table programs-table table-container">
         <thead>
           <tr>
             <th
@@ -140,6 +140,14 @@
           </tr>
         </tbody>
       </table>
+      <div class="mobile-table">
+        <MobileMain
+          v-for="row in table.getRowModel().rows"
+          :key="row.id"
+          :selectedCourse="row.original"
+          @viewDetails="viewCourseDetails(row.original.course_id as any)"
+        />
+      </div>
 
       <!-- Pagination -->
       <div class="pagination">
@@ -229,6 +237,7 @@ import {
 } from "@tanstack/vue-table";
 import { computed, h, onMounted, reactive, ref, watch } from "vue";
 import AddCourseModal from "~/components/AddCourseModal.vue";
+import MobileMain from "~/components/courses/MobileMain.vue";
 import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
 import PlusIcon from "~/components/icons/PlusIcon.vue";
 import Button from "~/components/ui/Button.vue";
@@ -395,7 +404,6 @@ const openAddProgramModal = () => {
 };
 
 const handleProgramAdded = (programOutput: ProgramOutput) => {
-  // Refresh the programs list after adding a new program
   fetchPrograms();
   showAddProgramModal.value = false;
 };
@@ -546,6 +554,21 @@ definePageMeta({
         background-color: $primary-color;
         color: $white;
       }
+    }
+  }
+  .mobile-table {
+    display: none;
+  }
+  @media (max-width: 768px) {
+    .web-table {
+      display: none;
+    }
+    .web {
+      display: none;
+    }
+
+    .mobile-table {
+      display: block;
     }
   }
 }

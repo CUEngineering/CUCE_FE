@@ -208,22 +208,7 @@ const props = withDefaults(defineProps<Props>(), {
   persistent: false,
   mode: "add",
   program: null,
-  availableCourses: () => [
-    {
-      id: 1,
-      title: "Course 1",
-      code: "C101",
-      credits: 3,
-      enrolledStudents: 0,
-    },
-    {
-      id: 2,
-      title: "Course 2",
-      code: "C102",
-      credits: 4,
-      enrolledStudents: 0,
-    },
-  ],
+
   selectedProgramCourses: () => [],
 });
 
@@ -284,13 +269,10 @@ const submitButtonText = computed(() => {
 });
 
 const filteredCourses = computed(() => {
-  let courses = [...props.availableCourses];
-
-  // Filter already selected courses
+  let courses = [...allCourses.value];
   const selectedIds = selectedCourses.value.map((c) => c.id);
   courses = courses.filter((c) => !selectedIds.includes(c.id));
 
-  // Apply search filter
   if (courseSearchQuery.value.trim()) {
     const query = courseSearchQuery.value.toLowerCase();
     courses = courses.filter(
@@ -299,6 +281,7 @@ const filteredCourses = computed(() => {
         c.code.toLowerCase().includes(query)
     );
   }
+  console.log("Filtered courses:", courses);
 
   return courses;
 });
@@ -366,7 +349,18 @@ const validateForm = (): boolean => {
 
   return !Object.values(form.errors).some((error) => error !== undefined);
 };
-
+const { call: createProgram } = useBackendService(
+  "/programs/with-courses",
+  "post"
+);
+const { call: updateP } = useBackendService(
+  `/programs/${props.program?.id}`,
+  "patch"
+);
+const { call: addCourses } = useBackendService(
+  `/programs/${props.program?.id}/courses`,
+  "post"
+);
 // Submit handler
 const handleSubmit = async () => {
   if (!validateForm()) {
@@ -377,7 +371,6 @@ const handleSubmit = async () => {
 
   try {
     // Simulate network request
-    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     if (props.mode === "add") {
       // Create new program
@@ -388,10 +381,18 @@ const handleSubmit = async () => {
         credits: Number(form.data.credits),
         courses: selectedCourses.value.length,
       };
+      const formdata = {
+        program_name: form.data.name,
+        program_type: form.data.type,
+        total_credits: Number(form.data.credits),
+        course_ids: selectedCourses.value.map((course) => course.id), // or just selectedCourses.value if it's an array of IDs
+      };
+      await createProgram(formdata);
 
       emit("program-added", newProgram);
       toast.success(`Program "${form.data.name}" added successfully`);
     } else if (props.mode === "edit" && props.program) {
+      console.log(props.program);
       // Update existing program
       const updatedProgram: ProgramOutput = {
         ...props.program,
@@ -399,10 +400,22 @@ const handleSubmit = async () => {
         type: form.data.type,
         credits: Number(form.data.credits),
       };
+      const formdata = {
+        program_name: form.data.name,
+        program_type: form.data.type,
+        total_credits: Number(form.data.credits),
+      };
+      await updateP(formdata);
 
       emit("program-updated", updatedProgram);
       toast.success(`Program "${form.data.name}" updated successfully`);
     } else if (props.mode === "addCourses") {
+      console.log(props.program);
+
+      const formdata = {
+        courses: selectedCourses.value.map((course) => course.id),
+      };
+      await addCourses(formdata);
       // Add courses to existing program
       emit("courses-added", selectedCourses.value);
       toast.success(`${selectedCourses.value.length} courses added to program`);
@@ -453,7 +466,34 @@ const initializeForm = () => {
 };
 
 // Initialize on mount and when props change
-onMounted(initializeForm);
+// onMounted(initializeForm);
+onMounted(() => {
+  fetchCourses();
+  initializeForm();
+});
+
+const allCourses = ref<Course[]>([]);
+
+const {
+  call: fetchPrograms,
+  isLoading: loading,
+  data: programsData,
+} = useBackendService("/courses", "get");
+const fetchCourses = async () => {
+  try {
+    await fetchPrograms();
+    allCourses.value = programsData.value.map((c: any) => ({
+      id: c.course_id,
+      title: c.course_title,
+      code: c.course_code,
+      credits: c.course_credits,
+      enrolledStudents: c.total_enrolled_students,
+    }));
+  } catch (error) {
+    toast.error("Could not load courses. Please try again.");
+    console.error(error);
+  }
+};
 
 watch(
   () => props.modelValue,

@@ -63,6 +63,7 @@ export const getStatusClass = (status: string) => {
     case "undergraduate":
       return "status-active";
     case "pending":
+    case "upcoming":
       return "status-suspended";
     case "rejected":
       return "status-deactivated";
@@ -111,6 +112,7 @@ export const getStatusText = (status: string): string => {
     case "active":
       return "Ongoing";
     case "pending":
+    case "upcoming":
       return "Upcoming";
     default:
       return "Unknown";

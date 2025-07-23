@@ -89,7 +89,7 @@
                 variant="primary"
                 :disabled="isLoading || !canSubmit"
                 :loading="isLoading"
-                @click="click"
+                @click="handleAddStudentClick"
               >
                 Add Student <RightArrow />
               </Button>
@@ -136,10 +136,12 @@ const props = defineProps<Props>();
 const emit = defineEmits<{
   (e: "update:modelValue", value: boolean): void;
   (e: "sessionUpdate", session: Partial<Session>): void;
-  (e: "click"): void;
+  (e: "add-student"): void;
+  (e: "submit-session-form", session: Partial<Session>): void;
 }>();
-const click = () => {
-  emit("click");
+const handleAddStudentClick = () => {
+  emit("add-student");
+  emit("submit-session-form", { ...form.data });
 };
 
 const isLoading = ref(false);

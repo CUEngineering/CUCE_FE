@@ -107,7 +107,11 @@
                           />
                         </template>
                         <template #action>
-                          <Button @click="click" variant="outline" size="sm">
+                          <Button
+                            @click="$router.push('/admin/students')"
+                            variant="outline"
+                            size="sm"
+                          >
                             <template #icon>
                               <PlusIcon />
                             </template>
@@ -123,7 +127,7 @@
 
             <div style="justify-content: space-between" class="modal-footer">
               <div
-                @click="click"
+                @click="$router.push('/admin/students')"
                 style="cursor: pointer; color: #254383; font-weight: 600"
               >
                 Invite new student?
@@ -133,7 +137,7 @@
                 variant="primary"
                 :disabled="isLoading || selectedStudents.length === 0"
                 :loading="isLoading"
-                @click="handleSubmit"
+                @click="handleFinishClick"
                 style="width: 5vw"
               >
                 Finish
@@ -185,7 +189,8 @@ interface Props {
   loading?: boolean;
   persistent?: boolean;
   availableStudents?: Student[];
-  sessionId: any;
+  sessionId?: any;
+  mode?: "single" | "main";
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -197,6 +202,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   (e: "update:modelValue", value: boolean): void;
   (e: "students-added", students: Student[]): void;
+  (e: "submit-session-form", students: Student[]): void;
   (e: "click"): void;
 }>();
 const click = () => {
@@ -326,6 +332,18 @@ const resetForm = () => {
 
 const close = () => {
   emit("update:modelValue", false);
+};
+const handleFinishClick = () => {
+  if (props.mode === "main") {
+    handleAddStudentClick();
+  } else {
+    handleSubmit();
+  }
+};
+
+const handleAddStudentClick = () => {
+  const selectedIds = selectedStudents.value.map((s: any) => s.studentId);
+  emit("submit-session-form", selectedIds);
 };
 
 const onOverlayClick = () => {

@@ -63,11 +63,11 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import Button from "./Button.vue";
-import SuccessIcon from "~/assets/images/Dialog_Success.svg";
 import ErrorIcon from "~/assets/images/Dialog_Error.svg";
+import SuccessIcon from "~/assets/images/Dialog_Success.svg";
 import WarningIcon from "~/assets/images/Dialog_Warning.svg";
 import CloseCircleIcon from "~/components/icons/CloseCircleIcon.vue";
+import Button from "./Button.vue";
 
 interface Props {
   modelValue: boolean;

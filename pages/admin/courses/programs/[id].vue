@@ -1,85 +1,13 @@
 <template>
   <div class="programs-page dashlet-wrapper">
-    <Loader v-if="isLoading || studentLoad" />
+    <Loader v-if="programsLoad" />
 
     <div class="page-header dashlet">
       <div class="page-title">
         <button class="back-icon" @click="back">
           <ArrowLeftIcon />
         </button>
-        <h2 class="heading-txt">Course Details</h2>
-      </div>
-    </div>
-    <div class="dashlet program-details">
-      <div class="program-overview">
-        <div style="display: flex">
-          <h1 class="program-title">{{ sessions?.course_title }}</h1>
-          <IconsEditIcon
-            @click="edit"
-            style="margin-top: 5px; margin-left: 5px; cursor: pointer"
-          />
-        </div>
-
-        <div class="overview-stats">
-          <div class="stat-card">
-            <div class="stat-label">Course Type</div>
-            <div class="stat-details">
-              <div
-                class="status-badge"
-                :class="getStatusClass(sessions?.course_type || '')"
-              >
-                {{ capitalizeFirst(sessions?.course_type || "") }}
-              </div>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Associated Programmes</div>
-            <div class="stat-details">
-              <div
-                style="padding: 5px 15px; text-align: center; margin-left: 10px"
-                class="profile-count pill p-grey"
-              >
-                {{ programs?.length || 0 }}
-              </div>
-              <div
-                @click="$router.push(`/admin/courses/programs/${courseId}`)"
-                style="
-                  border-radius: 10px;
-                  padding: 5px 15px;
-                  text-align: center;
-                  margin-left: 10px;
-                  color: #3d86f4;
-                  cursor: pointer;
-                "
-                class="profile-count status-blue"
-              >
-                View all <RightBlueArrow />
-              </div>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">No of Sessions</div>
-            <div
-              style="padding: 5px 15px; text-align: center; margin-left: 10px"
-              class="profile-count pill p-grey"
-            >
-              {{ sessionsCount?.length || "" }}
-            </div>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-label">Enrolled Students</div>
-
-            <div class="stat-details">
-              <div
-                style="padding: 5px 15px; text-align: center; margin-left: 10px"
-                class="profile-count pill p-grey"
-              >
-                {{ students?.length || 0 }}
-              </div>
-            </div>
-          </div>
-        </div>
+        <h2 class="heading-txt">Back</h2>
       </div>
     </div>
 
@@ -88,13 +16,13 @@
         <!-- Tabs for students/courses -->
         <div style="display: flex">
           <div class="program-tab">
-            <h1>Students</h1>
+            <h1>Associated Programs</h1>
           </div>
           <div
             style="margin: auto; margin-left: 20px"
             class="web profile-count pill p-grey pill-sm"
           >
-            ({{ startRecord }} - {{ endRecord }}) of {{ totalRecords }}
+            {{ programs.length }}
           </div>
         </div>
 
@@ -108,8 +36,8 @@
                   v-model="searchQuery"
                   :placeholder="
                     activeTab === 'courses'
-                      ? 'Search Courses'
-                      : 'Search Students'
+                      ? 'Search Programs'
+                      : 'Search Programs'
                   "
                   size="sm"
                 >
@@ -127,120 +55,12 @@
         </div>
       </div>
 
-      <div class="web-table">
-        <table class="enrollments-table table-container">
-          <thead>
-            <tr>
-              <th
-                v-for="header in table.getHeaderGroups()[0].headers"
-                :key="header.id"
-                @click="header.column.getToggleSortingHandler()"
-                class="table-header"
-              >
-                <div class="header-content">
-                  {{ header.column.columnDef.header }}
-                  <span
-                    v-if="header.column.getIsSorted()"
-                    class="sort-indicator"
-                  >
-                    {{ header.column.getIsSorted() === "desc" ? "▼" : "▲" }}
-                  </span>
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="row in table.getRowModel().rows"
-              :key="row.id"
-              class="table-row"
-            >
-              <td
-                v-for="cell in row.getVisibleCells()"
-                :key="cell.id"
-                class="table-cell"
-              >
-                <template
-                  v-if="typeof cell.column.columnDef.cell === 'function'"
-                >
-                  <div
-                    v-if="cell.column.id === 'actions'"
-                    class="action-cell"
-                  ></div>
-
-                  <div
-                    v-else-if="cell.column.id === 'firstName'"
-                    class="student-info"
-                  >
-                    <img
-                      :src="cell.row.original.student.profile_picture"
-                      alt="Image"
-                      class="avatar"
-                    />
-                    <div class="student-details">
-                      <div class="student-name">
-                        {{ cell.row.original.student.first_name }}{{ " " }}
-                        {{ cell.row.original.student.last_name }}
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    v-else-if="cell.column.id === 'email'"
-                    class="student-info"
-                  >
-                    <div class="student-details">
-                      <div class="student-name">
-                        {{ cell.row.original.student.email }}
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    v-else-if="cell.column.id === 'email'"
-                    class="student-info"
-                  >
-                    <div class="student-details">
-                      <div class="student-name">
-                        {{ cell.row.original.student.email }}
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    v-else-if="cell.column.id === 'regNumber'"
-                    class="student-info"
-                  >
-                    <div class="student-details">
-                      <div class="student-name">
-                        <div
-                          style="
-                            padding: 5px 15px;
-                            text-align: center;
-                            margin-left: 10px;
-                          "
-                          class="profile-count pill p-grey"
-                        >
-                          {{ cell.row.original.session.session_name || "" }}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div v-else>
-                    {{ cell.renderValue() }}
-                  </div>
-                </template>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="mobile-table">
-        <div v-if="activeTab === 'students'">
-          <MobileCourses
-            v-for="row in table.getRowModel().rows"
-            :key="row.id"
-            v-bind="row.original"
-          />
-        </div>
+      <div style="display: flex">
+        <MobilePrograms
+          v-for="row in table.getRowModel().rows"
+          :key="row.id"
+          v-bind="row.original"
+        />
       </div>
       <div class="pagination">
         <div class="pagination-controls">
@@ -304,11 +124,6 @@
         </div>
       </div>
     </div>
-    <AddCourseModal
-      v-model="showEditModal"
-      mode="edit"
-      :program="selectedProgram"
-    />
   </div>
 </template>
 
@@ -323,12 +138,10 @@ import {
   type ColumnSort,
 } from "@tanstack/vue-table";
 import { useRoute } from "vue-router";
-import MobileCourses from "~/components/courses/MobileCourses.vue";
+import MobilePrograms from "~/components/courses/MobilePrograms.vue";
 import ArrowLeftIcon from "~/components/icons/ArrowLeftIcon.vue";
 import FilterIcon from "~/components/icons/FilterIcon.vue";
-import RightBlueArrow from "~/components/icons/RightBlueArrow.vue";
 import FormInput from "~/components/ui/FormInput.vue";
-import { capitalizeFirst, getStatusClass } from "~/helper/formatData";
 
 definePageMeta({
   layout: "dashboard",
@@ -337,81 +150,36 @@ const route = useRoute();
 const courseId = route.params.id as string;
 const activeTab = ref("students");
 const showEditModal = ref(false);
-const selectedProgram = ref<any | null>(null);
 
 const back = () => {
-  navigateTo("/admin/courses");
+  navigateTo(`/admin/courses/${courseId}`); // Navigate back to the course list
 };
 const edit = () => {
-  selectedProgram.value = sessions;
   showEditModal.value = true;
 };
 
-const toast = useToast();
-
-let sessions = ref<any>(null);
-const students = ref<any[]>([]);
-const courses = ref<any[]>([]);
 const programs = ref<any[]>([]);
-const sessionsCount = ref<any[]>([]);
 
-const {
-  call,
-  isLoading,
-  data: single,
-} = useBackendService(`/courses/${courseId}`, "get");
-const {
-  call: studentCall,
-  isLoading: studentLoad,
-  data: studentData,
-} = useBackendService(`/courses/${courseId}/students`, "get");
 const {
   call: programCall,
   isLoading: programsLoad,
   data: programData,
 } = useBackendService(`/courses/${courseId}/programs`, "get");
-const { call: sessionsCall, data: sessionData } = useBackendService(
-  `/courses/${courseId}/sessions`,
-  "get"
-);
 
 onMounted(fetchSession);
 
 async function fetchSession() {
-  try {
-    await call({});
-    sessions.value = single.value || null;
-  } catch (err) {
-    sessions.value = null;
-  }
-
-  try {
-    await studentCall({});
-    students.value = studentData.value || [];
-  } catch (err) {
-    students.value = [];
-  }
-
   try {
     await programCall({});
     programs.value = programData.value || [];
   } catch (err) {
     programs.value = [];
   }
-
-  try {
-    await sessionsCall({});
-    sessionsCount.value = sessionData.value || [];
-  } catch (err) {
-    sessionsCount.value = [];
-  }
 }
 
 const filteredData = computed(() => {
   if (activeTab.value === "students") {
-    return students.value;
-  } else if (activeTab.value === "courses") {
-    return courses.value;
+    return programs.value;
   }
   return [];
 });
@@ -510,23 +278,6 @@ const calculatePageRange = () => {
 const goToPage = (pageIndex: number) => {
   table.setPageIndex(pageIndex);
 };
-
-const totalRecords = computed(() => filteredData.value.length);
-
-const startRecord = computed(() => {
-  return (
-    table.getState().pagination.pageIndex *
-      table.getState().pagination.pageSize +
-    1
-  );
-});
-
-const endRecord = computed(() => {
-  const possibleEnd =
-    (table.getState().pagination.pageIndex + 1) *
-    table.getState().pagination.pageSize;
-  return possibleEnd > totalRecords.value ? totalRecords.value : possibleEnd;
-});
 </script>
 
 <style lang="scss" scoped>
