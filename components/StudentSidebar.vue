@@ -75,7 +75,7 @@
     </div>
   </div>
 
-  <div class="mobile-bottom-nav" v-if="isMobile">
+  <div class="mobile-bottom-nav">
     <NuxtLink
       to="/student/dashboard"
       class="bottom-nav-item"
@@ -237,11 +237,6 @@ const isMobile = computed(() => window.innerWidth <= 768);
     }
   }
 }
-@media (max-width: $breakpoint-md) {
-  .sidebar {
-    display: none;
-  }
-}
 .mobile-bottom-nav {
   position: fixed;
   bottom: 0;
@@ -250,7 +245,7 @@ const isMobile = computed(() => window.innerWidth <= 768);
   height: 60px;
   background-color: $white;
   border-top: 1px solid $gray-200;
-  display: flex;
+  display: none;
   justify-content: space-around;
   align-items: center;
   z-index: 20;
@@ -269,6 +264,14 @@ const isMobile = computed(() => window.innerWidth <= 768);
       width: 24px;
       height: 24px;
     }
+  }
+}
+@media (max-width: $breakpoint-md) {
+  .sidebar {
+    display: none;
+  }
+  .mobile-bottom-nav {
+    display: flex;
   }
 }
 </style>

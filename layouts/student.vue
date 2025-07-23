@@ -202,10 +202,16 @@ const getSidebarComponent = computed(() => {
   flex: 1;
   background: $white;
 }
+.header-iconm {
+  display: none;
+}
 
 @media (max-width: 768px) {
   .header-icon {
     display: none;
+  }
+  .header-iconm {
+    display: flex;
   }
   .content-wrapper {
     margin-left: 0 !important; /* Always no margin on mobile */
