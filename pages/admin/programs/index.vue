@@ -266,7 +266,7 @@ interface Program {
 }
 const loading = ref(false);
 const programs = ref<Program[]>([]);
-const programsDataCache = useState("programsData", () => null);
+const programsDataCache = useState("programsDataCache", () => null);
 
 const { call: fetchPrograms, data: programsData } = useBackendService(
   "/programs",

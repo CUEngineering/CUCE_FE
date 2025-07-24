@@ -1,7 +1,5 @@
 <template>
   <div class="programs-page dashlet-wrapper">
-    <Loader v-if="programsLoad" />
-
     <div class="page-header dashlet">
       <div class="page-title">
         <button class="back-icon" @click="back">
@@ -10,8 +8,9 @@
         <h2 class="heading-txt">Back</h2>
       </div>
     </div>
+    <Loader v-if="programsLoad" />
 
-    <div class="enrollments-content dashlet program-tabs">
+    <div v-if="!programsLoad" class="enrollments-content dashlet program-tabs">
       <div class="tabs-heading">
         <!-- Tabs for students/courses -->
         <div style="display: flex">
@@ -55,7 +54,7 @@
         </div>
       </div>
 
-      <div style="display: flex">
+      <div style="display: flex; flex-wrap: wrap">
         <MobilePrograms
           v-for="row in table.getRowModel().rows"
           :key="row.id"

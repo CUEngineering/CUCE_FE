@@ -38,7 +38,7 @@
 
     <!-- Empty state for when no programs exist -->
     <EmptyState
-      v-else-if="!programs.length"
+      v-else-if="!programs.length && !loading"
       class="dashlet"
       title="No Existing courses"
       description="To begin, kindly create a course"
@@ -61,7 +61,10 @@
     </EmptyState>
 
     <!-- Programs table when programs exist -->
-    <div v-else class="programs-content dashlet">
+    <div
+      v-else-if="programs.length > 0 && !loading"
+      class="programs-content dashlet"
+    >
       <table class="web-table programs-table table-container">
         <thead>
           <tr>
@@ -235,7 +238,7 @@ import {
   getSortedRowModel,
   useVueTable,
 } from "@tanstack/vue-table";
-import { computed, h, onMounted, reactive, ref, watch } from "vue";
+import { computed, h, onMounted, reactive, ref } from "vue";
 import AddCourseModal from "~/components/AddCourseModal.vue";
 import MobileMain from "~/components/courses/MobileMain.vue";
 import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
@@ -256,29 +259,47 @@ interface Program {
   createdAt: string;
   total_enrolled_students?: number;
 }
-
-const {
-  call: fetchPrograms,
-  isLoading: loading,
-  data: programsData,
-} = useBackendService("/courses", "get");
+const loading = ref(false);
+const { call: fetchPrograms, data: programsData } = useBackendService(
+  "/courses",
+  "get"
+);
 
 const programs = ref<Program[]>([]);
 
-watch(
-  programsData,
-  (newData) => {
-    if (newData && Array.isArray(newData)) {
-      programs.value = newData.map((program: any) => ({
+console.log(programs.value);
+
+const programsDataCache = useState<any>("courseData", () => null);
+
+const fetchData = async () => {
+  await fetchPrograms();
+
+  programsDataCache.value = programsData.value;
+  if (programsData.value && Array.isArray(programsData.value)) {
+    programs.value = programsData.value.map((program: any) => ({
+      ...program,
+    }));
+  }
+};
+
+onMounted(async () => {
+  if (!programsDataCache.value) {
+    try {
+      loading.value = true;
+      await fetchData();
+      loading.value = false;
+    } catch (err) {
+      console.error("Failed to fetch dashboard stats", err);
+    }
+  }
+
+  if (programsDataCache.value) {
+    if (programsDataCache.value && Array.isArray(programsDataCache.value)) {
+      programs.value = programsDataCache.value.map((program: any) => ({
         ...program,
       }));
     }
-  },
-  { immediate: true }
-);
-
-onMounted(() => {
-  fetchPrograms();
+  }
 });
 
 const columnHelper = createColumnHelper<Program>();
@@ -322,8 +343,6 @@ const columns = [
   }),
 ];
 
-// Table state
-const globalFilter = ref("");
 const tableState = reactive({
   pagination: {
     pageIndex: 0,
@@ -403,8 +422,8 @@ const openAddProgramModal = () => {
   showAddProgramModal.value = true;
 };
 
-const handleProgramAdded = (programOutput: ProgramOutput) => {
-  fetchPrograms();
+const handleProgramAdded = async (programOutput: ProgramOutput) => {
+  await fetchData();
   showAddProgramModal.value = false;
 };
 

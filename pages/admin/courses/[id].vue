@@ -1,7 +1,5 @@
 <template>
   <div class="programs-page dashlet-wrapper">
-    <Loader v-if="isLoading || studentLoad" />
-
     <div class="page-header dashlet">
       <div class="page-title">
         <button class="back-icon" @click="back">
@@ -10,7 +8,9 @@
         <h2 class="heading-txt">Course Details</h2>
       </div>
     </div>
-    <div class="dashlet program-details">
+    <Loader v-if="loading" />
+
+    <div v-if="!loading" class="dashlet program-details">
       <div class="program-overview">
         <div style="display: flex">
           <h1 class="program-title">{{ sessions?.course_title }}</h1>
@@ -83,7 +83,7 @@
       </div>
     </div>
 
-    <div class="enrollments-content dashlet program-tabs">
+    <div v-if="!loading" class="enrollments-content dashlet program-tabs">
       <div class="tabs-heading">
         <!-- Tabs for students/courses -->
         <div style="display: flex">
@@ -308,6 +308,9 @@
       v-model="showEditModal"
       mode="edit"
       :program="selectedProgram"
+      @program-updated="handlerealTime"
+      @program-added="handlerealTime"
+      @courses-added="handlerealTime"
     />
   </div>
 </template>
@@ -334,7 +337,7 @@ definePageMeta({
   layout: "dashboard",
 });
 const route = useRoute();
-const courseId = route.params.id as string;
+const courseId = parseInt(route.params.id as string);
 const activeTab = ref("students");
 const showEditModal = ref(false);
 const selectedProgram = ref<any | null>(null);
@@ -355,31 +358,71 @@ const courses = ref<any[]>([]);
 const programs = ref<any[]>([]);
 const sessionsCount = ref<any[]>([]);
 
-const {
-  call,
-  isLoading,
-  data: single,
-} = useBackendService(`/courses/${courseId}`, "get");
-const {
-  call: studentCall,
-  isLoading: studentLoad,
-  data: studentData,
-} = useBackendService(`/courses/${courseId}/students`, "get");
-const {
-  call: programCall,
-  isLoading: programsLoad,
-  data: programData,
-} = useBackendService(`/courses/${courseId}/programs`, "get");
+const { call, data: single } = useBackendService(`/courses/${courseId}`, "get");
+const { call: studentCall, data: studentData } = useBackendService(
+  `/courses/${courseId}/students`,
+  "get"
+);
+const { call: programCall, data: programData } = useBackendService(
+  `/courses/${courseId}/programs`,
+  "get"
+);
 const { call: sessionsCall, data: sessionData } = useBackendService(
   `/courses/${courseId}/sessions`,
   "get"
 );
 
-onMounted(fetchSession);
+const loading = ref(false);
 
-async function fetchSession() {
+const coursesDataCache = useState<any | null>("courseCacheData", () => null);
+const programDetailsDataCache = useState<any | null>(
+  "programDetailsDataCache",
+  () => null
+);
+const idCache = useState<any>("idCourse", () => null);
+const studentsDataCache = useState<any | null>("studentLoad", () => null);
+const sessionsDataCache = useState<any | null>("sessionLoad", () => null);
+
+onMounted(async () => {
+  if (
+    !coursesDataCache.value &&
+    !programDetailsDataCache.value &&
+    !studentsDataCache.value &&
+    !sessionsDataCache.value
+  ) {
+    try {
+      loading.value = true;
+      idCache.value = courseId;
+      await fetchData();
+      loading.value = false;
+    } catch (err) {
+      console.error("Failed to fetch", err);
+    }
+  }
+
+  if (
+    coursesDataCache.value &&
+    programDetailsDataCache.value &&
+    studentsDataCache.value &&
+    sessionsDataCache.value
+  ) {
+    sessions.value = sessionsDataCache.value;
+    students.value = studentsDataCache.value || [];
+    programs.value = programDetailsDataCache.value || [];
+    sessionsCount.value = coursesDataCache.value || [];
+  }
+  if (parseInt(idCache.value) !== courseId || !idCache.value) {
+    idCache.value = courseId;
+    loading.value = true;
+    await fetchData();
+    loading.value = false;
+  }
+});
+
+async function fetchData() {
   try {
     await call({});
+    sessionsDataCache.value = single.value;
     sessions.value = single.value || null;
   } catch (err) {
     sessions.value = null;
@@ -387,6 +430,7 @@ async function fetchSession() {
 
   try {
     await studentCall({});
+    studentsDataCache.value = studentData.value;
     students.value = studentData.value || [];
   } catch (err) {
     students.value = [];
@@ -394,6 +438,7 @@ async function fetchSession() {
 
   try {
     await programCall({});
+    programDetailsDataCache.value = programData.value;
     programs.value = programData.value || [];
   } catch (err) {
     programs.value = [];
@@ -401,11 +446,15 @@ async function fetchSession() {
 
   try {
     await sessionsCall({});
+    coursesDataCache.value = sessionData.value;
     sessionsCount.value = sessionData.value || [];
   } catch (err) {
     sessionsCount.value = [];
   }
 }
+const handlerealTime = async () => {
+  await fetchData();
+};
 
 const filteredData = computed(() => {
   if (activeTab.value === "students") {

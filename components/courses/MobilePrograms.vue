@@ -52,9 +52,9 @@ const props = defineProps<DataCardProps>();
   box-shadow: none;
   border: 1px solid $primary-color-200;
   position: relative;
-  width: 400px;
+  width: 30vw;
+  padding-right: 100px;
   margin: 10px;
-  /* max-width: 400px; */
   transition: all 0.2s ease-in-out;
   cursor: pointer;
 
