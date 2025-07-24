@@ -312,12 +312,12 @@ const handleSubmit = async () => {
     await addStudentsToSession({
       studentIds: selectedStudents.value.map((student) => student.studentId),
     });
-
     toast.success(
       `${selectedStudents.value.length} student${
         selectedStudents.value.length !== 1 ? "s" : ""
       } added successfully`
     );
+    emit("submit-session-form", selectedStudents.value);
   } catch (error) {
     toast.error("Failed to add students. Please try again.");
   } finally {

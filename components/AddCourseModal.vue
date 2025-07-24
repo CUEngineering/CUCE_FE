@@ -294,6 +294,7 @@ const onOverlayClick = () => {
 
 const initializeForm = () => {
   if (props.mode === "edit" && props.program) {
+    console.log(props.program);
     form.data.course_title = props.program?.value.course_title || "";
     form.data.course_code = props.program?.value.course_code || "";
     form.data.course_credits = String(props.program?.value.course_credits || 0);

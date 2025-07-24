@@ -1,7 +1,5 @@
 <template>
   <div class="programs-page dashlet-wrapper">
-    <Loader v-if="isLoading || courseLoading || studentLoad" />
-
     <div class="page-header dashlet">
       <div class="page-title">
         <button class="back-icon" @click="back">
@@ -11,7 +9,9 @@
       </div>
     </div>
 
-    <div class="dashlet program-details">
+    <Loader v-if="loading" />
+
+    <div v-if="!loading" class="dashlet program-details">
       <div class="program-overview">
         <div style="display: flex">
           <h1 class="program-title">{{ sessions?.session_name }}</h1>
@@ -83,7 +83,7 @@
       </div>
     </div>
 
-    <div class="enrollments-content dashlet program-tabs">
+    <div v-if="!loading" class="enrollments-content dashlet program-tabs">
       <div class="tabs-heading">
         <!-- Tabs for students/courses -->
         <div style="display: flex">
@@ -415,6 +415,7 @@
       :sessionId="sessionId"
       @click="handleInviteStudent"
       mode="single"
+      @submit-session-form="handleAddStudentFinal"
     />
     <EditSession
       v-model="showEditModal"
@@ -605,7 +606,7 @@ const confirmCourseStatusChange = async () => {
       } successfully`
     );
 
-    await fetchSession();
+    await fetchData();
   } catch (error) {
     toast.error(`Failed to ${courseStatusAction.value} course`);
     revertToggleSwitch();
@@ -668,7 +669,7 @@ const confirmDeleteStudent = async () => {
       `${selectedStudent.value.firstName} ${selectedStudent.value.lastName} has been removed from the session`
     );
 
-    await fetchSession();
+    await fetchData();
   } catch (error) {
     console.error("Error removing student:", error);
     toast.error("Failed to remove student from session");
@@ -715,25 +716,47 @@ const handleEditSession = async (update: Partial<Session>) => {
     end_date: sessions.value?.end_date,
     enrollment_deadline: sessions.value?.end_date,
   });
-  console.log(sessions.value);
 
   toast.success("Session updated successfully");
+  showEditModal.value = false;
+  await fetchData();
 };
-
-onMounted(fetchSession);
-
-async function fetchSession() {
-  try {
-    await call();
-    await courseCall();
-    await studentCall();
-    sessions.value = data.value || null;
-    courses.value = courseData.value || [];
-    students.value = studentData.value || [];
-  } catch (err) {
-    toast.error("Failed to fetch Session details");
+const dataCache = useState("callCache", () => null);
+const courseDataCache = useState("courseCallCache", () => null);
+const studentDataCache = useState("studentCallCache", () => null);
+const loading = ref(false);
+const fetchData = async () => {
+  await call();
+  await courseCall();
+  await studentCall();
+  sessions.value = data.value || null;
+  dataCache.value = data.value || null;
+  courses.value = courseData.value || [];
+  courseDataCache.value = courseData.value || [];
+  students.value = studentData.value || [];
+  studentDataCache.value = studentData.value || [];
+};
+onMounted(async () => {
+  if (!dataCache.value && !courseDataCache.value && !studentDataCache.value) {
+    try {
+      loading.value = true;
+      await fetchData();
+      loading.value = false;
+    } catch (err) {
+      console.error("Failed to fetch dashboard stats", err);
+    }
   }
-}
+
+  if (dataCache.value || courseDataCache.value || studentDataCache.value) {
+    sessions.value = dataCache.value || null;
+    courses.value = courseDataCache.value || [];
+    students.value = studentDataCache.value || [];
+  }
+});
+const handleAddStudentFinal = async () => {
+  showAddStudent.value = false;
+  await fetchData();
+};
 
 const filteredData = computed(() => {
   if (activeTab.value === "students") {

@@ -63,7 +63,7 @@
               style="padding: 5px 15px; text-align: center; margin-left: 10px"
               class="profile-count pill p-grey"
             >
-              {{ sessionsCount?.length || "" }}
+              {{ sessionsCount?.length || 0 }}
             </div>
           </div>
 
@@ -401,9 +401,9 @@ onMounted(async () => {
   }
 
   if (
-    coursesDataCache.value &&
-    programDetailsDataCache.value &&
-    studentsDataCache.value &&
+    coursesDataCache.value ||
+    programDetailsDataCache.value ||
+    studentsDataCache.value ||
     sessionsDataCache.value
   ) {
     sessions.value = sessionsDataCache.value;

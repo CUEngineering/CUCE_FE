@@ -287,8 +287,7 @@ const initializeForm = () => {
       props.session.enrollment_deadline
     );
   } else {
-    // form.data.session_name = props.session.session_name;
-    // resetForm();
+    resetForm();
   }
 };
 

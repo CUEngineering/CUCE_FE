@@ -30,11 +30,12 @@
           </Button>
         </div>
       </div>
+      <Loader v-if="loading" />
       <div
         class="registrars-list dashlet"
         :class="{ 'is-empty': filteredSessions.length === 0 }"
+        v-if="!loading"
       >
-        <Loader v-if="loadinSessions || LoadingPast" />
         <!-- Empty state for registrars -->
         <EmptyState
           v-if="filteredSessions.length === 0"
@@ -50,7 +51,7 @@
             />
           </template>
           <template #action>
-            <Button variant="outline" size="sm">
+            <Button @click="add" variant="outline" size="sm">
               <template #icon>
                 <PlusIcon />
               </template>
@@ -72,7 +73,10 @@
           @view-session="handleViewSession"
         />
       </div>
-      <div v-if="filteredSessions.length > 0" class="programs-content dashlet">
+      <div
+        v-if="filteredSessions.length > 0 && !loading"
+        class="programs-content dashlet"
+      >
         <div
           style="
             padding: 15px;
@@ -255,21 +259,6 @@
           </div>
         </div>
 
-        <AddStudentModal
-          v-model="showAddStudent"
-          @click="handleAddStudentFromModal"
-          mode="main"
-          @submit-session-form="handleAddStudentFinal"
-        />
-
-        <EditSession
-          v-model="showAddModal"
-          mode="add"
-          @sessionUpdate="handleAddSession"
-          @add-student="handleAddStudentFromModal"
-          @submit-session-form="handleAddStudentSubmit"
-        />
-
         <Dialog
           v-model="showStartConfirm"
           title="Start Session?"
@@ -299,6 +288,20 @@
         />
       </div>
     </div>
+    <AddStudentModal
+      v-model="showAddStudent"
+      @click="handleAddStudentFromModal"
+      mode="main"
+      @submit-session-form="handleAddStudentFinal"
+    />
+
+    <EditSession
+      v-model="showAddModal"
+      mode="add"
+      @sessionUpdate="handleAddSession"
+      @add-student="handleAddStudentFromModal"
+      @submit-session-form="handleAddStudentSubmit"
+    />
 
     <!-- Toast Container -->
     <ToastContainer />
@@ -376,16 +379,15 @@ const { call: createWstudents } = useBackendService(
 const add = () => {
   showAddModal.value = true;
 };
-const {
-  call: fetchSessions,
-  isLoading: loadinSessions,
-  data: currentData,
-} = useBackendService("/sessions", "get");
-const {
-  call: fetchClosedSessions,
-  data: closedData,
-  isLoading: LoadingPast,
-} = useBackendService("/sessions", "get");
+const loading = ref(false);
+const { call: fetchSessions, data: currentData } = useBackendService(
+  "/sessions",
+  "get"
+);
+const { call: fetchClosedSessions, data: closedData } = useBackendService(
+  "/sessions",
+  "get"
+);
 
 const sessions = ref<Session[]>([]);
 const closedSessions = ref<Session[]>([]);
@@ -396,14 +398,34 @@ const filteredSessions = computed(() => {
     registrar.sessionName.toLowerCase().includes(query)
   );
 });
+
+const registrarDataCache = useState("sessionDataCah", () => null);
+const closedDataCche = useState("closedSessionCah", () => null);
+
+const fetchData = async () => {
+  await fetchSessions({ status: "not_closed" });
+  registrarDataCache.value = currentData.value;
+  sessions.value = currentData.value || [];
+
+  await fetchClosedSessions({ status: "closed" });
+  closedDataCche.value = closedData.value;
+  closedSessions.value = closedData.value || [];
+};
+
 onMounted(async () => {
-  try {
-    await fetchSessions({ status: "not_closed" });
-    sessions.value = currentData.value || [];
-    await fetchClosedSessions({ status: "closed" });
-    closedSessions.value = closedData.value || [];
-  } catch (err) {
-    console.error("Failed to fetch data:", err);
+  if (!closedDataCche.value && !registrarDataCache.value) {
+    try {
+      loading.value = true;
+      await fetchData();
+      loading.value = false;
+    } catch (err) {
+      console.error("Failed to fetch dashboard stats", err);
+    }
+  }
+
+  if (closedDataCche.value || registrarDataCache.value) {
+    sessions.value = registrarDataCache.value || [];
+    closedSessions.value = closedDataCche.value || [];
   }
 });
 
@@ -501,6 +523,7 @@ const handleViewSession = (session: Session) => {
 };
 const handleAddStudentSubmit = async (formData: any) => {
   newSessionFormData = { ...formData, session_status: "UPCOMING" };
+  await fetchData();
 };
 const handleAddStudentFinal = async (formData: any) => {
   const payload = {
@@ -511,6 +534,8 @@ const handleAddStudentFinal = async (formData: any) => {
   showAddStudent.value = false;
   showAddModal.value = false;
   toast.success(`Adding session completed with students`);
+  await fetchData();
+  showAddModal.value = false;
 };
 const handleAddSession = async (session: Partial<CamelCAse>) => {
   await create({
@@ -521,6 +546,8 @@ const handleAddSession = async (session: Partial<CamelCAse>) => {
     session_status: "UPCOMING",
   });
   toast.success(`Adding session completed`);
+  await fetchData();
+  showAddModal.value = false;
 };
 
 const handleEditSession = (session: Session) => {
@@ -565,10 +592,7 @@ const confirmStart = async () => {
     await confirmDeactivate({ session_status: "ACTIVE" });
 
     toast.success(`${selectedSession.value.sessionName} has now started`);
-    await fetchSessions({ status: "not_closed" });
-    sessions.value = currentData.value || [];
-    await fetchClosedSessions({ status: "closed" });
-    closedSessions.value = closedData.value || [];
+    await fetchData();
   } catch (error) {
     // Error case
     toast.error("Failed to process");
@@ -590,10 +614,7 @@ const confirmClose = async () => {
     await confirmDeactivate({ session_status: "CLOSED" });
 
     toast.success(`${selectedSession.value.sessionName} is now closed`);
-    await fetchSessions({ status: "not_closed" });
-    sessions.value = currentData.value || [];
-    await fetchClosedSessions({ status: "closed" });
-    closedSessions.value = closedData.value || [];
+    await fetchData();
   } catch (error) {
     // Error case
     toast.error("Failed to process");
@@ -615,10 +636,7 @@ const confirmDelete = async () => {
     await confirmDeactivate();
 
     toast.success(`${selectedSession.value.sessionName} is now deleted`);
-    await fetchSessions({ status: "not_closed" });
-    sessions.value = currentData.value || [];
-    await fetchClosedSessions({ status: "closed" });
-    closedSessions.value = closedData.value || [];
+    await fetchData();
   } catch (error) {
     // Error case
     toast.error("Course has active students, cannot delete");

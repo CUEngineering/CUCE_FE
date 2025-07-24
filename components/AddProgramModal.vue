@@ -393,7 +393,8 @@ const handleSubmit = async () => {
       emit("program-added", newProgram);
       toast.success(`Program "${form.data.name}" added successfully`);
     } else if (props.mode === "edit" && props.program) {
-      // Update existing program
+      console.log(props.program);
+
       const updatedProgram: ProgramOutput = {
         ...props.program,
         name: form.data.name,

@@ -659,8 +659,8 @@ onMounted(async () => {
   }
 
   if (
-    coursesDataCache.value &&
-    programDetailsDataCache.value &&
+    coursesDataCache.value ||
+    programDetailsDataCache.value ||
     studentsDataCache.value
   ) {
     const details = {
