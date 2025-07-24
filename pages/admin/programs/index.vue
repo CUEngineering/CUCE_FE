@@ -41,7 +41,7 @@
     <!-- Empty state for when no programs exist -->
     <Loader v-if="loading" />
     <EmptyState
-      v-if="!programs.length"
+      v-if="!programs.length && !loading"
       class="dashlet"
       title="No programs found"
       description="Add your first program to get started"
@@ -64,7 +64,7 @@
     </EmptyState>
 
     <!-- Programs table when programs exist -->
-    <div v-else class="programs-content dashlet">
+    <div v-if="programs.length && !loading" class="programs-content dashlet">
       <table class="web-table programs-table table-container">
         <thead>
           <tr>
@@ -264,29 +264,37 @@ interface Program {
   type: string;
   credits: number;
 }
+const loading = ref(false);
 const programs = ref<Program[]>([]);
-const {
-  call: fetchPrograms,
-  isLoading: loading,
-  data: programsData,
-} = useBackendService("/programs", "get");
+const programsDataCache = useState("programsData", () => null);
 
-const loadPrograms = async () => {
-  try {
-    await fetchPrograms();
-    programs.value = formatPrograms(programsData.value) || [];
-  } catch (err) {
-    console.error("Failed to fetch programs:", err);
-    programs.value = [];
-  }
+const { call: fetchPrograms, data: programsData } = useBackendService(
+  "/programs",
+  "get"
+);
+
+const fetchData = async () => {
+  await fetchPrograms();
+  programsDataCache.value = programsData.value;
+  programs.value = formatPrograms(programsData.value) || [];
 };
 
-// Load data on component mount
 onMounted(async () => {
-  await loadPrograms();
+  if (!programsDataCache.value) {
+    try {
+      loading.value = true;
+      await fetchData();
+      loading.value = false;
+    } catch (err) {
+      console.error("Failed to fetch dashboard stats", err);
+    }
+  }
+
+  if (programsDataCache.value) {
+    programs.value = formatPrograms(programsDataCache.value || []);
+  }
 });
 
-// Filter type
 const filterType = ref("all");
 
 const columnHelper = createColumnHelper<Program>();
@@ -416,7 +424,7 @@ const openAddProgramModal = () => {
 };
 
 const handleProgramAdded = async (programOutput: ProgramOutput) => {
-  await loadPrograms();
+  await fetchData();
 };
 
 const viewProgramDetails = (programId: number) => {

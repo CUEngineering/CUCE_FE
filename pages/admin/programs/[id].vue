@@ -18,8 +18,8 @@
         </Button>
       </div>
     </div>
-
-    <div class="dashlet program-details">
+    <Loader v-if="loading" />
+    <div v-if="!loading" class="dashlet program-details">
       <!-- Program overview -->
       <div v-if="program" class="program-overview">
         <h1 class="program-title">{{ program.name }}</h1>
@@ -338,12 +338,8 @@
           </div>
         </div>
 
-        <div
-          v-if="loadingDetails || loadingStudents || loadingCourses"
-          class="loading-state"
-        >
-          <div class="loading-spinner"></div>
-          <p>Loading program data...</p>
+        <div v-if="loading" class="loading-state">
+          <Loader />
         </div>
       </div>
     </div>
@@ -403,6 +399,7 @@ import IconsPlusIcon from "~/components/icons/PlusIcon.vue";
 import IconsSearchIcon from "~/components/icons/SearchIcon.vue";
 import TrashIcon from "~/components/icons/TrashIcon.vue";
 import IconsUsersIcon from "~/components/icons/UsersIcon.vue";
+import Loader from "~/components/Loader.vue";
 import Button from "~/components/ui/Button.vue";
 import Dialog from "~/components/ui/Dialog.vue";
 import FormInput from "~/components/ui/FormInput.vue";
@@ -412,12 +409,10 @@ import type { ProgramOutput } from "~/types/program";
 // Define that this page uses the dashboard layout
 definePageMeta({
   layout: "dashboard",
-  // middleware: ["auth"],
 });
 
 // Get the program ID from the route
 const route = useRoute();
-const programId = computed(() => route.params.id);
 
 // Types used in this component
 interface Program {
@@ -443,14 +438,6 @@ interface Course {
   code: string;
   credits: number;
   enrolledStudents: number;
-}
-
-interface ProgramData {
-  students: Student[];
-  courses: Course[];
-  name: string;
-  type: string;
-  credits: number;
 }
 
 // Add loading states and data refs
@@ -497,13 +484,7 @@ const availableCourses = ref<Course[]>([]);
 
 const allCourses = computed(() => {
   const courses: Course[] = [];
-  // Object.values(programData).forEach((data) => {
-  //   data.courses.forEach((course) => {
-  //     if (!courses.some((c) => c.id === course.id)) {
-  //       courses.push(course);
-  //     }
-  //   });
-  // });
+
   return courses;
 });
 
@@ -594,47 +575,110 @@ const courseTable = computed(() => {
 
 // Get toast instance
 const toast = useToast();
-
 const id = parseInt(route.params.id as string);
+const loading = ref(false);
+const { call: fetchProgramDetails, data: programDetailsData } =
+  useBackendService(`/programs/${id}`, "get");
 
-const {
-  call: fetchProgramDetails,
-  isLoading: loadingDetails,
-  data: programDetailsData,
-} = useBackendService(`/programs/${id}`, "get");
+const { call: fetchStudents, data: studentsData } = useBackendService(
+  `/programs/${id}/students`,
+  "get"
+);
 
-const {
-  call: fetchStudents,
-  isLoading: loadingStudents,
-  data: studentsData,
-} = useBackendService(`/programs/${id}/students`, "get");
+const { call: fetchCourses, data: coursesData } = useBackendService(
+  `/programs/${id}/courses`,
+  "get"
+);
+const coursesDataCache = useState<any | null>("coursesData", () => null);
+const programDetailsDataCache = useState<any | null>(
+  "programDetailsData",
+  () => null
+);
+const idCache = useState<any>("id", () => null);
+const studentsDataCache = useState<any | null>("studentsData", () => null);
+const fetchData = async () => {
+  await Promise.all([fetchProgramDetails(), fetchStudents(), fetchCourses()]);
+  coursesDataCache.value = coursesData.value;
+  programDetailsDataCache.value = programDetailsData.value;
+  studentsDataCache.value = studentsData.value;
 
-const {
-  call: fetchCourses,
-  isLoading: loadingCourses,
-  data: coursesData,
-} = useBackendService(`/programs/${id}/courses`, "get");
+  const details = {
+    id: programDetailsData.value.program_id,
+    name: programDetailsData.value.program_name,
+    type:
+      programDetailsData.value.program_type.charAt(0) +
+      programDetailsData.value.program_type.slice(1).toLowerCase(),
+    credits: programDetailsData.value.total_credits,
+  };
+  const students = studentsData.value.map((student: any) => ({
+    id: student.student_id,
+    name: `${student.first_name} ${student.last_name}`,
+    email: student.email,
+    creditsCompleted: `${student.totalCredits}/${programDetailsData.value.total_credits}`,
+    avatar: student.profile_picture,
+  }));
+  const courses = coursesData.value.map((student: any) => ({
+    id: student.course_id,
+    title: student.course_title,
+    code: student.course_code,
+    credits: student.course_credits,
+    enrolledStudents: student.total_enrollments,
+  }));
 
+  program.value = {
+    id,
+    name: details.name,
+    enrolledStudents: students.length,
+    courses: courses.length,
+    type: details.type,
+    credits: details.credits,
+  };
+
+  mockStudentData.value = students;
+  mockCourseData.value = courses;
+  programCourses.value = [...courses];
+
+  availableCourses.value = allCourses.value.filter(
+    (course) => !programCourses.value.some((c) => c.id === course.id)
+  );
+};
 onMounted(async () => {
-  try {
-    await Promise.all([fetchProgramDetails(), fetchStudents(), fetchCourses()]);
+  if (
+    !coursesDataCache.value &&
+    !programDetailsDataCache.value &&
+    !studentsDataCache.value
+  ) {
+    try {
+      loading.value = true;
+      idCache.value = id;
+      await fetchData();
+      loading.value = false;
+    } catch (err) {
+      console.error("Failed to fetch dashboard stats", err);
+    }
+  }
 
+  if (
+    coursesDataCache.value &&
+    programDetailsDataCache.value &&
+    studentsDataCache.value
+  ) {
     const details = {
-      id: programDetailsData.value.program_id,
-      name: programDetailsData.value.program_name,
+      id: programDetailsDataCache.value.program_id,
+      name: programDetailsDataCache.value.program_name,
       type:
-        programDetailsData.value.program_type.charAt(0) +
-        programDetailsData.value.program_type.slice(1).toLowerCase(),
-      credits: programDetailsData.value.total_credits,
+        programDetailsDataCache.value.program_type.charAt(0) +
+        programDetailsDataCache.value.program_type.slice(1).toLowerCase(),
+      credits: programDetailsDataCache.value.total_credits,
     };
-    const students = studentsData.value.map((student: any) => ({
+    const students = studentsDataCache.value.map((student: any) => ({
       id: student.student_id,
       name: `${student.first_name} ${student.last_name}`,
       email: student.email,
-      creditsCompleted: `${student.totalCredits}/${programDetailsData.value.total_credits}`,
+      creditsCompleted: `${student.totalCredits}/${programDetailsDataCache.value.total_credits}`,
       avatar: student.profile_picture,
     }));
-    const courses = coursesData.value.map((student: any) => ({
+    const courses = coursesDataCache.value.map((student: any) => ({
       id: student.course_id,
       title: student.course_title,
       code: student.course_code,
@@ -658,8 +702,12 @@ onMounted(async () => {
     availableCourses.value = allCourses.value.filter(
       (course) => !programCourses.value.some((c) => c.id === course.id)
     );
-  } catch (error) {
-    console.error("Error loading program data:", error);
+  }
+
+  if (parseInt(idCache.value) !== id || !idCache.value) {
+    loading.value = true;
+    await fetchData();
+    loading.value = false;
   }
 });
 
@@ -677,7 +725,7 @@ const openRemoveCourseDialog = (course: Course) => {
   showRemoveCourseDialog.value = true;
 };
 
-const handleProgramUpdated = (updatedProgram: ProgramOutput) => {
+const handleProgramUpdated = async (updatedProgram: ProgramOutput) => {
   if (program.value) {
     program.value = {
       ...program.value,
@@ -687,9 +735,10 @@ const handleProgramUpdated = (updatedProgram: ProgramOutput) => {
     };
   }
   toast.success("Program updated successfully");
+  await fetchData();
 };
 
-const handleCoursesAdded = (courses: Course[]) => {
+const handleCoursesAdded = async (courses: Course[]) => {
   programCourses.value = [...programCourses.value, ...courses];
   mockCourseData.value = [...programCourses.value];
 
@@ -702,34 +751,28 @@ const handleCoursesAdded = (courses: Course[]) => {
   );
 
   toast.success(`${courses.length} courses added to program`);
+  await fetchData();
 };
 
 const confirmRemoveCourse = async () => {
   if (!courseToRemove.value) return;
   const courseId = courseToRemove.value.id;
-  const {
-    call: deleteCourse,
-    isLoading: loadingStudents,
-    data: studentsData,
-  } = useBackendService(`/programs/${id}/courses/${courseId}`, "Delete");
+  const { call: deleteCourse } = useBackendService(
+    `/programs/${id}/courses/${courseId}`,
+    "Delete"
+  );
 
   try {
-    // Simulate API call
     await deleteCourse();
-
-    // Remove the course from the program
 
     programCourses.value = programCourses.value.filter(
       (c) => c.id !== courseId
     );
     mockCourseData.value = [...programCourses.value];
-
-    // Update the program object with new course count
     if (program.value) {
       program.value.courses = programCourses.value.length;
     }
 
-    // Add the removed course back to available courses
     if (!availableCourses.value.some((c) => c.id === courseId)) {
       const course = allCourses.value.find((c) => c.id === courseId);
       if (course) {
@@ -738,7 +781,9 @@ const confirmRemoveCourse = async () => {
     }
 
     toast.success(`Course removed from program`);
+
     courseToRemove.value = null;
+    await fetchData();
   } catch (error) {
     console.error("Error removing course:", error);
     toast.error("Failed to remove course");

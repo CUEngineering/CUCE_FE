@@ -31,11 +31,12 @@
           </FormInput>
         </div>
       </div>
+      <Loader v-if="loading" />
       <div
         class="registrars-list dashlet"
+        v-if="!loading"
         :class="{ 'is-empty': filteredRegistrars.length === 0 }"
       >
-        <Loader v-if="loadingRegistrars" />
         <!-- Empty state for registrars -->
         <EmptyState
           v-if="filteredRegistrars.length === 0"
@@ -76,7 +77,7 @@
     </div>
     <div
       class="pending-invites dashlet-wrapper"
-      v-if="registrars.length > 0 || pendingInvites.length > 0"
+      v-if="!loading || pendingInvites.length > 0"
     >
       <div class="invites-header dashlet">
         <h2 class="invites-title">Pending Invites</h2>
@@ -86,7 +87,6 @@
       </div>
 
       <div class="invites-list dashlet">
-        <Loader v-if="loadingInvites" />
         <!-- Empty state for pending invites -->
         <EmptyState
           v-if="pendingInvites.length === 0"
@@ -203,8 +203,8 @@ provide("openDropdownId", openDropdownId);
 const searchQuery = ref<string>("");
 const toast = useToast();
 
-// Modal and dialog state
 const showInviteModal = ref(false);
+const loading = ref(false);
 const showDeactivateConfirm = ref(false);
 const showSuspendConfirm = ref(false);
 const showDeleteConfirm = ref(false);
@@ -214,16 +214,14 @@ const selectedRegistrar = ref<Registrar | null>(null);
 const showCancelInviteConfirm = ref(false);
 const selectedInvite = ref<Invite | null>(null);
 
-const {
-  call: fetchRegistrars,
-  isLoading: loadingRegistrars,
-  data: registrarData,
-} = useBackendService("/registrars", "get");
-const {
-  call: fetchInvites,
-  isLoading: loadingInvites,
-  data: inviteData,
-} = useBackendService("/invitations", "get");
+const { call: fetchRegistrars, data: registrarData } = useBackendService(
+  "/registrars",
+  "get"
+);
+const { call: fetchInvites, data: inviteData } = useBackendService(
+  "/invitations",
+  "get"
+);
 
 const registrars = ref<Registrar[]>([]);
 const pendingInvites = ref<Invite[]>([]);
@@ -236,15 +234,33 @@ const filteredRegistrars = computed(() => {
   );
 });
 
-onMounted(async () => {
-  try {
-    await fetchRegistrars();
-    registrars.value = formatRegistrars(registrarData.value || []);
+const registrarDataCache = useState("registrarData", () => null);
+const inviteDataCache = useState("inviteData", () => null);
 
-    await fetchInvites();
-    pendingInvites.value = formatInvitees(inviteData.value || []);
-  } catch (err) {
-    console.error("Failed to fetch data:", err);
+const fetchData = async () => {
+  await fetchRegistrars();
+  registrarDataCache.value = registrarData.value;
+  registrars.value = formatRegistrars(registrarData.value || []);
+
+  await fetchInvites();
+  inviteDataCache.value = inviteData.value;
+  pendingInvites.value = formatInvitees(inviteData.value || []);
+};
+
+onMounted(async () => {
+  if (!inviteDataCache.value && !registrarDataCache.value) {
+    try {
+      loading.value = true;
+      await fetchData();
+      loading.value = false;
+    } catch (err) {
+      console.error("Failed to fetch dashboard stats", err);
+    }
+  }
+
+  if (inviteDataCache.value && registrarDataCache.value) {
+    registrars.value = formatRegistrars(registrarDataCache.value || []);
+    pendingInvites.value = formatInvitees(inviteDataCache.value || []);
   }
 });
 
@@ -448,20 +464,12 @@ const handleResendInvite = async (invite: Invite) => {
 };
 
 const sendInvites = async (emails: string[]) => {
-  const {
-    call: sendInvites,
-    isLoading: loadingSendInvites,
-    data: sendInvitesData,
-  } = useBackendService("/registrars/invite", "post");
+  const { call: sendInvites } = useBackendService("/registrars/invite", "post");
   isInviteSending.value = true;
 
   try {
-    console.log(emails);
     await sendInvites({ emails });
-    // Simulate API call
-    // await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    // Add new invites to the pending invites list
+    fetchData();
     const today = new Date();
     const formattedDate = `${today.getDate()}${getOrdinalSuffix(
       today.getDate()

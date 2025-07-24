@@ -353,14 +353,7 @@ const { call: createProgram } = useBackendService(
   "/programs/with-courses",
   "post"
 );
-const { call: updateP } = useBackendService(
-  `/programs/${props.program?.id}`,
-  "patch"
-);
-const { call: addCourses } = useBackendService(
-  `/programs/${props.program?.id}/courses`,
-  "post"
-);
+
 // Submit handler
 const handleSubmit = async () => {
   if (!validateForm()) {
@@ -370,8 +363,16 @@ const handleSubmit = async () => {
   isLoading.value = true;
 
   try {
-    // Simulate network request
+    console.log(props.program);
 
+    const { call: updateP } = useBackendService(
+      `/programs/${props.program?.id}`,
+      "patch"
+    );
+    const { call: addCourses } = useBackendService(
+      `/programs/${props.program?.id}/courses`,
+      "post"
+    );
     if (props.mode === "add") {
       // Create new program
       const newProgram: ProgramOutput = {
@@ -392,7 +393,6 @@ const handleSubmit = async () => {
       emit("program-added", newProgram);
       toast.success(`Program "${form.data.name}" added successfully`);
     } else if (props.mode === "edit" && props.program) {
-      console.log(props.program);
       // Update existing program
       const updatedProgram: ProgramOutput = {
         ...props.program,
@@ -410,8 +410,6 @@ const handleSubmit = async () => {
       emit("program-updated", updatedProgram);
       toast.success(`Program "${form.data.name}" updated successfully`);
     } else if (props.mode === "addCourses") {
-      console.log(props.program);
-
       const formdata = {
         courses: selectedCourses.value.map((course) => course.id),
       };

@@ -26,13 +26,13 @@ $russian-violet: #110d31ff;
 $french-blue: #2374abff;
 $light-coral: white;
 
-$size: 80px;
+$size: 40px;
 $animation-duration: 2s;
 
 .loader-overlay {
-  position: fixed;
+  margin: 100px;
   inset: 0;
-  background-color: $light-coral;
+  // background-color: $light-coral;
   display: grid;
   place-items: center;
   z-index: 9999;

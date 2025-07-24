@@ -1,13 +1,14 @@
 <template>
   <div class="dashboard-page">
-    <Loader v-if="isLoading" />
-
     <h1 class="page-title">Dashboard</h1>
     <p class="welcome-message">
       Welcome to Charisma University admin dashboard.
     </p>
 
-    <div class="stats-grid">
+    <div>
+      <Loader v-if="isLoading" />
+    </div>
+    <div v-if="!isLoading" class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon">
           <svg
@@ -112,14 +113,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
 import { useBackendService } from "@/composables/useBackendService"; // adjust path if needed
+import { onMounted, ref } from "vue";
 import Loader from "~/components/Loader.vue";
 
 const totalRegistrars = ref(0);
 const totalStudents = ref(0);
 const totalPrograms = ref(0);
 const totalCourses = ref(0);
+const cachedStats = useState("dashboard-stats", () => null);
 
 const { call, isLoading, error, data } = useBackendService(
   "/dashboard/admin/stats",
@@ -127,15 +129,24 @@ const { call, isLoading, error, data } = useBackendService(
 );
 
 const fetchStats = async () => {
-  try {
-    await call();
+  if (!cachedStats.value) {
+    try {
+      await call();
+      cachedStats.value = data.value;
+      totalRegistrars.value = data.value.totalRegistrars;
+      totalStudents.value = data.value.totalStudents;
+      totalPrograms.value = data.value.totalPrograms;
+      totalCourses.value = data.value.totalCourses;
+    } catch (err) {
+      console.error("Failed to fetch dashboard stats", err);
+    }
+  }
 
-    totalRegistrars.value = data.value.totalRegistrars;
-    totalStudents.value = data.value.totalStudents;
-    totalPrograms.value = data.value.totalPrograms;
-    totalCourses.value = data.value.totalCourses;
-  } catch (err) {
-    console.error("Failed to fetch dashboard stats", err);
+  if (cachedStats.value) {
+    totalRegistrars.value = cachedStats.value.totalRegistrars;
+    totalStudents.value = cachedStats.value.totalStudents;
+    totalPrograms.value = cachedStats.value.totalPrograms;
+    totalCourses.value = cachedStats.value.totalCourses;
   }
 };
 
@@ -145,7 +156,6 @@ onMounted(() => {
 
 definePageMeta({
   layout: "dashboard",
-  // middleware: ["auth"],
 });
 </script>
 
