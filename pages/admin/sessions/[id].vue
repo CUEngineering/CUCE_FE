@@ -664,12 +664,10 @@ const confirmDeleteStudent = async () => {
 
   try {
     await deleteStudentFromSession();
-
+    await refereshStudent();
     toast.success(
       `${selectedStudent.value.firstName} ${selectedStudent.value.lastName} has been removed from the session`
     );
-
-    await fetchData();
   } catch (error) {
     console.error("Error removing student:", error);
     toast.error("Failed to remove student from session");
@@ -733,6 +731,12 @@ const fetchData = async () => {
   dataCache.value = data.value || null;
   courses.value = courseData.value || [];
   courseDataCache.value = courseData.value || [];
+  students.value = studentData.value || [];
+  studentDataCache.value = studentData.value || [];
+};
+const refereshStudent = async () => {
+  await studentCall();
+
   students.value = studentData.value || [];
   studentDataCache.value = studentData.value || [];
 };
