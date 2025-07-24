@@ -300,6 +300,7 @@ const activateRegistrar = async (registrar: Registrar) => {
     if (index !== -1) {
       registrars.value[index].status = "Active";
     }
+    await fetchData();
   } catch (error) {
     // Error case
     toast.error("Failed to activate registrar");
@@ -330,6 +331,7 @@ const unsuspendRegistrar = async (registrar: Registrar) => {
     if (index !== -1) {
       registrars.value[index].status = "Active";
     }
+    await fetchData();
   } catch (error) {
     // Error case
     toast.error("Failed to lift suspension");
@@ -366,6 +368,7 @@ const confirmDeactivate = async () => {
     if (index !== -1) {
       registrars.value[index].status = "Deactivated";
     }
+    await fetchData();
   } catch (error) {
     // Error case
     toast.error("Failed to deactivate registrar");
@@ -401,6 +404,7 @@ const confirmSuspend = async () => {
     if (index !== -1) {
       registrars.value[index].status = "Suspended";
     }
+    await fetchData();
   } catch (error) {
     // Error case
     toast.error("Failed to suspend registrar");
@@ -436,6 +440,7 @@ const handleCancelInvite = async () => {
 
     // Show success toast
     toast.success(`Invite to ${selectedInvite.value.email} has been cancelled`);
+    await fetchData();
   } catch (error) {
     toast.error("Failed to cancel invite");
   } finally {
@@ -506,6 +511,7 @@ const sendInvites = async (emails: string[]) => {
 
     // Close the modal
     showInviteModal.value = false;
+    await fetchData();
   } catch (error) {
     toast.error("Failed to send invites");
   } finally {
