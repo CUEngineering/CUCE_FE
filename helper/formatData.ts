@@ -118,3 +118,7 @@ export const getStatusText = (status: string): string => {
       return "Unknown";
   }
 };
+export function decodeEmail(encoded: string): string {
+  const decoded = atob(encoded);
+  return decoded.replace(/^cuce-salt-/, "").replace(/-shh$/, "");
+}

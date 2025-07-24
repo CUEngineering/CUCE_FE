@@ -14,6 +14,7 @@
         "
         :placeholder="placeholder"
         :required="required"
+        :disabled="disabled"
         class="form-input"
         :class="[
           size,
@@ -40,11 +41,13 @@ withDefaults(
     required?: boolean;
     size?: "sm" | "md";
     error?: string;
+    disabled?: boolean;
   }>(),
   {
     type: "text",
     size: "md",
     error: undefined,
+    disabled: false,
   }
 );
 

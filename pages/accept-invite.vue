@@ -26,6 +26,7 @@
                 type="email"
                 placeholder="Enter email"
                 required
+                disabled
                 :error="emailError"
               />
 
@@ -91,9 +92,19 @@
               <div class="form-group">
                 <label for="profile">Upload Profile picture (Optional)</label>
                 <div class="upload-container" @click="triggerFileDialog">
-                  <div class="upload-icon"><UploadIcon /></div>
-                  <h2 class="upload-title">Upload File</h2>
-                  <p class="upload-subtitle">Maximum size upload: 50MB</p>
+                  <img
+                    v-if="previewUrl"
+                    :src="previewUrl"
+                    alt="Uploaded Image"
+                    class="uploaded-image"
+                  />
+
+                  <!-- Show upload UI if no image -->
+                  <template v-else>
+                    <div class="upload-icon"><UploadIcon /></div>
+                    <h2 class="upload-title">Upload File</h2>
+                    <p class="upload-subtitle">Maximum size upload: 50MB</p>
+                  </template>
                   <input
                     type="file"
                     id="profile"
@@ -148,6 +159,7 @@ import Button from "~/components/ui/Button.vue";
 import Carousel from "~/components/ui/Carousel.vue";
 import FormInput from "~/components/ui/FormInput.vue";
 import { useBackendService } from "~/composables/useBackendService";
+import { decodeEmail } from "~/helper/formatData";
 
 // State
 const step = ref(1);
@@ -157,11 +169,17 @@ const emailError = ref("");
 const passwordError = ref("");
 const firstName = ref("");
 const lastName = ref("");
+const router = useRouter();
+const route = useRoute();
 
 const toast = useToast();
+const token = route.query.token as string;
+const emailParam = route.query.email as string;
+
+const email = decodeEmail(emailParam);
 
 const form = ref({
-  email: "",
+  email: email,
   password: "",
   confirmPassword: "",
   firstName: "",
@@ -170,9 +188,6 @@ const form = ref({
 });
 
 const authStore = useAuthStore();
-const router = useRouter();
-const route = useRoute();
-const token = route.query.token as string;
 
 const validateEmail = (value: string) => {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -217,6 +232,7 @@ const prevStep = () => {
 };
 
 const fileInput = ref<HTMLInputElement | null>(null);
+const previewUrl = ref<string | null>(null);
 
 const triggerFileDialog = () => {
   fileInput.value?.click();
@@ -227,6 +243,7 @@ const handleFileUpload = (e: Event) => {
   const file = target.files?.[0];
   if (file) {
     form.value.profilePicture = file;
+    previewUrl.value = URL.createObjectURL(file);
   }
 };
 
@@ -514,6 +531,13 @@ const handleSubmit = async () => {
   color: #6b7280;
   font-weight: 400;
   line-height: 1.5;
+}
+.uploaded-image {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  object-fit: cover;
+  border-radius: 8px;
 }
 
 .hidden-input {
