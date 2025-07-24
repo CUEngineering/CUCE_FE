@@ -703,8 +703,8 @@ onMounted(async () => {
       (course) => !programCourses.value.some((c) => c.id === course.id)
     );
   }
-
   if (parseInt(idCache.value) !== id || !idCache.value) {
+    idCache.value = id;
     loading.value = true;
     await fetchData();
     loading.value = false;
