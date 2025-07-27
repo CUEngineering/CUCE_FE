@@ -7,6 +7,90 @@
         </div>
       </div>
     </div>
+    <!-- Circular Progress Bar -->
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: 20px 0;
+      "
+    >
+      <svg width="120" height="120" viewBox="0 0 100 100">
+        <circle
+          cx="50"
+          cy="50"
+          r="47"
+          stroke="#e0e0e0"
+          stroke-width="3"
+          fill="none"
+        />
+        <circle
+          cx="50"
+          cy="50"
+          r="47"
+          :stroke="progressColor"
+          stroke-width="3"
+          fill="none"
+          :stroke-dasharray="295"
+          :stroke-dashoffset="295 - (progress * 295) / 100"
+          stroke-linecap="round"
+          transform="rotate(-90 50 50)"
+        />
+        <text
+          x="50"
+          y="55"
+          text-anchor="middle"
+          font-size="18"
+          fill="#2a50ad"
+          font-weight="bold"
+        >
+          {{ new Date(session.endDate).getDate() }}
+          <tspan font-size="10">th</tspan>
+        </text>
+      </svg>
+
+      <div
+        style="
+          margin-top: 10px;
+          font-size: 14px;
+          font-weight: 500;
+          /* color: #2a50ad; */
+        "
+      >
+        {{
+          new Date(session.endDate).toLocaleDateString("en-US", {
+            month: "long",
+            year: "numeric",
+          })
+        }}
+      </div>
+    </div>
+    <div class="registrar-stats grey-box">
+      <div
+        style="display: flex; width: -webkit-fill-available; text-align: center"
+      >
+        <div class="stat-item">
+          <div class="stat-label">Courses</div>
+          <div class="stat-value">
+            {{ session.numberOfOpenCourses }}
+          </div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Programmes</div>
+          <div class="stat-value">
+            {{ session.numberOfOpenCourses }}
+          </div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Students</div>
+          <div class="stat-value">
+            {{ session.numberOfStudents }}
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div class="registrar-stats grey-box">
       <div class="stat-group">
@@ -102,7 +186,7 @@ interface Props {
   session: Session;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 defineEmits(["edit-session", "close-session"]);
 const daysLeft = (date: string) => {
   const today = new Date();
@@ -111,6 +195,20 @@ const daysLeft = (date: string) => {
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   return diffDays > 0 ? `${diffDays} day(s) left` : "Expired";
 };
+
+const today = new Date() as any;
+const end = new Date(props.session.endDate) as any;
+const start = new Date(props.session.startDate) as any;
+const totalDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+
+const daysPassed = Math.min(
+  totalDays,
+  Math.max(0, Math.ceil((today - start) / (1000 * 60 * 60 * 24)))
+);
+
+const progress = computed(() => Math.round((daysPassed / totalDays) * 100));
+
+const progressColor = "#2a50ad";
 </script>
 
 <style lang="scss" scoped>
