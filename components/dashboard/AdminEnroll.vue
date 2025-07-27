@@ -1,5 +1,5 @@
 <template>
-  <div class="registrars-page">
+  <div style="height: fit-content" class="registrars-page">
     <AdminEnrollSub />
     <div class="pending-invites dashlet-wrapper">
       <div class="invites-list dashlet">
@@ -23,6 +23,15 @@
           @edit-session="handleEditSession"
           @close-session="handleCloseSession"
         />
+        <Dialog
+          v-model="showSuspendConfirm"
+          title="Close Session?"
+          :message="`Are you sure you want to close ${session?.sessionName} Session? Once closed, it can no longer be opened.`"
+          variant="danger"
+          :loading="isActionLoading"
+          confirm-button-text="Close"
+          @confirm="confirmClose"
+        />
       </div>
     </div>
   </div>
@@ -31,6 +40,7 @@
 <script setup lang="ts">
 import { provide, ref } from "vue";
 import PlayIcon from "../icons/PlayIcon.vue";
+import Dialog from "../ui/Dialog.vue";
 import AdminEnrollSub from "./AdminEnrollSub.vue";
 import SessionCard from "./sessionCard.vue";
 
@@ -77,6 +87,31 @@ const handleCloseSession = (session: Session) => {
 };
 const handleEditSession = (session: Session) => {
   return navigateTo(`/admin/sessions/${session.sessionId}`);
+};
+const toast = useToast();
+const isActionLoading = ref(false);
+
+const confirmClose = async () => {
+  const { call: confirmDeactivate } = useBackendService(
+    `/sessions/${session.value?.sessionId}`,
+    ""
+  );
+
+  if (!session.value) return;
+
+  isActionLoading.value = true;
+  try {
+    await confirmDeactivate({ session_status: "CLOSED" });
+
+    toast.success(`${session.value.sessionName} is now closed`);
+    await fetchData();
+  } catch (error) {
+    // Error case
+    toast.error("Failed to process");
+  } finally {
+    isActionLoading.value = false;
+    showSuspendConfirm.value = false;
+  }
 };
 onMounted(async () => {
   if (!closedDataCche.value && !registrarDataCache.value) {
