@@ -27,14 +27,71 @@
         </div>
       </div>
     </div>
+
+    <!-- student -->
+    <AddModal
+      v-model="showStudentModal"
+      :loading="isInviteSending"
+      @invite-success="handleInviteSuccess"
+      @invite-failure="handleInviteFailure"
+    />
+
+    <Dialog
+      v-model="showInviteSuccessDialog"
+      title="Invites Sent!"
+      message="Your invitation have been sent to the provided email address. The invited student will receive an email with a link to join the platform."
+      variant="success"
+      :icon="true"
+      cancelButtonText="Awesome 🎉"
+      confirmButtonText=""
+      :showCancelButton="true"
+      :showConfirmButton="false"
+      :showCloseButton="true"
+      :persistent="false"
+      :loading="false"
+    />
+    <Dialog
+      v-model="showInviteFailureDialog"
+      title="Invite failed!"
+      message="There was an issue, We’re unable to send your invite to the provided email address. Please try again."
+      variant="danger"
+      :icon="true"
+      cancelButtonText="Try again!"
+      confirmButtonText=""
+      :showCancelButton="true"
+      :showConfirmButton="false"
+      :showCloseButton="true"
+      :persistent="false"
+      :loading="false"
+    />
+
+    <AddCourseModal
+      v-if="showCourseModal"
+      v-model="showCourseModal"
+      @program-added="handleProgramAdded"
+    />
+
+    <AddProgramModal
+      v-if="showProgramModal"
+      v-model="showProgramModal"
+      @program-added="handleProgramAdded"
+    />
+
+    <InviteModal
+      v-model="showRegistrarModal"
+      :loading="isInviteSending"
+      :pendingInvites="pendingInvites"
+      @send="sendInvites"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { useRouter } from "vue-router";
 import Dot from "../icons/Dot.vue";
 import Question from "../icons/Question.vue";
+import AddModal from "../student/AddModal.vue";
+import Dialog from "../ui/Dialog.vue";
 
 // Props
 const props = defineProps<{
@@ -50,12 +107,70 @@ const props = defineProps<{
   route?: string;
 }>();
 
-const router = useRouter();
-
+const showStudentModal = ref(false);
+const showCourseModal = ref(false);
+const showProgramModal = ref(false);
+const showRegistrarModal = ref(false);
+const showInviteSuccessDialog = ref(false);
+const showInviteFailureDialog = ref(false);
+const isInviteSending = ref(false);
+const toast = useToast();
 const handleRoute = () => {
-  router.push(`${props.route}`);
+  switch (props.route) {
+    case "/admin/students":
+      showStudentModal.value = true;
+      break;
+    case "/admin/courses":
+      showCourseModal.value = true;
+      break;
+    case "/admin/programs":
+      showProgramModal.value = true;
+      break;
+    case "/admin/registrars":
+      showRegistrarModal.value = true;
+      break;
+    default:
+      console.warn("No modal mapped to this route.");
+  }
+};
+const handleInviteSuccess = () => {
+  emit("newData", true);
+  showStudentModal.value = false;
+  showInviteSuccessDialog.value = true;
 };
 
+const handleInviteFailure = () => {
+  showStudentModal.value = false;
+  showInviteFailureDialog.value = true;
+};
+const handleProgramAdded = async (programOutput: any) => {
+  emit("newData", true);
+  showCourseModal.value = false;
+};
+const emit = defineEmits<{
+  (e: "newData", value: boolean): void;
+}>();
+
+interface Invite {
+  email: string;
+  date: string;
+}
+const pendingInvites = ref<Invite[]>([]);
+const sendInvites = async (emails: string[]) => {
+  const { call: sendInvites } = useBackendService("/registrars/invite", "post");
+  isInviteSending.value = true;
+
+  try {
+    await sendInvites({ emails });
+    toast.success("Invite sent successfully");
+    emit("newData", true);
+    isInviteSending.value = false;
+    showRegistrarModal.value = false;
+  } catch (error) {
+    toast.error("Failed to send invites");
+  } finally {
+  }
+};
 const cardStyle = computed(() => {
   return props.bgImage
     ? {

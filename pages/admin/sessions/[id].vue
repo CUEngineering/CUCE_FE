@@ -712,7 +712,7 @@ const handleEditSession = async (update: Partial<Session>) => {
     session_name: sessions.value?.session_name,
     start_date: sessions.value?.start_date,
     end_date: sessions.value?.end_date,
-    enrollment_deadline: sessions.value?.end_date,
+    enrollment_deadline: sessions.value?.enrollment_deadline,
   });
 
   toast.success("Session updated successfully");

@@ -1,0 +1,499 @@
+<template>
+  <div style="cursor: pointer" class="registrar-card">
+    <div class="registrar-header">
+      <div class="registrar-info">
+        <div class="name-status-wrapper">
+          <h3 class="registrar-name">Current Session <Question /></h3>
+        </div>
+      </div>
+    </div>
+
+    <div class="registrar-stats grey-box">
+      <div class="stat-group">
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-label">Session Duration</div>
+          <div class="stat-value">
+            <div>
+              <span><SessionIcon /></span>
+              {{ formatDate(session.startDate) }} -
+              {{ formatDate(session.endDate) }}
+            </div>
+          </div>
+          <hr style="width: 20vw" />
+          <div
+            style="
+              width: 20vw;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+            "
+          >
+            <div>
+              <span><ClockIcon /></span>
+              {{ daysLeft(session.endDate) }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="registrar-stats grey-box">
+      <div class="stat-group">
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-label">Enrollment Deadline</div>
+          <div class="stat-value">
+            <div>
+              <span><SessionIcon /></span>
+              {{ formatDate(session.enrollmentDeadline) }}
+            </div>
+          </div>
+          <hr style="width: 20vw" />
+          <div
+            style="
+              width: 20vw;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+            "
+          >
+            <div>
+              <span><ClockIcon /></span>
+              {{ daysLeft(session.enrollmentDeadline) }}
+            </div>
+            <p
+              @click="$emit('edit-session', session)"
+              style="color: #2a50ad; font-size: smaller"
+            >
+              Extend Deadline
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p
+    @click="$emit('close-session', session)"
+    style="text-align: center; color: red; padding: 20px; cursor: pointer"
+  >
+    Close Session
+  </p>
+</template>
+
+<script setup lang="ts">
+import { formatDate } from "~/helper/formatData";
+import ClockIcon from "../icons/ClockIcon.vue";
+import Question from "../icons/Question.vue";
+import SessionIcon from "../icons/sessionIcon.vue";
+
+interface Session {
+  sessionId: number;
+  sessionName: string;
+  startDate: string;
+  endDate: string;
+  enrollmentDeadline: string;
+  sessionStatus: string;
+  numberOfOpenCourses: number;
+  numberOfStudents: number;
+}
+
+interface Props {
+  session: Session;
+}
+
+defineProps<Props>();
+defineEmits(["edit-session", "close-session"]);
+const daysLeft = (date: string) => {
+  const today = new Date();
+  const targetDate = new Date(date);
+  const diffTime = targetDate.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays > 0 ? `${diffDays} day(s) left` : "Expired";
+};
+</script>
+
+<style lang="scss" scoped>
+/* ====================
+   Card Base Styles
+   ==================== */
+.registrar-card {
+  background-color: $white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: none;
+  border: 1px solid rgb(210, 210, 210);
+  position: relative;
+  width: 100%;
+  /* max-width: 400px; */
+  transition: all 0.2s ease-in-out;
+
+  &.card-deactivated {
+    background-color: $white;
+    border-color: $gray-200;
+    opacity: 0.8;
+  }
+
+  &.card-suspended {
+    background-color: $white;
+    border-color: $gray-200;
+  }
+}
+
+/* ====================
+   Header Section
+   ==================== */
+.registrar-header {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 10px;
+  gap: 16px;
+  width: 100%;
+}
+
+.registrar-avatar {
+  flex-shrink: 0;
+
+  img {
+    width: 48px;
+    height: 48px;
+    border-radius: 32px;
+    object-fit: cover;
+    border: 1px solid $primary-color-400;
+    transition: all 0.2s ease-in-out;
+
+    .card-suspended & {
+      border-color: $warning-500;
+    }
+
+    .card-deactivated & {
+      border-color: $gray-400;
+      opacity: 0.5;
+    }
+  }
+}
+
+.registrar-info {
+  flex: 1;
+  min-width: 0; /* Prevents flex item from overflowing */
+}
+
+.name-status-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.registrar-name {
+  font-weight: 600;
+  font-size: $text-sm;
+  line-height: 1.43;
+  margin: 0;
+  color: $black;
+
+  .card-deactivated & {
+    color: $gray-400;
+  }
+}
+
+.registrar-email {
+  font-size: $text-xs;
+  line-height: 1.5;
+  color: $gray-500;
+  margin: 4px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  .card-deactivated & {
+    color: $gray-400;
+  }
+}
+
+/* ====================
+   Actions Section
+   ==================== */
+.registrar-actions {
+  flex-shrink: 0;
+  position: relative;
+}
+
+.action-button {
+  background: none;
+  border: none;
+  color: $gray-500;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .card-deactivated & {
+    color: $gray-400;
+  }
+}
+
+.disabled-icon {
+  color: $gray-400;
+  cursor: not-allowed;
+}
+
+/* ====================
+   Stats Section
+   ==================== */
+.registrar-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  margin-top: 20px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.green-box {
+  background-color: $success-50;
+  border: 1px solid $success-400;
+  border-radius: 10px;
+}
+.blue-box {
+  background-color: $primary-color-25;
+  border: 1px solid $primary-color-400;
+  border-radius: 10px;
+}
+.grey-box {
+  background-color: $gray-50;
+  // border: 1px solid $gray-300;
+  border-radius: 10px;
+}
+
+.stat-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 79px;
+  max-width: 120px;
+}
+
+.stat-divider {
+  width: 5px;
+  height: 50px;
+  background-color: $primary-color-200;
+  transition: background-color 0.2s ease;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+
+  .green-box & {
+    background-color: $success-400;
+  }
+  .blue-box & {
+    background-color: $primary-color-400;
+  }
+  .grey-box & {
+    background-color: $primary-color-600;
+  }
+
+  .card-suspended &,
+  .card-deactivated & {
+    background-color: $gray-200;
+  }
+}
+
+.stat-item {
+  flex: 1;
+  min-width: 0;
+}
+
+.stat-label {
+  font-size: $text-xs;
+  line-height: 1.302;
+  color: $gray-500;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  .card-deactivated & {
+    color: $gray-400;
+  }
+}
+
+.stat-value {
+  font-weight: 700;
+  font-size: $text-sm;
+  line-height: 1.43;
+  color: $black;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  .card-deactivated & {
+    color: $gray-400;
+  }
+}
+
+/* ====================
+   Status Badge
+   ==================== */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px 1px 6px;
+  border-radius: 16px;
+  font-size: $text-xxs;
+  font-weight: 500;
+  line-height: 1.8;
+  white-space: nowrap;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-active {
+  background-color: $success-50;
+  color: $success-400;
+  border: 1px solid $success-400;
+
+  .status-dot {
+    background-color: $success-400;
+  }
+}
+
+.status-suspended {
+  background-color: $warning-50;
+  color: $warning-500;
+  border: 1px solid $warning-500;
+
+  .status-dot {
+    background-color: $warning-500;
+  }
+}
+
+.status-deactivated {
+  background-color: $gray-50;
+  color: $gray-700;
+  border: 1px solid $gray-200;
+
+  .status-dot {
+    background-color: $gray-400;
+  }
+}
+
+/* ====================
+   Dropdown Styles
+   ==================== */
+.dropdown {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  min-width: 180px;
+  background-color: $white;
+  border-radius: 8px;
+  box-shadow: 0px 12px 16px -4px rgba(16, 24, 40, 0.08),
+    0px 4px 6px -2px rgba(16, 24, 40, 0.03);
+  border: 1px solid $gray-200;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  text-align: left;
+  font-family: $font-family;
+  font-size: $text-sm;
+  color: $gray-700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: $gray-50;
+  }
+
+  .dropdown-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8px;
+    width: 16px;
+    height: 16px;
+    color: $gray-500;
+  }
+}
+
+/* ====================
+   Responsive Styles
+   ==================== */
+@media (max-width: 400px) {
+  .registrar-card {
+    padding: 12px;
+  }
+
+  .registrar-header {
+    margin-bottom: 32px;
+    gap: 12px;
+  }
+
+  .registrar-stats {
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  .stat-group {
+    min-width: 70px;
+  }
+}
+
+@media (max-width: 320px) {
+  .registrar-avatar img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .registrar-name {
+    font-size: $text-sm;
+  }
+
+  .registrar-email {
+    font-size: $text-xs;
+  }
+
+  .stat-value {
+    font-size: $text-sm;
+  }
+}
+
+/* Dropdown transition styles */
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-15px);
+}
+</style>

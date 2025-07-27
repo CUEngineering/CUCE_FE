@@ -604,7 +604,7 @@ const confirmStart = async () => {
 const confirmClose = async () => {
   const { call: confirmDeactivate } = useBackendService(
     `/sessions/${selectedSession.value?.sessionId}`,
-    "patch"
+    ""
   );
 
   if (!selectedSession.value) return;
@@ -662,7 +662,7 @@ const confirmDelete = async () => {
 
   .content-container {
     flex: 1;
-    min-height: 0; // Important for flex children to respect overflow
+    min-height: 0;
     align-self: start;
     max-height: 100%;
 

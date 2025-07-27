@@ -22,10 +22,11 @@
         :bgImage="AdminBlue"
         color="#2A50AD"
         route="/admin/students"
+        @new-data="fetchStats"
       />
       <AdminDash
         clickType="text"
-        clickLabel="+ Create Couse"
+        clickLabel="+ Create Course"
         statLabel="Courses"
         statValue="Total No"
         :number="totalCourses"
@@ -34,6 +35,7 @@
         :bgImage="AdminOrange"
         color="#E04F16"
         route="/admin/courses"
+        @new-data="fetchStats"
       />
       <AdminDash
         clickType="text"
@@ -46,6 +48,7 @@
         :bgImage="AdminPink"
         color="#C11574"
         route="/admin/registrars"
+        @new-data="fetchStats"
       />
       <AdminDash
         clickType="text"
@@ -58,7 +61,11 @@
         :bgImage="AdminGreen"
         color="#099250"
         route="/admin/programs"
+        @new-data="fetchStats"
       />
+    </div>
+    <div v-if="!loading">
+      <AdminEnroll />
     </div>
   </div>
 </template>
@@ -69,8 +76,8 @@ import AdminBlue from "~/assets/images/AdminBlue.svg";
 import AdminGreen from "~/assets/images/AdminGreen.svg";
 import AdminOrange from "~/assets/images/AdminOrange.svg";
 import AdminPink from "~/assets/images/AdminPink.svg";
-
 import AdminDash from "~/components/dashboard/AdminDash.vue";
+import AdminEnroll from "~/components/dashboard/AdminEnroll.vue";
 
 const loading = ref(false);
 
@@ -96,16 +103,20 @@ const { call, error, data } = useBackendService(
 );
 
 const fetchStats = async () => {
+  await call();
+  cachedStats.value = data.value;
+  totalRegistrars.value = data.value.totalRegistrars;
+  totalStudents.value = data.value.totalStudents;
+  totalPrograms.value = data.value.totalPrograms;
+  totalCourses.value = data.value.totalCourses;
+};
+
+onMounted(async () => {
   if (!cachedStats.value) {
     try {
       loading.value = true;
-      await call();
+      await fetchStats();
       loading.value = false;
-      cachedStats.value = data.value;
-      totalRegistrars.value = data.value.totalRegistrars;
-      totalStudents.value = data.value.totalStudents;
-      totalPrograms.value = data.value.totalPrograms;
-      totalCourses.value = data.value.totalCourses;
     } catch (err) {
       console.error("Failed to fetch dashboard stats", err);
     }
@@ -117,10 +128,6 @@ const fetchStats = async () => {
     totalPrograms.value = cachedStats.value.totalPrograms;
     totalCourses.value = cachedStats.value.totalCourses;
   }
-};
-
-onMounted(() => {
-  fetchStats();
 });
 
 definePageMeta({
@@ -148,6 +155,7 @@ definePageMeta({
 }
 .registrars-list {
   display: grid;
+  // grid-template-columns: repeat(4, 1fr);
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 1rem;
   align-items: start;
