@@ -113,9 +113,39 @@ const validateEmail = (value: string) => {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return regex.test(value);
 };
-
+const clearAllCaches = () => {
+  useState("sessionDataCa").value = null;
+  useState("closedSessionCa").value = null;
+  useState("enrollments").value = null;
+  useState("courseCacheData").value = null;
+  useState("programDetailsDataCache").value = null;
+  useState("idCourse").value = null;
+  useState("studentLoad").value = null;
+  useState("sessionLoad").value = null;
+  useState("courseData").value = null;
+  useState("dashboard-stats").value = null;
+  useState("enrollmentsAdmin").value = null;
+  useState("coursesData").value = null;
+  useState("programDetailsData").value = null;
+  useState("id-stats").value = null;
+  useState("studentsData").value = null;
+  useState("programsDataCache").value = null;
+  useState("registrarData").value = null;
+  useState("inviteData").value = null;
+  useState("callCache").value = null;
+  useState("courseCallCache").value = null;
+  useState("studentCallCache").value = null;
+  useState("sessionDataCah").value = null;
+  useState("closedSessionCah").value = null;
+  useState("studentscachT").value = null;
+  useState("statsRTD").value = null;
+  useState("enrollmentsREG").value = null;
+  useState("studentscachTREG").value = null;
+  useState("courseDataSTD").value = null;
+};
 onMounted(() => {
   authStore.logout();
+  clearAllCaches();
 });
 
 const { call, isLoading, error, data } = useBackendService(
