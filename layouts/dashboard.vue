@@ -52,11 +52,12 @@ const sidebarOpen = ref(process.client ? window.innerWidth > 768 : true);
 const authStore = useAuthStore();
 const { success } = useToast();
 const router = useRouter();
-const role = useCookie("role").value;
-const userCookie = useCookie("user").value;
-
+// const role = useCookie("role").value;
+// const userCookie = useCookie("user").value;
+const role = authStore.role;
+console.log(authStore);
 const defaultAvatar = "https://randomuser.me/api/portraits/women/44.jpg";
-const avatar = computed(() => userCookie?.profile_picture ?? defaultAvatar);
+const avatar = computed(() => authStore.user.profile_picture ?? defaultAvatar);
 
 function toggleSidebar() {
   sidebarOpen.value = !sidebarOpen.value;

@@ -3,7 +3,7 @@
     class="programs-page dashlet-wrapper"
     :class="{ empty: !programs.length }"
   >
-    <div v-if="programs.length > 0" class="page-header dashlet">
+    <div class="page-header dashlet">
       <div class="title-and-filter">
         <h2 class="heading-txt">Courses</h2>
       </div>
@@ -23,20 +23,12 @@
             </template>
           </FormInput>
         </div>
-
-        <Button @click="openAddProgramModal" variant="primary" size="sm">
-          <template #icon>
-            <PlusIcon />
-          </template>
-          New Course
-        </Button>
       </div>
     </div>
 
     <!-- Loading state -->
     <Loader v-if="loading" />
 
-    <!-- Empty state for when no programs exist -->
     <EmptyState
       v-else-if="!programs.length"
       class="dashlet"
@@ -53,7 +45,10 @@
     </EmptyState>
 
     <!-- Programs table when programs exist -->
-    <div v-else class="programs-content dashlet">
+    <div
+      v-else-if="programs.length > 0 && !loading"
+      class="programs-content dashlet"
+    >
       <table class="web-table programs-table table-container">
         <thead>
           <tr>
@@ -87,7 +82,21 @@
               <template v-if="typeof cell.column.columnDef.cell === 'function'">
                 <div v-if="cell.column.id === 'actions'" class="action-cell">
                   <button class="action-button">
-                    <DotsVerticalIcon />
+                    <Button
+                      style="padding: 0xp 10px"
+                      variant="secondary"
+                      @click="enroll(row.original.course_id)"
+                    >
+                      Enroll
+                    </Button>
+                  </button>
+                  <button class="action-button">
+                    <Button
+                      variant="yellow"
+                      @click="request(row.original.course_id)"
+                    >
+                      Request
+                    </Button>
                   </button>
                 </div>
 
@@ -227,11 +236,10 @@ import {
   getSortedRowModel,
   useVueTable,
 } from "@tanstack/vue-table";
-import { computed, h, onMounted, reactive, ref, watch } from "vue";
+import { computed, h, onMounted, reactive, ref } from "vue";
 import AddCourseModal from "~/components/AddCourseModal.vue";
 import MobileMain from "~/components/courses/MobileMain.vue";
 import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
-import PlusIcon from "~/components/icons/PlusIcon.vue";
 import Button from "~/components/ui/Button.vue";
 import EmptyState from "~/components/ui/EmptyState.vue";
 import FormInput from "~/components/ui/FormInput.vue";
@@ -248,29 +256,47 @@ interface Program {
   createdAt: string;
   total_enrolled_students?: number;
 }
-
-const {
-  call: fetchPrograms,
-  isLoading: loading,
-  data: programsData,
-} = useBackendService("/courses", "get");
+const loading = ref(false);
+const { call: fetchPrograms, data: programsData } = useBackendService(
+  "/courses",
+  "get"
+);
 
 const programs = ref<Program[]>([]);
 
-watch(
-  programsData,
-  (newData) => {
-    if (newData && Array.isArray(newData)) {
-      programs.value = newData.map((program: any) => ({
+console.log(programs.value);
+
+const programsDataCache = useState<any>("courseData", () => null);
+
+const fetchData = async () => {
+  await fetchPrograms();
+
+  programsDataCache.value = programsData.value;
+  if (programsData.value && Array.isArray(programsData.value)) {
+    programs.value = programsData.value.map((program: any) => ({
+      ...program,
+    }));
+  }
+};
+
+onMounted(async () => {
+  if (!programsDataCache.value) {
+    try {
+      loading.value = true;
+      await fetchData();
+      loading.value = false;
+    } catch (err) {
+      console.error("Failed to fetch dashboard stats", err);
+    }
+  }
+
+  if (programsDataCache.value) {
+    if (programsDataCache.value && Array.isArray(programsDataCache.value)) {
+      programs.value = programsDataCache.value.map((program: any) => ({
         ...program,
       }));
     }
-  },
-  { immediate: true }
-);
-
-onMounted(() => {
-  fetchPrograms();
+  }
 });
 
 const columnHelper = createColumnHelper<Program>();
@@ -314,8 +340,6 @@ const columns = [
   }),
 ];
 
-// Table state
-const globalFilter = ref("");
 const tableState = reactive({
   pagination: {
     pageIndex: 0,
@@ -395,15 +419,19 @@ const openAddProgramModal = () => {
   showAddProgramModal.value = true;
 };
 
-const handleProgramAdded = (programOutput: ProgramOutput) => {
-  fetchPrograms();
+const handleProgramAdded = async (programOutput: ProgramOutput) => {
+  await fetchData();
   showAddProgramModal.value = false;
 };
 
-const viewCourseDetails = (id: string) => {};
-
+const viewCourseDetails = (id: string) => {
+  // return navigateTo(`/admin/courses/${id}`);
+};
+const enroll = (id: string) => {};
+const request = (id: string) => {};
+// Define that this page uses the dashboard layout
 definePageMeta({
-  layout: "student",
+  layout: "dashboard",
 });
 </script>
 

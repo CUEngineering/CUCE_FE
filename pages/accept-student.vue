@@ -110,10 +110,19 @@
               <div class="form-group">
                 <label for="profile">Upload Profile picture (Optional)</label>
                 <div class="upload-container" @click="triggerFileDialog">
-                  <div class="upload-icon"><UploadIcon /></div>
-                  <h2 class="upload-title">Upload File</h2>
+                  <img
+                    v-if="previewUrl"
+                    :src="previewUrl"
+                    alt="Uploaded Image"
+                    class="uploaded-image"
+                  />
 
-                  <p class="upload-subtitle">Maximum size upload: 50MB</p>
+                  <!-- Show upload UI if no image -->
+                  <template v-else>
+                    <div class="upload-icon"><UploadIcon /></div>
+                    <h2 class="upload-title">Upload File</h2>
+                    <p class="upload-subtitle">Maximum size upload: 50MB</p>
+                  </template>
                   <input
                     type="file"
                     id="profile"
@@ -123,9 +132,6 @@
                     @change="handleFileUpload"
                   />
                 </div>
-                <p v-if="file" class="file-name">
-                  Selected file: {{ file.name }}
-                </p>
               </div>
 
               <div class="button-group">
@@ -243,25 +249,18 @@ const prevStep = () => {
 };
 
 const fileInput = ref<HTMLInputElement | null>(null);
+const previewUrl = ref<string | null>(null);
 
 const triggerFileDialog = () => {
   fileInput.value?.click();
 };
 
-const filePreview = ref<string | null>(null);
-
 const handleFileUpload = (e: Event) => {
   const target = e.target as HTMLInputElement;
-  file = target.files?.[0] as any;
-
+  const file = target.files?.[0];
   if (file) {
     form.value.profilePicture = file;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      filePreview.value = e.target?.result as string;
-    };
-    reader.readAsDataURL(file);
+    previewUrl.value = URL.createObjectURL(file);
   }
 };
 
