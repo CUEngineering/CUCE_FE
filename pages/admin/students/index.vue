@@ -1,26 +1,16 @@
 <template>
-  <div class="registrars-page">
-    <div
-      class="content-container dashlet-wrapper"
-      :class="{ 'is-empty': table.getRowModel().rows.length === 0 }"
-    >
-      <div class="page-header dashlet">
-        <div class="title-section">
-          <h2 class="page-title heading-txt">Students</h2>
-          <div class="profile-count pill p-grey pill-sm">
-            {{
-              table.getRowModel().rows.length > 0
-                ? `${table.getRowModel().rows.length} profiles`
-                : "No profiles"
-            }}
-          </div>
-        </div>
-        <div
-          style="display: flex; align-items: center"
-          class="search-container"
-        >
+  <div
+    class="enrollments-page dashlet-wrapper"
+    :class="{ empty: !enrollments.length }"
+  >
+    <div class="page-header dashlet">
+      <div class="title-and-filter">
+        <h2 class="heading-txt">Students</h2>
+      </div>
+      <div v-if="enrollments.length > 0" class="search-and-actions">
+        <div class="search-container">
           <FormInput
-            id="registrar-search"
+            id="program-search"
             label=""
             v-model="searchQuery"
             placeholder="Find a student"
@@ -32,158 +22,215 @@
               </div>
             </template>
           </FormInput>
-          <button
-            style="margin-left: 5px"
-            class="add-button"
-            @click="showInviteModal = true"
-          >
-            <IconsPlusIcon />
-          </button>
-        </div>
-      </div>
-      <div
-        class="registrars-list dashlet"
-        :class="{ 'is-empty': table.getRowModel().rows.length === 0 }"
-      >
-        <Loader v-if="loadingRegistrars" />
-        <!-- Empty state for registrars -->
-        <EmptyState
-          v-if="table.getRowModel().rows.length === 0"
-          class="empty-state"
-          title="No Students yet"
-          description="Students will appear here once they are added to the system."
-        >
-          <template #icon>
-            <img
-              src="~/assets/images/EmptyUser.svg"
-              alt="Users Illustration"
-              class="empty-state-illustration"
-            />
-          </template>
-          <template #action>
-            <Button @click="showInviteModal = true" variant="outline" size="sm">
-              <template #icon>
-                <PlusIcon />
-              </template>
-              Add Student
-            </Button>
-          </template>
-        </EmptyState>
-
-        <StudentCard
-          v-else
-          v-for="row in table.getRowModel().rows"
-          :key="row.index"
-          :registrar="row.original"
-        />
-      </div>
-
-      <div class="pagination">
-        <div class="pagination-controls">
-          <button
-            @click="table.previousPage()"
-            :disabled="!table.getCanPreviousPage()"
-            class="pagination-button"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M10 12L6 8L10 4"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-            Previous
-          </button>
-          <div class="pagination-pages">
-            <button
-              v-for="page in calculatePageRange()"
-              :key="page"
-              @click="goToPage(page - 1)"
-              class="page-button"
-              :class="{
-                active: table.getState().pagination.pageIndex === page - 1,
-              }"
-            >
-              {{ page }}
-            </button>
-          </div>
-          <button
-            @click="table.nextPage()"
-            :disabled="!table.getCanNextPage()"
-            class="pagination-button"
-          >
-            Next
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M6 4L10 8L6 12"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </button>
         </div>
       </div>
     </div>
+    <Loader v-if="loading" />
 
-    <!-- Toast Container -->
-    <ToastContainer />
+    <!-- Empty state for when no enrollments exist -->
+    <EmptyState
+      v-if="!loading && !enrollments.length"
+      class="dashlet"
+      title="No Students yet"
+      description="Students will appear here once they are added to the system."
+    >
+      <template #icon>
+        <img
+          src="~/assets/images/EmptyProgram.svg"
+          alt="Users Illustration"
+          class="empty-state-illustration"
+        />
+      </template>
+      <template #action>
+        <Button @click="showInviteModal = true" variant="outline" size="sm">
+          <template #icon>
+            <PlusIcon />
+          </template>
+          Add Student
+        </Button>
+      </template>
+    </EmptyState>
 
-    <!-- Modals -->
-    <AddModal
-      v-model="showInviteModal"
-      :loading="isInviteSending"
-      @invite-success="handleInviteSuccess"
-      @invite-failure="handleInviteFailure"
-    />
+    <!-- enrollments table when enrollments exist -->
+    <div
+      v-if="!loading && enrollments.length"
+      class="enrollments-content dashlet program-tabs"
+    >
+      <div class="tabs-heading">
+        <!-- Tabs for students/courses -->
+        <div style="display: flex">
+          <h2>Available Students</h2>
+          <div
+            style="margin: auto; margin-left: 20px"
+            class="web profile-count pill p-grey pill-sm"
+          >
+            ({{ startRecord }} - {{ endRecord }}) of {{ totalRecords }}
+          </div>
+        </div>
 
-    <Dialog
-      v-model="showInviteSuccessDialog"
-      title="Invites Sent!"
-      message="Your invitation have been sent to the provided email address. The invited student will receive an email with a link to join the platform."
-      variant="success"
-      :icon="true"
-      cancelButtonText="Awesome 🎉"
-      confirmButtonText=""
-      :showCancelButton="true"
-      :showConfirmButton="false"
-      :showCloseButton="true"
-      :persistent="false"
-      :loading="false"
-    />
-    <Dialog
-      v-model="showInviteFailureDialog"
-      title="Invite failed!"
-      message="There was an issue, We’re unable to send your invite to the provided email address. Please try again."
-      variant="danger"
-      :icon="true"
-      cancelButtonText="Try again!"
-      confirmButtonText=""
-      :showCancelButton="true"
-      :showConfirmButton="false"
-      :showCloseButton="true"
-      :persistent="false"
-      :loading="false"
-    />
+        <div style="display: flex" class="web header-actions">
+          <Button @click="showInviteModal = true" variant="primary" size="sm">
+            <template #icon>
+              <PlusIcon />
+            </template>
+            New Student
+          </Button>
+          <FilterIcon style="margin-left: 5px" class="avatar" />
+        </div>
+      </div>
+      <div>
+        <div class="web-table">
+          <table class="enrollments-table table-container">
+            <thead>
+              <tr>
+                <th
+                  v-for="header in table.getHeaderGroups()[0].headers"
+                  :key="header.id"
+                  @click="header.column.getToggleSortingHandler()"
+                  class="table-header"
+                >
+                  <div class="header-content">
+                    {{ header.column.columnDef.header }}
+                    <span
+                      v-if="header.column.getIsSorted()"
+                      class="sort-indicator"
+                    >
+                      {{ header.column.getIsSorted() === "desc" ? "▼" : "▲" }}
+                    </span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="row in table.getRowModel().rows"
+                :key="row.id"
+                @click="handleInfo(row.original)"
+                class="table-row"
+              >
+                <td
+                  v-for="cell in row.getVisibleCells()"
+                  :key="cell.id"
+                  class="table-cell"
+                >
+                  <template
+                    v-if="typeof cell.column.columnDef.cell === 'function'"
+                  >
+                    <div
+                      v-if="cell.column.id === 'actions'"
+                      class="action-cell"
+                    >
+                      <button
+                        class="action-button delete-button"
+                        @click.stop="handleDelete(row.original)"
+                      >
+                        <ActionCancelIcon />
+                      </button>
+                      <button
+                        class="action-button edit-button"
+                        @click.stop="handleEdit(row.original)"
+                      >
+                        <ActionEditIcon />
+                      </button>
+                    </div>
+
+                    <div v-else>
+                      {{ cell.renderValue() }}
+                    </div>
+                  </template>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="mobile-table">
+          <!-- <MobileEnrollment
+            v-for="row in table.getRowModel().rows"
+            :key="row.id"
+            :selectedEnrollment="row.original"
+            @activate="
+              () => {
+                selectedEnrollment = row.original;
+                showEditModal = true;
+              }
+            "
+            @deactivate="
+              () => {
+                selectedEnrollment = row.original;
+                showDeleteModal = true;
+              }
+            "
+            @viewDetails="handleInfo(row.original as Student)"
+          /> -->
+        </div>
+        <div class="pagination">
+          <div class="pagination-controls">
+            <button
+              @click="table.previousPage()"
+              :disabled="!table.getCanPreviousPage()"
+              class="pagination-button"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M10 12L6 8L10 4"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Previous
+            </button>
+            <div class="pagination-pages">
+              <button
+                v-for="page in calculatePageRange()"
+                :key="page"
+                @click="goToPage(page - 1)"
+                class="page-button"
+                :class="{
+                  active: table.getState().pagination.pageIndex === page - 1,
+                }"
+              >
+                {{ page }}
+              </button>
+            </div>
+            <button
+              @click="table.nextPage()"
+              :disabled="!table.getCanNextPage()"
+              class="pagination-button"
+            >
+              Next
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M6 4L10 8L6 12"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import type { ColumnSort } from "@tanstack/vue-table";
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -191,18 +238,17 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useVueTable,
-  type ColumnSort,
 } from "@tanstack/vue-table";
-import { provide, ref } from "vue";
+import { computed, reactive, ref } from "vue";
+import ActionCancelIcon from "~/components/icons/ActionCancelIcon.vue";
+import ActionEditIcon from "~/components/icons/ActionEditIcon.vue";
+import FilterIcon from "~/components/icons/FilterIcon.vue";
 import PlusIcon from "~/components/icons/PlusIcon.vue";
-import AddModal from "~/components/student/AddModal.vue";
 import Button from "~/components/ui/Button.vue";
-import Dialog from "~/components/ui/Dialog.vue";
 import EmptyState from "~/components/ui/EmptyState.vue";
 import FormInput from "~/components/ui/FormInput.vue";
-import ToastContainer from "~/components/ui/ToastContainer.vue";
 
-interface Registrar {
+interface Student {
   student_id: number;
   first_name: string;
   last_name: string;
@@ -210,50 +256,57 @@ interface Registrar {
   profile_picture: string;
   reg_number: string;
 }
-
-definePageMeta({
-  layout: "dashboard",
-});
-const showInviteSuccessDialog = ref(false);
-const showInviteFailureDialog = ref(false);
-
-const handleInviteSuccess = () => {
-  showInviteModal.value = false;
-  showInviteSuccessDialog.value = true;
-};
-
-const handleInviteFailure = () => {
-  showInviteModal.value = false;
-  showInviteFailureDialog.value = true;
-};
-
-const openDropdownId = ref<Symbol | null>(null);
-provide("openDropdownId", openDropdownId);
-
-const searchQuery = ref<string>("");
-
-watch(searchQuery, (value) => {
-  table.setGlobalFilter(value);
-});
-// Modal and dialog state
+const toast = useToast();
+const loading = ref(false);
 const showInviteModal = ref(false);
-const isInviteSending = ref(false);
 
-const {
-  call: fetchRegistrars,
-  isLoading: loadingRegistrars,
-  data: registrarData,
-} = useBackendService("/students", "get");
-
-const registrars = ref<Registrar[]>([]);
-
+const { call, data } = useBackendService("/students", "get");
+const enrollments = ref<Student[]>([]);
+const enrollmentsDataCache = useState("enrollments", () => null);
+const fetchData = async () => {
+  await call();
+  enrollmentsDataCache.value = data.value;
+  enrollments.value = data.value || [];
+};
 onMounted(async () => {
-  try {
-    await fetchRegistrars();
-    registrars.value = registrarData.value || [];
-  } catch (err) {
-    console.error("Failed to fetch data:", err);
+  if (!enrollmentsDataCache.value) {
+    try {
+      loading.value = true;
+      await fetchData();
+      loading.value = false;
+    } catch (err) {
+      console.error("Failed to fetch dashboard stats", err);
+    }
   }
+
+  if (enrollmentsDataCache.value) {
+    enrollments.value = enrollmentsDataCache.value || [];
+  }
+});
+
+const columnHelper = createColumnHelper<Student>();
+
+const columns = computed(() => {
+  const cols: any[] = [
+    columnHelper.accessor("first_name", {
+      header: "Course",
+      cell: (props) => props.getValue(),
+    }),
+    columnHelper.accessor("email", {
+      header: "Enrolled Programme",
+      cell: (props) => props.getValue(),
+    }),
+  ];
+
+  cols.push(
+    columnHelper.display({
+      id: "actions",
+      header: "Action",
+      cell: () => {},
+    })
+  );
+
+  return cols;
 });
 
 const tableState = reactive({
@@ -265,32 +318,21 @@ const tableState = reactive({
   globalFilter: "",
 });
 
-const columnHelper = createColumnHelper<any>();
-
-const columns = [
-  columnHelper.accessor("first_name", { header: "First Name" }),
-  columnHelper.accessor("last_name", { header: "Last Name" }),
-  columnHelper.accessor("email", { header: "Email" }),
-  columnHelper.accessor("reg_number", { header: "Reg Number" }),
-];
-function fuzzyFilter(row: any, columnId: string, filterValue: string) {
-  const registrar = row.original;
-  const query = filterValue.toLowerCase();
-  return (
-    registrar.first_name.toLowerCase().includes(query) ||
-    registrar.last_name.toLowerCase().includes(query) ||
-    registrar.email.toLowerCase().includes(query) ||
-    registrar.reg_number.toLowerCase().includes(query)
-  );
-}
+const searchQuery = computed({
+  get: () => tableState.globalFilter,
+  set: (value) => {
+    tableState.globalFilter = value;
+  },
+});
 
 const table = useVueTable({
   get data() {
-    return registrars.value;
+    return enrollments.value;
   },
-  columns,
+  get columns() {
+    return columns.value;
+  },
   state: tableState,
-  globalFilterFn: fuzzyFilter,
   onGlobalFilterChange: (value) => {
     tableState.globalFilter = value;
   },
@@ -309,10 +351,12 @@ const table = useVueTable({
   getPaginationRowModel: getPaginationRowModel(),
   getSortedRowModel: getSortedRowModel(),
 });
+
+// Pagination helpers
 const calculatePageRange = () => {
   const currentPage = table.getState().pagination.pageIndex + 1;
   const totalPages = table.getPageCount();
-  const maxVisiblePages = 8;
+  const maxVisiblePages = 5;
 
   if (totalPages <= maxVisiblePages) {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -331,155 +375,266 @@ const calculatePageRange = () => {
     (_, i) => startPage + i
   );
 };
+
+const showEditModal = ref(false);
+const showDeleteModal = ref(false);
+const showInfoModal = ref(false);
+const isActionLoading = ref(false);
+const selectedEnrollment = ref<Student | null>(null);
+
+const handleEdit = async (rowData: Student) => {
+  selectedEnrollment.value = rowData;
+  showEditModal.value = true;
+};
+
+const handleDelete = async (rowData: Student) => {
+  selectedEnrollment.value = rowData;
+  showDeleteModal.value = true;
+};
+const handleInfo = async (rowData: Student) => {
+  selectedEnrollment.value = rowData;
+  showInfoModal.value = true;
+};
+const handleDeleteAction = async ({
+  reason,
+  customReason,
+}: {
+  reason: string;
+  customReason: string;
+}) => {
+  const { call } = useBackendService(
+    `/enrollments/${selectedEnrollment.value}`,
+    "patch"
+  );
+  const finalReason = reason === "Other reason" ? customReason : reason;
+
+  isActionLoading.value = true;
+  try {
+    await call({
+      enrollment_status: "REJECTED",
+      rejection_reason: finalReason,
+    });
+    toast.success("Enrollment rejected successfully");
+    fetchData();
+
+    showDeleteModal.value = false;
+    selectedEnrollment.value = null;
+  } catch (error) {
+    toast.error("Failed to reject enrollment");
+  } finally {
+    isActionLoading.value = false;
+  }
+};
+
 const goToPage = (pageIndex: number) => {
   table.setPageIndex(pageIndex);
 };
+
+definePageMeta({
+  layout: "dashboard",
+});
+
+const totalRecords = computed(() => enrollments.value.length);
+
+const startRecord = computed(() => {
+  return (
+    table.getState().pagination.pageIndex *
+      table.getState().pagination.pageSize +
+    1
+  );
+});
+const endRecord = computed(() => {
+  const possibleEnd =
+    (table.getState().pagination.pageIndex + 1) *
+    table.getState().pagination.pageSize;
+  return possibleEnd > totalRecords.value ? totalRecords.value : possibleEnd;
+});
 </script>
 
 <style lang="scss" scoped>
-.registrars-page {
-  height: calc(100vh - 88px); // Adjust based on your header height
+.program-tabs {
   display: flex;
-  gap: 10px;
+  flex-direction: column;
 
-  .content-container {
-    flex: 1;
-    min-height: 0; // Important for flex children to respect overflow
-    align-self: start;
-    max-height: 100%;
+  .tabs-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $spacing-4;
+    border-bottom: 1px solid $gray-200;
+    gap: $spacing-4;
+  }
 
-    &.is-empty {
-      align-self: auto;
+  .tab-actions {
+    display: flex;
+    gap: $spacing-2;
+    align-items: center;
+  }
+
+  .program-tab-title {
+    display: flex;
+    gap: $spacing-2;
+    padding: $spacing-1;
+    background-color: $gray-100;
+    border-radius: 8px;
+    border: 1px solid $gray-200;
+
+    .tab-button {
+      padding: $spacing-2 $spacing-8;
+      background: none;
+      border: none;
+      border-radius: 8px;
+      border-bottom: 2px solid transparent;
+      color: $gray-600;
+      font-weight: 400;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: $font-family;
+      font-size: $text-xs;
+
+      &:hover {
+        color: $gray-900;
+      }
+
+      &.active {
+        color: $primary-color-600;
+        background-color: $white;
+        font-weight: 600;
+      }
     }
+  }
+}
+/* ====================
+   Status Badge
+   ==================== */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px 1px 6px;
+  border-radius: 16px;
+  font-size: $text-xxs;
+  font-weight: 500;
+  line-height: 1.8;
+  white-space: nowrap;
+}
 
-    .page-header {
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-active {
+  background-color: $success-50;
+  color: $success-400;
+  border: 1px solid $success-400;
+
+  .status-dot {
+    background-color: $success-400;
+  }
+}
+
+.status-suspended {
+  background-color: $primary-color-50;
+  color: $primary-color-500;
+  border: 1px solid $primary-color-500;
+
+  .status-dot {
+    background-color: $primary-color-500;
+  }
+}
+
+.status-deactivated {
+  background-color: $error-50;
+  color: $error-700;
+  border: 1px solid $error-200;
+
+  .status-dot {
+    background-color: $error-400;
+  }
+}
+
+.student-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.student-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.student-name {
+  font-weight: 600;
+}
+
+.student-id {
+  font-size: 0.85rem;
+  color: #777;
+}
+
+.enrollments-page {
+  max-width: 100%;
+
+  &.empty {
+    height: 100%;
+  }
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: $spacing-4;
+
+    .title-and-filter {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
-      padding: 16px;
-      background: $white;
-
-      .title-section {
-        display: flex;
-        align-items: baseline;
-        gap: 8px;
-
-        .page-title {
-          font-family: $font-family-heading;
-          font-size: $text-2xl;
-          font-weight: 800;
-          color: $gray-800;
-          margin: 0;
-        }
-
-        .profile-count {
-          color: $gray-600;
-          font-size: $text-sm;
-        }
-      }
+      gap: $spacing-4;
     }
 
-    .registrars-list {
-      display: grid;
-      gap: 1rem;
-      align-items: start;
-      overflow-y: auto;
-      padding: 12px;
-      border-radius: 16px;
-      min-height: 200px; // Add minimum height for empty state
-
-      &.is-empty {
-        flex: 1;
-      }
-
-      // New styles to make EmptyState occupy full width
-      > .empty-state {
-        grid-column: 1 / -1; // Span all columns
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-      }
-    }
-  }
-
-  .pending-invites {
-    width: 400px;
-    max-width: 100%;
-    flex: 0 0 auto;
-    min-height: 0;
-
-    .invites-header {
+    .search-and-actions {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px;
+      gap: $spacing-2;
 
-      .invites-title {
-        font-family: $font-family-heading;
-        font-size: $text-base;
-        font-weight: 700;
-        color: $gray-800;
-        margin: 0;
-      }
-    }
-
-    .invites-list {
-      display: flex;
-      flex-direction: column;
-      padding: 24px;
-      overflow-y: auto;
-      height: 100%;
-      min-height: 200px; // Add minimum height for empty state
-    }
-  }
-
-  @media (max-width: 1024px) {
-    flex-direction: column;
-    height: auto; // Remove fixed height
-    min-height: 100vh; // Ensure it takes at least full viewport height
-
-    .content-container {
-      flex: 1;
-      min-height: 0;
-      width: 100%;
-
-      .registrars-list {
-        overflow-y: visible; // Remove overflow
-        // padding-bottom: 0;
-      }
-    }
-
-    .pending-invites {
-      width: 100%;
-      flex: 1;
-      overflow-y: visible; // Remove overflow
-      min-height: auto;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .page-header {
-      // flex-direction: column;
-      align-items: flex-start;
-
-      .search-add-section {
-        width: 100%;
-
-        .search-container {
-          flex: 1;
-        }
+      :deep(.base-button) {
+        width: unset;
       }
     }
   }
 
-  @media (max-width: 640px) {
-    .registrars-list {
-      grid-template-columns: 1fr;
+  // Table styles
+  .enrollments-content {
+    background-color: $white;
+    border-radius: 16px;
+    border: 1px solid $gray-200;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+    &.dashlet {
+      padding: 0;
     }
   }
+
+  .enrollments-table {
+    .courses-cell {
+      .core-count {
+        display: inline-block;
+        margin-left: $spacing-2;
+        padding: 2px $spacing-2;
+        background-color: $primary-color-100;
+        color: $primary-color-700;
+        border-radius: 4px;
+        font-size: $text-xs;
+        font-weight: 500;
+      }
+    }
+  }
+
+  // Pagination
   .pagination {
     display: flex;
     justify-content: center;
@@ -543,6 +698,22 @@ const goToPage = (pageIndex: number) => {
         background-color: $primary-color;
         color: $white;
       }
+    }
+  }
+  .mobile-table {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    .web-table {
+      display: none;
+    }
+    .web {
+      display: none;
+    }
+
+    .mobile-table {
+      display: block;
     }
   }
 }

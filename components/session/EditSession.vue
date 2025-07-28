@@ -196,10 +196,10 @@ const validateDates = () => {
     hasErrors = true;
   }
 
-  // Check if enrollment deadline is before or equal to start date
-  if (enrollmentDeadline > startDate) {
+  // Check if enrollment deadline is after end date
+  if (enrollmentDeadline > endDate) {
     form.errors.enrollment_deadline =
-      "Enrollment deadline must be before or equal to start date";
+      "Enrollment deadline must be before or equal to end date";
     hasErrors = true;
   }
 
