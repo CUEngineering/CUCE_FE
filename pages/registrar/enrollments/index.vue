@@ -390,7 +390,7 @@ const loading = ref(false);
 
 const { call, data } = useBackendService("/enrollments", "get");
 const enrollments = ref<Enrollment[]>([]);
-const enrollmentsDataCache = useState("enrollments", () => null);
+const enrollmentsDataCache = useState("enrollmentsREG", () => null);
 const fetchData = async () => {
   await call();
   enrollmentsDataCache.value = data.value;

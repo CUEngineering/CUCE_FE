@@ -266,7 +266,7 @@ const programs = ref<Program[]>([]);
 
 console.log(programs.value);
 
-const programsDataCache = useState<any>("courseData", () => null);
+const programsDataCache = useState<any>("courseDataSTD", () => null);
 
 const fetchData = async () => {
   await fetchPrograms();

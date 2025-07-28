@@ -524,7 +524,7 @@ const toggleDropdown = (studentId: number) => {
 
 const { call, data } = useBackendService("/students", "get");
 const enrollments = ref<Student[]>([]);
-const enrollmentsDataCache = useState("studentscachT", () => null);
+const enrollmentsDataCache = useState("studentscachTREG", () => null);
 const fetchData = async () => {
   await call();
   enrollmentsDataCache.value = data.value;

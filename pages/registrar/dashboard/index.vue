@@ -80,7 +80,7 @@ interface DashboardStats {
 }
 
 const cachedStats = useState<DashboardStats | null>(
-  "dashboard-stats",
+  "dashboard-statsRTD",
   () => null
 );
 
