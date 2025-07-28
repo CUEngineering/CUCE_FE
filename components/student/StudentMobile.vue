@@ -55,7 +55,10 @@
           <div class="stat-label">Registrar</div>
           <div class="stat-value">
             <template v-if="selectedCourse.enrollments[0]?.registrars?.email">
-              <div class="student-info status-badge profile-count pill p-grey">
+              <div
+                style="width: fit-content"
+                class="student-info status-badge profile-count pill p-grey"
+              >
                 <img
                   :src="
                     selectedCourse.enrollments[0].registrars.profile_picture

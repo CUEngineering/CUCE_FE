@@ -98,7 +98,7 @@
         <div class="stat-item">
           <div class="stat-label">Assigned Requests</div>
           <div class="stat-value">
-            {{ session.numberOfOpenCourses }}
+            {{ enrollments.length || 0 }}
           </div>
         </div>
         <div class="stat-item">
@@ -109,69 +109,106 @@
         </div>
       </div>
     </div>
-
-    <div class="registrar-stats grey-box">
-      <div class="stat-group">
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <div class="stat-label">Session Duration</div>
-          <div class="stat-value">
-            <div>
-              <span><SessionIcon /></span>
-              {{ formatDate(session.startDate) }} -
-              {{ formatDate(session.endDate) }}
+    <div v-if="role === 'ADMIN'">
+      <div class="registrar-stats grey-box">
+        <div class="stat-group">
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <div class="stat-label">Session Duration</div>
+            <div class="stat-value">
+              <div>
+                <span><SessionIcon /></span>
+                {{ formatDate(session.startDate) }} -
+                {{ formatDate(session.endDate) }}
+              </div>
+            </div>
+            <hr style="width: 20vw" />
+            <div
+              style="
+                width: 20vw;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+              "
+            >
+              <div>
+                <span><ClockIcon /></span>
+                {{ daysLeft(session.endDate) }} left
+              </div>
             </div>
           </div>
-          <hr style="width: 20vw" />
-          <div
-            style="
-              width: 20vw;
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-            "
-          >
-            <div>
-              <span><ClockIcon /></span>
-              {{ daysLeft(session.endDate) }}
+        </div>
+      </div>
+
+      <div class="registrar-stats grey-box">
+        <div class="stat-group">
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <div class="stat-label">Enrollment Deadline</div>
+            <div class="stat-value">
+              <div>
+                <span><SessionIcon /></span>
+                {{ formatDate(session.enrollmentDeadline) }}
+              </div>
+            </div>
+            <hr style="width: 20vw" />
+            <div
+              style="
+                width: 20vw;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+              "
+            >
+              <div>
+                <span><ClockIcon /></span>
+                {{ daysLeft(session.enrollmentDeadline) }} left
+              </div>
+              <p
+                v-if="role === 'ADMIN'"
+                @click="$emit('edit-session', session)"
+                style="color: #2a50ad; font-size: smaller"
+              >
+                Extend Deadline
+              </p>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="registrar-stats grey-box">
-      <div class="stat-group">
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <div class="stat-label">Enrollment Deadline</div>
-          <div class="stat-value">
-            <div>
-              <span><SessionIcon /></span>
-              {{ formatDate(session.enrollmentDeadline) }}
-            </div>
-          </div>
-          <hr style="width: 20vw" />
-          <div
-            style="
-              width: 20vw;
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-            "
-          >
-            <div>
-              <span><ClockIcon /></span>
-              {{ daysLeft(session.enrollmentDeadline) }}
-            </div>
-            <p
-              v-if="role === 'ADMIN'"
-              @click="$emit('edit-session', session)"
-              style="color: #2a50ad; font-size: smaller"
-            >
-              Extend Deadline
-            </p>
-          </div>
+    <div v-if="role === 'REGISTRAR'">
+      <div
+        style="display: flex; flex-direction: column; background-color: #dbebfe"
+        class="registrar-stats plain-box"
+      >
+        <div class="stat-divide"></div>
+        <div class="stat-label">Session Duration</div>
+        <div>
+          <span><SessionIcon /></span>
+          {{ formatDate(session.startDate) }} -
+          {{ formatDate(session.endDate) }}
+        </div>
+        <hr style="width: 15vw; background-color: #2a50ad" />
+        <div>
+          <span><ClockIcon /></span>{{ " " }} Session starts in
+          {{ daysLeft(session.startDate) }}
+        </div>
+      </div>
+      <div
+        style="display: flex; flex-direction: column"
+        class="registrar-stats yellow-box"
+      >
+        <div class="stat-divide" style="background-color: #a05300"></div>
+        <div class="stat-label">Enrollment Dealine</div>
+        <div>
+          <span><SessionIcon /></span>
+          {{ formatDate(session.enrollmentDeadline) }}
+        </div>
+        <hr style="width: 15vw; background-color: #2a50ad" />
+        <div>
+          <span><ClockIcon /></span>{{ " " }}
+          {{ daysLeft(session.startDate) }} left to enroll
         </div>
       </div>
     </div>
@@ -206,7 +243,7 @@ interface Props {
   session: Session;
 }
 const auth = useAuthStore();
-const role = auth.role;
+const role = auth.role as "ADMIN" | "REGISTRAR" | "STUDENT";
 const props = defineProps<Props>();
 defineEmits(["edit-session", "close-session"]);
 const daysLeft = (date: string) => {
@@ -214,7 +251,7 @@ const daysLeft = (date: string) => {
   const targetDate = new Date(date);
   const diffTime = targetDate.getTime() - today.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays > 0 ? `${diffDays} day(s) left` : "Expired";
+  return diffDays > 0 ? `${diffDays} day(s)` : "Expired";
 };
 
 const today = new Date() as any;
@@ -230,6 +267,18 @@ const daysPassed = Math.min(
 const progress = computed(() => Math.round((daysPassed / totalDays) * 100));
 
 const progressColor = "#2a50ad";
+const { call, data } = useBackendService("/enrollments", "get");
+const authStore = useAuthStore();
+const enrollments = ref<any[]>([]);
+const enrollmentsDataCache = useState("enrollmentsDash", () => null);
+
+if (role === "REGISTRAR") {
+  onMounted(async () => {
+    await call({ registrar_id: authStore.user?.registrar_id });
+    enrollmentsDataCache.value = data.value;
+    enrollments.value = data.value || [];
+  });
+}
 </script>
 
 <style lang="scss" scoped>
@@ -394,6 +443,14 @@ const progressColor = "#2a50ad";
   // border: 1px solid $gray-300;
   border-radius: 10px;
 }
+.plain-box {
+  background-color: $primary-color-600;
+  border-radius: 10px;
+}
+.yellow-box {
+  background-color: $warning-50;
+  border-radius: 10px;
+}
 
 .stat-group {
   display: flex;
@@ -425,6 +482,18 @@ const progressColor = "#2a50ad";
   .card-suspended &,
   .card-deactivated & {
     background-color: $gray-200;
+  }
+}
+.stat-divide {
+  width: 15vw;
+  height: 3px;
+  background-color: $primary-color-600;
+  transition: background-color 0.2s ease;
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius: 4px;
+
+  .yellow-boxed & {
+    background-color: $warning-500;
   }
 }
 

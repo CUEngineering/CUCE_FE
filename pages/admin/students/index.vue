@@ -201,6 +201,7 @@
                       >
                         <div
                           class="student-info status-badge profile-count pill p-grey"
+                          style="width: fit-content"
                         >
                           <img
                             :src="

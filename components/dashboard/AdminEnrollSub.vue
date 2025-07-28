@@ -127,6 +127,7 @@
                     <div
                       v-else-if="cell.column.id === 'assignedRegistrar'"
                       class="student-info status-badge profile-count pill p-grey"
+                      style="width: fit-content"
                     >
                       <img
                         :src="cell.row.original.assignedRegistrarImage"
@@ -350,7 +351,7 @@ interface Enrollment {
 const toast = useToast();
 const loading = ref(false);
 const router = useRouter();
-
+const authStore = useAuthStore();
 function goToEnrollments() {
   router.push("/admin/enrollments");
 }
@@ -359,7 +360,12 @@ const { call, data } = useBackendService("/enrollments", "get");
 const enrollments = ref<Enrollment[]>([]);
 const enrollmentsDataCache = useState("enrollments", () => null);
 const fetchData = async () => {
-  await call();
+  if (authStore.role === "REGISTRAR") {
+    await call({ registrar_id: authStore.user?.registrar_id });
+  } else {
+    await call();
+  }
+
   enrollmentsDataCache.value = data.value;
   enrollments.value = data.value || [];
 };

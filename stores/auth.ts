@@ -1,6 +1,6 @@
 // stores/auth.ts
-import { defineStore } from "pinia";
 import { useCookie } from "#app";
+import { defineStore } from "pinia";
 
 interface UserData {
   first_name: string;
@@ -9,6 +9,9 @@ interface UserData {
   profile_picture: string;
   reg_number?: string;
   program_id?: string;
+  admin_id: number;
+  registrar_id: number;
+  student_id: number;
 }
 interface Role {}
 
