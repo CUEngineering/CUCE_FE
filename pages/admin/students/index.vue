@@ -120,20 +120,119 @@
                       v-if="cell.column.id === 'actions'"
                       class="action-cell"
                     >
-                      <button
-                        class="action-button delete-button"
-                        @click.stop="handleDelete(row.original)"
-                      >
-                        <ActionCancelIcon />
-                      </button>
-                      <button
-                        class="action-button edit-button"
-                        @click.stop="handleEdit(row.original)"
-                      >
-                        <ActionEditIcon />
-                      </button>
-                    </div>
+                      <div class="dropdown">
+                        <button
+                          @click.stop="toggleDropdown(row.original.student_id)"
+                          class="action-button"
+                          aria-haspopup="true"
+                          :aria-expanded="
+                            openDropdownId === row.original.student_id
+                          "
+                        >
+                          <DotsVerticalIcon />
+                        </button>
+                        <transition name="dropdown">
+                          <div
+                            v-if="openDropdownId === row.original.student_id"
+                            class="dropdown-menu"
+                            @click.stop
+                          >
+                            <button
+                              @click.stop="showSuspendDialog(row.original)"
+                              class="dropdown-item"
+                            >
+                              <span class="dropdown-icon">
+                                <CloseCircleIcon />
+                              </span>
+                              Suspend Account
+                            </button>
 
+                            <button
+                              @click.stop="showDeleteDialog(row.original)"
+                              class="dropdown-item"
+                            >
+                              <span class="dropdown-icon">
+                                <DeleteIcon />
+                              </span>
+                              Remove Account
+                            </button>
+                          </div>
+                        </transition>
+                      </div>
+                    </div>
+                    <div
+                      v-else-if="cell.column.id === 'first_name'"
+                      class="student-info"
+                    >
+                      <img
+                        :src="cell.row.original.profile_picture"
+                        :alt="cell.row.original.reg_number"
+                        class="avatar"
+                      />
+                      <div class="student-details">
+                        <div class="student-name">
+                          {{ cell.row.original.first_name }}{{ " "
+                          }}{{ cell.row.original.last_name }}
+                        </div>
+                        <div class="student-id">
+                          @{{ cell.row.original.reg_number }}
+                        </div>
+                      </div>
+                    </div>
+                    <div v-else-if="cell.column.id === 'email'">
+                      {{ cell.row.original?.program.program_name }}
+                    </div>
+                    <div
+                      v-else-if="cell.column.id === 'reg_number'"
+                      class="status-badge"
+                      :class="
+                        getStatusClass(cell.row.original?.program.program_type)
+                      "
+                    >
+                      {{
+                        capitalizeFirst(cell.row.original?.program.program_type)
+                      }}
+                    </div>
+                    <div v-else-if="cell.column.id === 'last_name'">
+                      <template
+                        v-if="
+                          cell.row.original.enrollments[0]?.registrars?.email
+                        "
+                      >
+                        <div
+                          class="student-info status-badge profile-count pill p-grey"
+                        >
+                          <img
+                            :src="
+                              cell.row.original.enrollments[0].registrars
+                                .profile_picture
+                            "
+                            :alt="
+                              cell.row.original.enrollments[0].registrars
+                                .first_name
+                            "
+                            class="avatar"
+                          />
+                          <div class="student-details">
+                            <div class="student-name">
+                              {{
+                                cell.row.original.enrollments[0].registrars
+                                  .first_name
+                              }}
+                              {{
+                                cell.row.original.enrollments[0].registrars
+                                  .last_name
+                              }}
+                            </div>
+                          </div>
+                        </div>
+                      </template>
+                      <template v-else>
+                        <div class="">
+                          <div class="">No assigned registrar</div>
+                        </div>
+                      </template>
+                    </div>
                     <div v-else>
                       {{ cell.renderValue() }}
                     </div>
@@ -144,24 +243,11 @@
           </table>
         </div>
         <div class="mobile-table">
-          <!-- <MobileEnrollment
+          <StudentMobile
             v-for="row in table.getRowModel().rows"
             :key="row.id"
-            :selectedEnrollment="row.original"
-            @activate="
-              () => {
-                selectedEnrollment = row.original;
-                showEditModal = true;
-              }
-            "
-            @deactivate="
-              () => {
-                selectedEnrollment = row.original;
-                showDeleteModal = true;
-              }
-            "
-            @viewDetails="handleInfo(row.original as Student)"
-          /> -->
+            :selectedCourse="row.original"
+          />
         </div>
         <div class="pagination">
           <div class="pagination-controls">
@@ -226,6 +312,60 @@
         </div>
       </div>
     </div>
+    <AddModal
+      v-model="showInviteModal"
+      :loading="isInviteSending"
+      @invite-success="handleInviteSuccess"
+      @invite-failure="handleInviteFailure"
+    />
+
+    <Dialog
+      v-model="showInviteSuccessDialog"
+      title="Invites Sent!"
+      message="Your invitation have been sent to the provided email address. The invited student will receive an email with a link to join the platform."
+      variant="success"
+      :icon="true"
+      cancelButtonText="Awesome 🎉"
+      confirmButtonText=""
+      :showCancelButton="true"
+      :showConfirmButton="false"
+      :showCloseButton="true"
+      :persistent="false"
+      :loading="false"
+    />
+    <Dialog
+      v-model="showInviteFailureDialog"
+      title="Invite failed!"
+      message="There was an issue, We’re unable to send your invite to the provided email address. Please try again."
+      variant="danger"
+      :icon="true"
+      cancelButtonText="Try again!"
+      confirmButtonText=""
+      :showCancelButton="true"
+      :showConfirmButton="false"
+      :showCloseButton="true"
+      :persistent="false"
+      :loading="false"
+    />
+    <Dialog
+      v-model="showDeactivateConfirm"
+      title="Remove Student?"
+      message="This student will no longer have access to the CUCE app. To add them back, you will need to send a fresh invite."
+      variant="danger"
+      :loading="isActionLoading"
+      confirm-button-text="Remove"
+      @confirm="confirmDeactivate"
+    />
+
+    <Dialog
+      v-model="showSuspendConfirm"
+      title="Suspend Student?"
+      message="This Student will not be able to access the app until their account is reactivated."
+      variant="warning"
+      :loading="isActionLoading"
+      confirm-button-text="Suspend"
+      @confirm="confirmSuspend"
+    />
   </div>
 </template>
 
@@ -240,29 +380,151 @@ import {
   useVueTable,
 } from "@tanstack/vue-table";
 import { computed, reactive, ref } from "vue";
-import ActionCancelIcon from "~/components/icons/ActionCancelIcon.vue";
-import ActionEditIcon from "~/components/icons/ActionEditIcon.vue";
+import CloseCircleIcon from "~/components/icons/CloseCircleIcon.vue";
+import DeleteIcon from "~/components/icons/DeleteIcon.vue";
+import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
 import FilterIcon from "~/components/icons/FilterIcon.vue";
 import PlusIcon from "~/components/icons/PlusIcon.vue";
+import AddModal from "~/components/student/AddModal.vue";
 import Button from "~/components/ui/Button.vue";
+import Dialog from "~/components/ui/Dialog.vue";
 import EmptyState from "~/components/ui/EmptyState.vue";
 import FormInput from "~/components/ui/FormInput.vue";
+import { capitalizeFirst, getStatusClass } from "~/helper/formatData";
 
 interface Student {
   student_id: number;
+  reg_number: string;
   first_name: string;
   last_name: string;
   email: string;
   profile_picture: string;
-  reg_number: string;
+  program_id: number;
+  enrollments: Enrollment[];
+  program: Program;
+}
+
+interface Enrollment {
+  sessions: any | null;
+  registrar_id: number;
+  enrollment_id: number;
+  registrars: Registrar;
+}
+
+interface Registrar {
+  registrar_id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  profile_picture: string;
+}
+
+interface Program {
+  program_name: string;
+  program_type: string;
+  total_credits: number;
 }
 const toast = useToast();
 const loading = ref(false);
 const showInviteModal = ref(false);
+const showInviteSuccessDialog = ref(false);
+const showInviteFailureDialog = ref(false);
+const isInviteSending = ref(false);
+const showDeactivateConfirm = ref(false);
+const showSuspendConfirm = ref(false);
+const selectedStudent = ref<Student | null>(null);
+
+const showSuspendDialog = (registrar: Student) => {
+  selectedStudent.value = registrar;
+  showSuspendConfirm.value = true;
+};
+const showDeleteDialog = (registrar: Student) => {
+  selectedStudent.value = registrar;
+  showDeactivateConfirm.value = true;
+};
+
+const confirmDeactivate = async () => {
+  const {
+    call: confirmDeactivate,
+    isLoading: loadingConfirmDeactivate,
+    data: confirmDeactivateData,
+  } = useBackendService(
+    `/students/${selectedStudent.value?.student_id}`,
+    "delete"
+  );
+
+  if (!selectedStudent.value) return;
+
+  isActionLoading.value = true;
+  try {
+    await confirmDeactivate();
+    // Simulating API call with timeout
+    // await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Success case
+    toast.success(`${selectedStudent.value.first_name} has been Deleted`);
+
+    await fetchData();
+  } catch (error) {
+    // Error case
+    toast.error("Failed to delete student");
+  } finally {
+    isActionLoading.value = false;
+    showDeactivateConfirm.value = false;
+  }
+};
+const confirmSuspend = async () => {
+  const {
+    call: confirmSuspend,
+    isLoading: loadingConfirmSuspend,
+    data: confirmSuspendData,
+  } = useBackendService(
+    `/students/${selectedStudent.value?.student_id}/reject`,
+    "patch"
+  );
+  if (!selectedStudent.value) return;
+
+  isActionLoading.value = true;
+  try {
+    await confirmSuspend();
+    // Simulating API call with timeout
+    // await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Success case
+    toast.success(`${selectedStudent.value.first_name} has been suspended`);
+
+    await fetchData();
+  } catch (error) {
+    // Error case
+    toast.error("Failed to suspend student");
+  } finally {
+    isActionLoading.value = false;
+    showSuspendConfirm.value = false;
+  }
+};
+
+const handleInviteSuccess = async () => {
+  showInviteModal.value = false;
+  showInviteSuccessDialog.value = true;
+  await fetchData();
+};
+
+const handleInviteFailure = async () => {
+  showInviteModal.value = false;
+  showInviteFailureDialog.value = true;
+  await fetchData();
+};
+
+const openDropdownId = inject<Ref<number | null>>("openDropdownId", ref(null));
+
+// Toggle dropdown
+const toggleDropdown = (studentId: number) => {
+  openDropdownId.value = openDropdownId.value === studentId ? null : studentId;
+};
 
 const { call, data } = useBackendService("/students", "get");
 const enrollments = ref<Student[]>([]);
-const enrollmentsDataCache = useState("enrollments", () => null);
+const enrollmentsDataCache = useState("studentscachT", () => null);
 const fetchData = async () => {
   await call();
   enrollmentsDataCache.value = data.value;
@@ -289,11 +551,19 @@ const columnHelper = createColumnHelper<Student>();
 const columns = computed(() => {
   const cols: any[] = [
     columnHelper.accessor("first_name", {
-      header: "Course",
+      header: "Student name",
       cell: (props) => props.getValue(),
     }),
     columnHelper.accessor("email", {
       header: "Enrolled Programme",
+      cell: (props) => props.getValue(),
+    }),
+    columnHelper.accessor("reg_number", {
+      header: "Programme Type",
+      cell: (props) => props.getValue(),
+    }),
+    columnHelper.accessor("last_name", {
+      header: "Assigned Registrar",
       cell: (props) => props.getValue(),
     }),
   ];
@@ -382,7 +652,7 @@ const showInfoModal = ref(false);
 const isActionLoading = ref(false);
 const selectedEnrollment = ref<Student | null>(null);
 
-const handleEdit = async (rowData: Student) => {
+const handleSuspend = async (rowData: Student) => {
   selectedEnrollment.value = rowData;
   showEditModal.value = true;
 };
@@ -392,38 +662,7 @@ const handleDelete = async (rowData: Student) => {
   showDeleteModal.value = true;
 };
 const handleInfo = async (rowData: Student) => {
-  selectedEnrollment.value = rowData;
-  showInfoModal.value = true;
-};
-const handleDeleteAction = async ({
-  reason,
-  customReason,
-}: {
-  reason: string;
-  customReason: string;
-}) => {
-  const { call } = useBackendService(
-    `/enrollments/${selectedEnrollment.value}`,
-    "patch"
-  );
-  const finalReason = reason === "Other reason" ? customReason : reason;
-
-  isActionLoading.value = true;
-  try {
-    await call({
-      enrollment_status: "REJECTED",
-      rejection_reason: finalReason,
-    });
-    toast.success("Enrollment rejected successfully");
-    fetchData();
-
-    showDeleteModal.value = false;
-    selectedEnrollment.value = null;
-  } catch (error) {
-    toast.error("Failed to reject enrollment");
-  } finally {
-    isActionLoading.value = false;
-  }
+  ///navigate
 };
 
 const goToPage = (pageIndex: number) => {
@@ -715,6 +954,73 @@ const endRecord = computed(() => {
     .mobile-table {
       display: block;
     }
+  }
+}
+.dropdown {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  min-width: 180px;
+  background-color: $white;
+  border-radius: 8px;
+  box-shadow: 0px 12px 16px -4px rgba(16, 24, 40, 0.08),
+    0px 4px 6px -2px rgba(16, 24, 40, 0.03);
+  border: 1px solid $gray-200;
+  // overflow: hidden;
+  z-index: 9999;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  text-align: left;
+  font-family: $font-family;
+  font-size: $text-sm;
+  color: $gray-700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  // overflow: hidden;
+  z-index: 9999;
+  &:hover {
+    background-color: $gray-50;
+  }
+
+  .dropdown-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8px;
+    width: 16px;
+    height: 16px;
+    color: $gray-500;
+  }
+}
+.action-button {
+  background: none;
+  border: none;
+  color: $gray-500;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    pointer-events: none;
   }
 }
 </style>

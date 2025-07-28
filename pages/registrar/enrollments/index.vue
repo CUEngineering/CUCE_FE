@@ -25,11 +25,11 @@
         </div>
       </div>
     </div>
-    <Loader v-if="isLoading" />
+    <Loader v-if="loading" />
 
     <!-- Empty state for when no enrollments exist -->
     <EmptyState
-      v-if="!enrollments.length"
+      v-if="!loading && !enrollments.length"
       class="dashlet"
       title="No enrollments found"
       description="Add your first program to get started"
@@ -44,7 +44,10 @@
     </EmptyState>
 
     <!-- enrollments table when enrollments exist -->
-    <div v-else class="enrollments-content dashlet program-tabs">
+    <div
+      v-if="!loading && enrollments.length"
+      class="enrollments-content dashlet program-tabs"
+    >
       <div class="tabs-heading">
         <!-- Tabs for students/courses -->
         <div style="display: flex">
@@ -76,132 +79,153 @@
           <FilterIcon class="avatar" />
         </div>
       </div>
-
-      <div class="web-table">
-        <table class="enrollments-table table-container">
-          <thead>
-            <tr>
-              <th
-                v-for="header in table.getHeaderGroups()[0].headers"
-                :key="header.id"
-                @click="header.column.getToggleSortingHandler()"
-                class="table-header"
-              >
-                <div class="header-content">
-                  {{ header.column.columnDef.header }}
-                  <span
-                    v-if="header.column.getIsSorted()"
-                    class="sort-indicator"
-                  >
-                    {{ header.column.getIsSorted() === "desc" ? "▼" : "▲" }}
-                  </span>
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="row in table.getRowModel().rows"
-              :key="row.id"
-              @click="handleInfo(row.original)"
-              class="table-row"
-            >
-              <td
-                v-for="cell in row.getVisibleCells()"
-                :key="cell.id"
-                class="table-cell"
-              >
-                <template
-                  v-if="typeof cell.column.columnDef.cell === 'function'"
+      <div>
+        <div class="web-table">
+          <table class="enrollments-table table-container">
+            <thead>
+              <tr>
+                <th
+                  v-for="header in table.getHeaderGroups()[0].headers"
+                  :key="header.id"
+                  @click="header.column.getToggleSortingHandler()"
+                  class="table-header"
                 >
-                  <div v-if="cell.column.id === 'actions'" class="action-cell">
-                    <button
-                      class="action-button delete-button"
-                      @click.stop="handleDelete(row.original)"
+                  <div class="header-content">
+                    {{ header.column.columnDef.header }}
+                    <span
+                      v-if="header.column.getIsSorted()"
+                      class="sort-indicator"
                     >
-                      <ActionCancelIcon />
-                    </button>
-                    <button
-                      class="action-button edit-button"
-                      @click.stop="handleEdit(row.original)"
-                    >
-                      <ActionEditIcon />
-                    </button>
+                      {{ header.column.getIsSorted() === "desc" ? "▼" : "▲" }}
+                    </span>
                   </div>
-
-                  <div
-                    v-else-if="cell.column.id === 'status'"
-                    class="status-badge"
-                    :class="getStatusClass(cell.renderValue() as string)"
-                  >
-                    <span class="status-dot"></span>
-                    {{ capitalizeFirst(cell.renderValue() as string) }}
-                  </div>
-                  <div
-                    v-else-if="cell.column.id === 'studentName'"
-                    class="student-info"
-                  >
-                    <img
-                      :src="cell.row.original.studentImage"
-                      :alt="cell.row.original.studentName"
-                      class="avatar"
-                    />
-                    <div class="student-details">
-                      <div class="student-name">
-                        {{ cell.row.original.studentName }}
-                      </div>
-                      <div class="student-id">
-                        @{{ cell.row.original.studentId }}
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    v-else-if="cell.column.id === 'assignedRegistrar'"
-                    style="padding: 5px"
-                    class="student-info status-badge profile-count pill p-grey"
-                  >
-                    <img
-                      :src="cell.row.original.assignedRegistrarImage"
-                      :alt="cell.row.original.assignedRegistrar"
-                      class="avatar"
-                    />
-                    <div class="student-details">
-                      <div class="student-name">
-                        {{ cell.row.original.assignedRegistrar }}
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    v-else-if="cell.column.id === 'courseCode'"
-                    class="courses-cell"
-                    style="display: flex; flex-direction: row"
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="row in table.getRowModel().rows"
+                :key="row.id"
+                @click="handleInfo(row.original)"
+                class="table-row"
+              >
+                <td
+                  v-for="cell in row.getVisibleCells()"
+                  :key="cell.id"
+                  class="table-cell"
+                >
+                  <template
+                    v-if="typeof cell.column.columnDef.cell === 'function'"
                   >
                     <div
-                      style="padding: 3px 12px; text-align: center"
-                      class="profile-count pill p-grey status-badge"
+                      v-if="cell.column.id === 'actions'"
+                      class="action-cell"
                     >
+                      <button
+                        class="action-button delete-button"
+                        @click.stop="handleDelete(row.original)"
+                      >
+                        <ActionCancelIcon />
+                      </button>
+                      <button
+                        class="action-button edit-button"
+                        @click.stop="handleEdit(row.original)"
+                      >
+                        <ActionEditIcon />
+                      </button>
+                    </div>
+
+                    <div
+                      v-else-if="cell.column.id === 'status'"
+                      class="status-badge"
+                      :class="getStatusClass(cell.renderValue() as string)"
+                    >
+                      <span class="status-dot"></span>
+                      {{ capitalizeFirst(cell.renderValue() as string) }}
+                    </div>
+                    <div
+                      v-else-if="cell.column.id === 'studentName'"
+                      class="student-info"
+                    >
+                      <img
+                        :src="cell.row.original.studentImage"
+                        :alt="cell.row.original.studentName"
+                        class="avatar"
+                      />
+                      <div class="student-details">
+                        <div class="student-name">
+                          {{ cell.row.original.studentName }}
+                        </div>
+                        <div class="student-id">
+                          @{{ cell.row.original.studentId }}
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      v-else-if="cell.column.id === 'assignedRegistrar'"
+                      class="student-info status-badge profile-count pill p-grey"
+                    >
+                      <img
+                        :src="cell.row.original.assignedRegistrarImage"
+                        :alt="cell.row.original.assignedRegistrar"
+                        class="avatar"
+                      />
+                      <div class="student-details">
+                        <div class="student-name">
+                          {{ cell.row.original.assignedRegistrar }}
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      v-else-if="cell.column.id === 'courseCode'"
+                      class="courses-cell"
+                      style="display: flex; flex-direction: row"
+                    >
+                      <div
+                        style="padding: 3px 12px; text-align: center"
+                        class="profile-count pill p-grey status-badge"
+                      >
+                        {{ cell.renderValue() }}
+                      </div>
+                      <div
+                        v-if="cell.row.original.courseStatus === 'CLOSED'"
+                        style="text-align: center; margin-left: 10px"
+                        class="status-badge status-deactivated"
+                      >
+                        <span><StatusBadge /></span>
+                        {{ cell.row.original.courseStatus }}
+                      </div>
+                    </div>
+
+                    <div v-else>
                       {{ cell.renderValue() }}
                     </div>
-                    <div
-                      v-if="cell.row.original.courseStatus === 'CLOSED'"
-                      style="text-align: center; margin-left: 10px"
-                      class="status-badge status-deactivated"
-                    >
-                      <span><StatusBadge /></span>
-                      {{ cell.row.original.courseStatus }}
-                    </div>
-                  </div>
-
-                  <div v-else>
-                    {{ cell.renderValue() }}
-                  </div>
-                </template>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <!-- Pagination -->
+                  </template>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="mobile-table">
+          <MobileEnrollment
+            v-for="row in table.getRowModel().rows"
+            :key="row.id"
+            :selectedEnrollment="row.original"
+            @activate="
+              () => {
+                selectedEnrollment = row.original;
+                showEditModal = true;
+              }
+            "
+            @deactivate="
+              () => {
+                selectedEnrollment = row.original;
+                showDeleteModal = true;
+              }
+            "
+            @viewDetails="handleInfo(row.original as Enrollment)"
+          />
+        </div>
         <div class="pagination">
           <div class="pagination-controls">
             <button
@@ -263,26 +287,6 @@
             </button>
           </div>
         </div>
-      </div>
-      <div class="mobile-table">
-        <MobileEnrollment
-          v-for="(selectedEnroll, index) in filteredEnrollments"
-          :key="index"
-          :selectedEnrollment="selectedEnroll"
-          @activate="
-            () => {
-              selectedEnrollment = selectedEnroll;
-              showEditModal = true;
-            }
-          "
-          @deactivate="
-            () => {
-              selectedEnrollment = selectedEnroll;
-              showDeleteModal = true;
-            }
-          "
-          @viewDetails="handleInfo(selectedEnroll as Enrollment)"
-        />
       </div>
     </div>
 
@@ -382,19 +386,31 @@ interface Enrollment {
   reason?: string;
 }
 const toast = useToast();
-const { call, isLoading, data } = useBackendService("/enrollments", "get");
+const loading = ref(false);
+
+const { call, data } = useBackendService("/enrollments", "get");
 const enrollments = ref<Enrollment[]>([]);
-
-onMounted(fetchEnrollments);
-
-async function fetchEnrollments() {
-  try {
-    await call();
-    enrollments.value = data.value || [];
-  } catch (err) {
-    console.error("Failed to fetch enrollments:", err);
+const enrollmentsDataCache = useState("enrollments", () => null);
+const fetchData = async () => {
+  await call();
+  enrollmentsDataCache.value = data.value;
+  enrollments.value = data.value || [];
+};
+onMounted(async () => {
+  if (!enrollmentsDataCache.value) {
+    try {
+      loading.value = true;
+      await fetchData();
+      loading.value = false;
+    } catch (err) {
+      console.error("Failed to fetch dashboard stats", err);
+    }
   }
-}
+
+  if (enrollmentsDataCache.value) {
+    enrollments.value = enrollmentsDataCache.value || [];
+  }
+});
 
 interface RejectionHistory {
   enrollmentId?: number;
@@ -646,7 +662,7 @@ const handleDeleteAction = async ({
       rejection_reason: finalReason,
     });
     toast.success("Enrollment rejected successfully");
-    fetchEnrollments();
+    fetchData();
 
     showDeleteModal.value = false;
     selectedEnrollment.value = null;
@@ -668,7 +684,7 @@ const handleEditAction = async () => {
       enrollment_status: "APPROVED",
     });
     toast.success("Enrollment accepted successfully");
-    fetchEnrollments();
+    fetchData();
 
     showEditModal.value = false;
     selectedEnrollment.value = null;
@@ -696,7 +712,6 @@ const startRecord = computed(() => {
     1
   );
 });
-
 const endRecord = computed(() => {
   const possibleEnd =
     (table.getState().pagination.pageIndex + 1) *

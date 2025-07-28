@@ -67,7 +67,7 @@
         }}
       </div>
     </div>
-    <div class="registrar-stats grey-box">
+    <div v-if="role === 'ADMIN'" class="registrar-stats grey-box">
       <div
         style="display: flex; width: -webkit-fill-available; text-align: center"
       >
@@ -85,6 +85,24 @@
         </div>
         <div class="stat-item">
           <div class="stat-label">Students</div>
+          <div class="stat-value">
+            {{ session.numberOfStudents }}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div v-if="role === 'REGISTRAR'" class="registrar-stats grey-box">
+      <div
+        style="display: flex; width: -webkit-fill-available; text-align: center"
+      >
+        <div class="stat-item">
+          <div class="stat-label">Assigned Requests</div>
+          <div class="stat-value">
+            {{ session.numberOfOpenCourses }}
+          </div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Assigned Students</div>
           <div class="stat-value">
             {{ session.numberOfStudents }}
           </div>
@@ -147,6 +165,7 @@
               {{ daysLeft(session.enrollmentDeadline) }}
             </div>
             <p
+              v-if="role === 'ADMIN'"
               @click="$emit('edit-session', session)"
               style="color: #2a50ad; font-size: smaller"
             >
@@ -158,6 +177,7 @@
     </div>
   </div>
   <p
+    v-if="role === 'ADMIN'"
     @click="$emit('close-session', session)"
     style="text-align: center; color: red; padding: 20px; cursor: pointer"
   >
@@ -185,7 +205,8 @@ interface Session {
 interface Props {
   session: Session;
 }
-
+const auth = useAuthStore();
+const role = auth.role;
 const props = defineProps<Props>();
 defineEmits(["edit-session", "close-session"]);
 const daysLeft = (date: string) => {
