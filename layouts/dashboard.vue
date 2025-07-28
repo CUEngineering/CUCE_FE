@@ -55,7 +55,6 @@ const router = useRouter();
 // const role = useCookie("role").value;
 // const userCookie = useCookie("user").value;
 const role = authStore.role;
-console.log(authStore);
 const defaultAvatar = "https://randomuser.me/api/portraits/women/44.jpg";
 const avatar = computed(() => authStore.user.profile_picture ?? defaultAvatar);
 
