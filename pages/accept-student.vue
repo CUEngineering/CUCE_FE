@@ -30,6 +30,7 @@
                 type="email"
                 placeholder="Enter email"
                 required
+                disabled
                 :error="emailError"
               />
 
@@ -80,6 +81,7 @@
                 type="text"
                 placeholder="Enter student number"
                 required
+                disabled
                 :error="studentNumberError"
               />
 
@@ -114,6 +116,8 @@
                     v-if="previewUrl"
                     :src="previewUrl"
                     alt="Uploaded Image"
+                    width="150px"
+                    height="150px"
                     class="uploaded-image"
                   />
 
@@ -177,6 +181,7 @@ import Button from "~/components/ui/Button.vue";
 import Carousel from "~/components/ui/Carousel.vue";
 import FormInput from "~/components/ui/FormInput.vue";
 import { useBackendService } from "~/composables/useBackendService";
+import { decodeEmail } from "~/helper/formatData";
 
 // State
 const step = ref(1);
@@ -190,26 +195,24 @@ const studentNumberError = ref("");
 
 const toast = useToast();
 
-const form = ref({
-  email: "",
-  password: "",
-  confirmPassword: "",
-  firstName: "",
-  lastName: "",
-  studentNumber: "",
-  profilePicture: null as File | null,
-});
-
 const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 const token = route.query.token as string;
-let file = null as File | null;
+const emailParam = route.query.email as string;
+const regParam = route.query.cuce_unique_stdId as string;
+const email = decodeEmail(emailParam);
+const reg = decodeEmail(regParam);
 
-const validateEmail = (value: string) => {
-  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return regex.test(value);
-};
+const form = ref({
+  email: email,
+  password: "",
+  confirmPassword: "",
+  firstName: "",
+  lastName: "",
+  studentNumber: reg,
+  profilePicture: null as File | null,
+});
 
 onMounted(() => {
   authStore.logout();
@@ -219,6 +222,10 @@ const { call, isLoading, data } = useBackendService(
   "/students/accept-invite",
   "post"
 );
+const validateEmail = (value: string) => {
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return regex.test(value);
+};
 
 const nextStep = () => {
   formError.value = "";
@@ -241,6 +248,7 @@ const nextStep = () => {
 
     return;
   }
+
   step.value = 2;
 };
 

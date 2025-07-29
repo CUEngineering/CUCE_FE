@@ -6,6 +6,9 @@
     <div class="page-header dashlet">
       <div class="title-and-filter">
         <h2 class="heading-txt">Courses</h2>
+        <div style="margin: auto" class="web profile-count pill p-grey pill-sm">
+          {{ programs.length }}
+        </div>
       </div>
       <div v-if="programs.length > 0" class="search-and-actions">
         <div class="search-container">
@@ -71,7 +74,7 @@
           <tr
             v-for="row in table.getRowModel().rows"
             :key="row.id"
-            @click="viewCourseDetails(row.original.course_id)"
+            @click="viewCourseDetails(row.original)"
             class="table-row"
           >
             <td
@@ -81,23 +84,18 @@
             >
               <template v-if="typeof cell.column.columnDef.cell === 'function'">
                 <div v-if="cell.column.id === 'actions'" class="action-cell">
-                  <button class="action-button">
-                    <Button
-                      style="padding: 0xp 10px"
-                      variant="secondary"
-                      @click="enroll(row.original.course_id)"
-                    >
+                  <!-- Enroll button if course is open -->
+                  <div v-if="row.original.availability_status === 'OPEN'">
+                    <Button variant="secondary" @click="enroll(row.original)">
                       Enroll
                     </Button>
-                  </button>
-                  <button class="action-button">
-                    <Button
-                      variant="yellow"
-                      @click="request(row.original.course_id)"
-                    >
+                  </div>
+
+                  <div v-else>
+                    <Button variant="yellow" @click="request(row.original)">
                       Request
                     </Button>
-                  </button>
+                  </div>
                 </div>
 
                 <div
@@ -133,6 +131,14 @@
                 >
                   {{ cell.renderValue() || 0 }}
                 </div>
+                <div
+                  v-else-if="cell.column.id === 'availability_status'"
+                  class="status-badge"
+                  :class="getStatusClass(cell.renderValue() as string)"
+                >
+                  <span class="status-dot"></span>
+                  {{ capitalizeFirst(cell.renderValue() as string) }}
+                </div>
                 <div v-else>
                   {{ cell.renderValue() }}
                 </div>
@@ -142,7 +148,7 @@
         </tbody>
       </table>
       <div class="mobile-table">
-        <MobileMain
+        <StudentMain
           v-for="row in table.getRowModel().rows"
           :key="row.id"
           :selectedCourse="row.original"
@@ -215,11 +221,6 @@
     </div>
 
     <!-- Add Program Modal -->
-    <AddCourseModal
-      v-if="showAddProgramModal"
-      v-model="showAddProgramModal"
-      @program-added="handleProgramAdded"
-    />
 
     <!-- Toast Container -->
     <ToastContainer />
@@ -237,17 +238,14 @@ import {
   useVueTable,
 } from "@tanstack/vue-table";
 import { computed, h, onMounted, reactive, ref } from "vue";
-import AddCourseModal from "~/components/AddCourseModal.vue";
-import MobileMain from "~/components/courses/MobileMain.vue";
 import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
 import Button from "~/components/ui/Button.vue";
 import EmptyState from "~/components/ui/EmptyState.vue";
 import FormInput from "~/components/ui/FormInput.vue";
 import ToastContainer from "~/components/ui/ToastContainer.vue";
-import { capitalizeFirst } from "~/helper/formatData";
-import type { ProgramOutput } from "~/types/program";
+import { capitalizeFirst, getStatusClass } from "~/helper/formatData";
 
-interface Program {
+interface Course {
   course_id: string;
   course_title: string;
   course_code: string;
@@ -255,16 +253,16 @@ interface Program {
   course_type: string;
   createdAt: string;
   total_enrolled_students?: number;
+  availability_status?: string;
 }
+const authState = useAuthStore();
 const loading = ref(false);
 const { call: fetchPrograms, data: programsData } = useBackendService(
-  "/courses",
+  `/courses/eligible/${authState.user?.student_id}`,
   "get"
 );
 
-const programs = ref<Program[]>([]);
-
-console.log(programs.value);
+const programs = ref<Course[]>([]);
 
 const programsDataCache = useState<any>("courseDataSTD", () => null);
 
@@ -299,7 +297,7 @@ onMounted(async () => {
   }
 });
 
-const columnHelper = createColumnHelper<Program>();
+const columnHelper = createColumnHelper<Course>();
 
 const columns = [
   columnHelper.accessor("course_title", {
@@ -320,6 +318,10 @@ const columns = [
   }),
   columnHelper.accessor("course_credits", {
     header: "Credits Value",
+    cell: (props) => props.getValue() || 0,
+  }),
+  columnHelper.accessor("availability_status", {
+    header: "Course Status",
     cell: (props) => props.getValue() || 0,
   }),
   columnHelper.display({
@@ -411,27 +413,76 @@ const goToPage = (pageIndex: number) => {
   table.setPageIndex(pageIndex);
 };
 
-// Modal state
-const showAddProgramModal = ref(false);
+const selectedCourse = ref<Course | null>(null);
+const showEditModal = ref(false);
+const showDeleteModal = ref(false);
+const showInfoModal = ref(false);
+const isActionLoading = ref(false);
+const toast = useToast();
 
-// Methods
-const openAddProgramModal = () => {
-  showAddProgramModal.value = true;
+const enroll = async (rowData: Course) => {
+  selectedCourse.value = rowData;
+  showEditModal.value = true;
 };
 
-const handleProgramAdded = async (programOutput: ProgramOutput) => {
-  await fetchData();
-  showAddProgramModal.value = false;
+const request = async (rowData: Course) => {
+  selectedCourse.value = rowData;
+  showDeleteModal.value = true;
+};
+const viewCourseDetails = async (rowData: Course) => {
+  selectedCourse.value = rowData;
+  showInfoModal.value = true;
+};
+const handleDeleteAction = async ({
+  reason,
+  customReason,
+}: {
+  reason: string;
+  customReason: string;
+}) => {
+  const { call } = useBackendService(`/enrollments/${selectedCourse}`, "patch");
+  const finalReason = reason === "Other reason" ? customReason : reason;
+
+  isActionLoading.value = true;
+  try {
+    await call({
+      enrollment_status: "REJECTED",
+      rejection_reason: finalReason,
+    });
+    toast.success("Enrollment rejected successfully");
+    fetchData();
+
+    showDeleteModal.value = false;
+    selectedCourse.value = null;
+  } catch (error) {
+    toast.error("Failed to reject enrollment");
+  } finally {
+    isActionLoading.value = false;
+  }
+};
+const handleEditAction = async () => {
+  const { call } = useBackendService(`/enrollments/`, "patch");
+
+  isActionLoading.value = true;
+  try {
+    await call({
+      enrollment_status: "APPROVED",
+    });
+    toast.success("Enrollment accepted successfully");
+    fetchData();
+
+    showEditModal.value = false;
+    selectedCourse.value = null;
+  } catch (error) {
+    toast.error("Failed to reject enrollment");
+  } finally {
+    isActionLoading.value = false;
+  }
 };
 
-const viewCourseDetails = (id: string) => {
-  // return navigateTo(`/admin/courses/${id}`);
-};
-const enroll = (id: string) => {};
-const request = (id: string) => {};
 // Define that this page uses the dashboard layout
 definePageMeta({
-  layout: "dashboard",
+  layout: "student",
 });
 </script>
 
@@ -588,5 +639,59 @@ definePageMeta({
       display: block;
     }
   }
+}
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px 1px 6px;
+  border-radius: 16px;
+  font-size: $text-xxs;
+  font-weight: 500;
+  line-height: 1.8;
+  white-space: nowrap;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-active {
+  background-color: $success-50;
+  color: $success-400;
+  border: 1px solid $success-400;
+
+  .status-dot {
+    background-color: $success-400;
+  }
+}
+
+.status-suspended {
+  background-color: $primary-color-50;
+  color: $primary-color-500;
+  border: 1px solid $primary-color-500;
+
+  .status-dot {
+    background-color: $primary-color-500;
+  }
+}
+
+.status-deactivated {
+  background-color: $error-50;
+  color: $error-700;
+  border: 1px solid $error-200;
+
+  .status-dot {
+    background-color: $error-400;
+  }
+}
+
+.student-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 </style>

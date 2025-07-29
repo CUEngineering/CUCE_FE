@@ -71,6 +71,8 @@ export const getStatusClass = (status: string) => {
       return "status-active";
     case "graduate":
       return "status-active";
+    case "open":
+      return "status-active";
     case "closed":
       return "status-deactivated";
     case "masters":
