@@ -8,7 +8,6 @@ export const useBackendService = (endpoint: string, method: string) => {
   const config = useRuntimeConfig();
 
   const auth = useAuthStore();
-  console.log(auth.role);
   const router = useRouter();
   const toast = useToast();
   const token = useCookie("token").value;
