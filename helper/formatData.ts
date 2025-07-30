@@ -59,25 +59,22 @@ export function formatInvitees(rawInvites: Invitee[]): FormattedInvitee[] {
 export const getStatusClass = (status: string) => {
   switch (status.toLowerCase()) {
     case "approved":
-      return "status-active";
     case "undergraduate":
-      return "status-active";
-    case "pending":
-    case "upcoming":
-      return "status-suspended";
-    case "rejected":
-      return "status-deactivated";
     case "active":
-      return "status-active";
     case "graduate":
-      return "status-active";
     case "open":
       return "status-active";
-    case "closed":
-      return "status-deactivated";
+
+    case "pending":
+    case "upcoming":
     case "masters":
     case "doctorate":
       return "status-suspended";
+
+    case "rejected":
+    case "closed":
+      return "status-deactivated";
+
     default:
       return "";
   }
