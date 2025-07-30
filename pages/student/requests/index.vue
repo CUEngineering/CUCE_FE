@@ -100,7 +100,8 @@
                     >
                       <div
                         v-if="
-                          row.original.courseStatus === 'OPEN' &&
+                          (row.original.courseStatus === 'OPEN' ||
+                            row.original.courseStatus === 'ACTIVE') &&
                           row.original.status === 'rejected'
                         "
                       >
@@ -566,7 +567,7 @@ const handleEnrollAction = async () => {
   try {
     await call({
       student_id: authState.user?.student_id,
-      course_id: selectedEnrollment.value?.courseId,
+      course_id: selectedEnrollment.value?.CourseId,
       session_id: selectedEnrollment.value?.sessionId,
       enrollment_status: "PENDING",
     });
