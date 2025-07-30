@@ -353,7 +353,7 @@ if (role === "REGISTRAR") {
     border-color: $gray-200;
   }
   &.image {
-    background-image: url("~/assets/images/StudentImage.svg");
+    background-image: url("~/assets/images/StudentImageBack.svg");
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
