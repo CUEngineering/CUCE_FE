@@ -663,7 +663,7 @@ const handleDelete = async (rowData: Student) => {
   showDeleteModal.value = true;
 };
 const handleInfo = async (rowData: Student) => {
-  ///navigate
+  showInfoModal.value = true;
 };
 
 const goToPage = (pageIndex: number) => {
