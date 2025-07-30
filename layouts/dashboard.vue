@@ -56,7 +56,7 @@ const router = useRouter();
 // const userCookie = useCookie("user").value;
 const role = authStore.role;
 const defaultAvatar = "https://randomuser.me/api/portraits/women/44.jpg";
-const avatar = computed(() => authStore.user.profile_picture ?? defaultAvatar);
+const avatar = computed(() => authStore.user?.profile_picture ?? defaultAvatar);
 
 function toggleSidebar() {
   sidebarOpen.value = !sidebarOpen.value;

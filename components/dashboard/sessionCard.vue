@@ -1,4 +1,47 @@
 <template>
+  <div v-if="role === 'STUDENT'">
+    <div
+      style="cursor: pointer; margin-bottom: 20px"
+      class="registrar-card image"
+    >
+      <div class="dialog-header">
+        <div class="dialog-icon">
+          <img
+            class="roundedImage"
+            :src="authStore.user?.profile_picture"
+            :alt="'icon'"
+          />
+        </div>
+        <div class="student-details">
+          <div style="color: white; font-weight: bold" class="student-name">
+            {{ authStore.user?.first_name }} {{ " " }}
+            {{ authStore.user?.last_name }}
+          </div>
+        </div>
+        <div style="display: flex; align-items: center">
+          <div style="margin-right: 5px; color: white">
+            {{ authStore.user?.reg_number }}{{ " " }}<Copy />
+          </div>
+          <DotWhite />
+          <div style="margin-left: 5px; color: white">
+            {{ authStore.user?.program.total_credits }}{{ " " }}Units
+          </div>
+        </div>
+        <div class="student-details">
+          <div style="color: white; font-weight: bold" class="student-name">
+            {{ authStore.user?.program.program_name }}{{ " " }}<Copy />
+          </div>
+        </div>
+
+        <div
+          style="display: flex; align-items: center; color: white; margin: 20px"
+        >
+          <div style="margin-right: 5px">Edit Profile</div>
+          <EditIcon />
+        </div>
+      </div>
+    </div>
+  </div>
   <div style="cursor: pointer" class="registrar-card">
     <div class="registrar-header">
       <div class="registrar-info">
@@ -9,6 +52,7 @@
     </div>
     <!-- Circular Progress Bar -->
     <div
+      v-if="role !== 'STUDENT'"
       style="
         display: flex;
         flex-direction: column;
@@ -177,7 +221,7 @@
       </div>
     </div>
 
-    <div v-if="role === 'REGISTRAR'">
+    <div v-if="role !== 'ADMIN'">
       <div
         style="display: flex; flex-direction: column; background-color: #dbebfe"
         class="registrar-stats plain-box"
@@ -225,9 +269,11 @@
 <script setup lang="ts">
 import { formatDate } from "~/helper/formatData";
 import ClockIcon from "../icons/ClockIcon.vue";
+import Copy from "../icons/Copy.vue";
+import DotWhite from "../icons/DotWhite.vue";
+import EditIcon from "../icons/EditIcon.vue";
 import Question from "../icons/Question.vue";
 import SessionIcon from "../icons/sessionIcon.vue";
-
 interface Session {
   sessionId: number;
   sessionName: string;
@@ -305,6 +351,13 @@ if (role === "REGISTRAR") {
   &.card-suspended {
     background-color: $white;
     border-color: $gray-200;
+  }
+  &.image {
+    background-image: url("~/assets/images/StudentImage.svg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    padding: 20px;
   }
 }
 
@@ -683,5 +736,100 @@ if (role === "REGISTRAR") {
 .dropdown-leave-to {
   opacity: 0;
   transform: translateY(-15px);
+}
+.dialog-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+
+  .dialog-icon {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+      width: auto;
+      height: 100px;
+    }
+  }
+
+  .dialog-title {
+    font-family: $font-family-heading;
+    font-weight: 700;
+    font-size: $text-xl;
+    color: $gray-800;
+    text-align: center;
+    margin: 0;
+  }
+
+  .dialog-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: none;
+    border: none;
+    color: $gray-500;
+    padding: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: $gray-100;
+    }
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
+
+.dialog-content {
+  overflow-y: auto;
+
+  .dialog-message {
+    font-family: $font-family;
+    font-size: $text-base;
+    color: $gray-600;
+    text-align: center;
+    margin: 0;
+    line-height: 1.6;
+  }
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  width: 100%;
+
+  > * {
+    flex: 1;
+    max-width: 80px;
+  }
+
+  button {
+    border-radius: 12px;
+  }
+}
+.roundedImage {
+  border-radius: 50%;
+  width: 100px;
+  height: 100px;
+}
+.student-details {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
 }
 </style>

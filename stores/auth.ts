@@ -12,6 +12,7 @@ interface UserData {
   admin_id: number;
   registrar_id: number;
   student_id: number;
+  program: any;
 }
 interface Role {}
 

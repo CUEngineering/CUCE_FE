@@ -3,34 +3,88 @@
     class="enrollments-page dashlet-wrapper"
     :class="{ empty: !enrollments.length }"
   >
-    <div class="page-header dashlet">
-      <div class="title-and-filter">
-        <h2 class="heading-txt">Enrollments</h2>
-        <div style="margin: auto" class="web profile-count pill p-grey pill-sm">
-          {{ filteredEnrollments.length }}
-        </div>
-      </div>
-      <div v-if="enrollments.length > 0" class="search-and-actions">
-        <div class="search-container">
-          <FormInput
-            id="program-search"
-            label=""
-            v-model="searchQuery"
-            placeholder="Find Enrollment"
-            size="sm"
+    <div
+      style="display: flex; flex-direction: column; align-items: flex-start"
+      class="page-header dashlet"
+    >
+      <h2 style="margin-left: 10px">Dashboard</h2>
+      <div style="display: flex">
+        <div
+          style="
+            margin: 20px;
+            display: flex;
+            flex-wrap: nowrap;
+            height: fit-content;
+          "
+          class="page-header dashlet"
+        >
+          <div class="title-and-filter">
+            <img src="~/assets/images/clock.svg" alt="Registrar avatar" />
+          </div>
+
+          <div
+            style="display: flex; flex-direction: column"
+            class="search-and-actions"
           >
-            <template #button>
-              <div class="search-icon">
-                <IconsSearchIcon />
-              </div>
-            </template>
-          </FormInput>
-        </div>
-        <div class="tabs-heading">
-          <div class="web header-actions">
-            <FilterIcon class="avatar" />
+            <p style="font-weight: bold">{{ pendingCount }}</p>
+            <p style="font-size: small">Pending Enrollments</p>
           </div>
         </div>
+        <div
+          style="
+            margin: 20px;
+            display: flex;
+            flex-wrap: nowrap;
+            height: fit-content;
+          "
+          class="page-header dashlet"
+        >
+          <div class="title-and-filter">
+            <img src="~/assets/images/mark.svg" alt="Registrar avatar" />
+          </div>
+
+          <div
+            style="display: flex; flex-direction: column"
+            class="search-and-actions"
+          >
+            <p style="font-weight: bold">{{ approvedCount }}</p>
+            <p style="font-size: small">Approved Enrollments</p>
+          </div>
+        </div>
+        <div
+          style="
+            margin: 20px;
+            display: flex;
+            flex-wrap: nowrap;
+            height: fit-content;
+          "
+          class="page-header dashlet"
+        >
+          <div class="title-and-filter">
+            <img src="~/assets/images/cancel.svg" alt="Registrar avatar" />
+          </div>
+
+          <div
+            style="display: flex; flex-direction: column"
+            class="search-and-actions"
+          >
+            <p style="font-weight: bold">{{ rejectedCount }}</p>
+            <p style="font-size: small">Rejected Enrollments</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-header dashlet">
+      <div class="title-and-filter">
+        <h2 class="heading-txt">Rquests</h2>
+        {{ filteredEnrollments.length }}
+      </div>
+
+      <div v-if="enrollments.length > 0" class="search-and-actions">
+        <Button @click="goToEnrollments" variant="outline" size="sm">
+          View all
+        </Button>
       </div>
     </div>
     <Loader v-if="loading" />
@@ -341,14 +395,12 @@ import {
   useVueTable,
 } from "@tanstack/vue-table";
 import { computed, reactive, ref } from "vue";
-import FilterIcon from "~/components/icons/FilterIcon.vue";
 import StatusBadge from "~/components/icons/StatusBadge.vue";
 import DetailsStudent from "~/components/student/DetailsStudent.vue";
 import StudentMain from "~/components/student/studentMain.vue";
 import Button from "~/components/ui/Button.vue";
 import Dialog from "~/components/ui/Dialog.vue";
 import EmptyState from "~/components/ui/EmptyState.vue";
-import FormInput from "~/components/ui/FormInput.vue";
 import { capitalizeFirst, getStatusClass } from "~/helper/formatData";
 
 interface Enrollment {
@@ -399,6 +451,27 @@ onMounted(async () => {
     enrollments.value = enrollmentsDataCache.value || [];
   }
 });
+const router = useRouter();
+function goToEnrollments() {
+  router.push("/student/requests");
+}
+const pendingCount = computed(
+  () =>
+    enrollments.value.filter((e) => e.status?.toLowerCase() === "pending")
+      .length
+);
+
+const approvedCount = computed(
+  () =>
+    enrollments.value.filter((e) => e.status?.toLowerCase() === "approved")
+      .length
+);
+
+const rejectedCount = computed(
+  () =>
+    enrollments.value.filter((e) => e.status?.toLowerCase() === "rejected")
+      .length
+);
 
 interface RejectionHistory {
   enrollmentId?: number;
@@ -462,11 +535,6 @@ const columns = computed(() => {
       header: "Course Status",
       cell: (props) => props.getValue(),
     }),
-    columnHelper.display({
-      id: "actions",
-      header: "Action",
-      cell: () => {},
-    }),
   ];
 
   return cols;
@@ -479,13 +547,6 @@ const tableState = reactive({
   },
   sorting: [] as ColumnSort[],
   globalFilter: "",
-});
-
-const searchQuery = computed({
-  get: () => tableState.globalFilter,
-  set: (value) => {
-    tableState.globalFilter = value;
-  },
 });
 
 const table = useVueTable({
@@ -606,7 +667,7 @@ const goToPage = (pageIndex: number) => {
 };
 
 definePageMeta({
-  layout: "student",
+  layout: "dashboard",
 });
 </script>
 

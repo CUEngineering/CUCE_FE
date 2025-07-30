@@ -74,7 +74,6 @@
           <tr
             v-for="row in table.getRowModel().rows"
             :key="row.id"
-            @click="viewCourseDetails(row.original)"
             class="table-row"
           >
             <td
@@ -101,6 +100,7 @@
                 <div
                   v-else-if="cell.column.id === 'course_type'"
                   class="program-type-cell"
+                  @click="viewCourseDetails(row.original)"
                 >
                   <span
                     class="pill pill-md"
@@ -121,10 +121,12 @@
                   v-else-if="cell.column.id === 'course_credits'"
                   class="courses-cell profile-count pill p-grey pill-lg"
                   style="width: fit-content"
+                  @click="viewCourseDetails(row.original)"
                 >
                   {{ cell.renderValue() || 0 }}
                 </div>
                 <div
+                  @click="viewCourseDetails(row.original)"
                   v-else-if="cell.column.id === 'total_enrolled_students'"
                   class="courses-cell profile-count pill p-grey pill-lg"
                   style="width: fit-content"
@@ -132,6 +134,7 @@
                   {{ cell.renderValue() || 0 }}
                 </div>
                 <div
+                  @click="viewCourseDetails(row.original)"
                   v-else-if="cell.column.id === 'availability_status'"
                   class="status-badge"
                   :class="getStatusClass(cell.renderValue() as string)"
@@ -139,7 +142,7 @@
                   <span class="status-dot"></span>
                   {{ capitalizeFirst(cell.renderValue() as string) }}
                 </div>
-                <div v-else>
+                <div @click="viewCourseDetails(row.original)" v-else>
                   {{ cell.renderValue() }}
                 </div>
               </template>
@@ -220,10 +223,74 @@
       </div>
     </div>
 
-    <!-- Add Program Modal -->
-
     <!-- Toast Container -->
     <ToastContainer />
+    <Dialog
+      v-model="showEditModal"
+      title="Enroll"
+      :message="`Are you sure you want to enroll in ${selectedCourse?.course_code} this session? Click 'Yes' to continue`"
+      variant="warning"
+      :loading="isActionLoading"
+      confirm-button-text="Yes, Enroll"
+      cancelButtonText="No, cancel"
+      @confirm="handleEnrollAction"
+    />
+    <Dialog
+      v-model="showDeleteModal"
+      title="Submit a request"
+      :message="`This class (${selectedCourse?.course_code}) is <strong>currently closed</strong> for this session. Please Confirm your request to be added to the class`"
+      variant="warning"
+      :loading="isActionLoading"
+      confirm-button-text="Submit Request"
+      cancelButtonText="Cancel"
+      @confirm="handleRequestAction"
+    />
+
+    <Dialog
+      v-model="showSuccessDialog"
+      title="Request Sent"
+      :message="`Your request to be added to ${selectedCourse?.course_code} has successfully been sent.`"
+      variant="success"
+      :icon="true"
+      cancelButtonText="Awesome 🎉"
+      confirmButtonText=""
+      :showCancelButton="true"
+      :showConfirmButton="false"
+      :showCloseButton="true"
+      :persistent="false"
+      :loading="false"
+    />
+    <Dialog
+      v-model="showFailureDialog"
+      title="Something’s Wrong!"
+      message="There was an issue, your request didn’t go through, Please try again."
+      variant="danger"
+      :icon="true"
+      cancelButtonText="Try again!"
+      confirmButtonText=""
+      :showCancelButton="true"
+      :showConfirmButton="false"
+      :showCloseButton="true"
+      :persistent="false"
+      :loading="false"
+    />
+    <DetailsStudent
+      v-model="showInfoModal"
+      :loading="isActionLoading"
+      :selectedEnrollment="selectedCourse"
+      @confirm="
+        () => {
+          selectedCourse = selectedCourse;
+          showEditModal = true;
+        }
+      "
+      @cancel="
+        () => {
+          selectedCourse = selectedCourse;
+          showDeleteModal = true;
+        }
+      "
+    />
   </div>
 </template>
 
@@ -239,7 +306,9 @@ import {
 } from "@tanstack/vue-table";
 import { computed, h, onMounted, reactive, ref } from "vue";
 import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
+import DetailsStudent from "~/components/student/DetailsStudent.vue";
 import Button from "~/components/ui/Button.vue";
+import Dialog from "~/components/ui/Dialog.vue";
 import EmptyState from "~/components/ui/EmptyState.vue";
 import FormInput from "~/components/ui/FormInput.vue";
 import ToastContainer from "~/components/ui/ToastContainer.vue";
@@ -254,6 +323,8 @@ interface Course {
   createdAt: string;
   total_enrolled_students?: number;
   availability_status?: string;
+  session_id?: number;
+  course_desc?: string;
 }
 const authState = useAuthStore();
 const loading = ref(false);
@@ -418,13 +489,13 @@ const showEditModal = ref(false);
 const showDeleteModal = ref(false);
 const showInfoModal = ref(false);
 const isActionLoading = ref(false);
-const toast = useToast();
+const showSuccessDialog = ref(false);
+const showFailureDialog = ref(false);
 
 const enroll = async (rowData: Course) => {
   selectedCourse.value = rowData;
   showEditModal.value = true;
 };
-
 const request = async (rowData: Course) => {
   selectedCourse.value = rowData;
   showDeleteModal.value = true;
@@ -433,48 +504,43 @@ const viewCourseDetails = async (rowData: Course) => {
   selectedCourse.value = rowData;
   showInfoModal.value = true;
 };
-const handleDeleteAction = async ({
-  reason,
-  customReason,
-}: {
-  reason: string;
-  customReason: string;
-}) => {
-  const { call } = useBackendService(`/enrollments/${selectedCourse}`, "patch");
-  const finalReason = reason === "Other reason" ? customReason : reason;
+const handleEnrollAction = async () => {
+  const { call } = useBackendService(`/enrollments`, "post");
 
   isActionLoading.value = true;
   try {
     await call({
-      enrollment_status: "REJECTED",
-      rejection_reason: finalReason,
+      student_id: authState.user?.student_id,
+      course_id: selectedCourse.value?.course_id,
+      session_id: selectedCourse.value?.session_id,
+      enrollment_status: "PENDING",
     });
-    toast.success("Enrollment rejected successfully");
-    fetchData();
+    showSuccessDialog.value = true;
 
     showDeleteModal.value = false;
     selectedCourse.value = null;
   } catch (error) {
-    toast.error("Failed to reject enrollment");
+    showFailureDialog.value = true;
   } finally {
     isActionLoading.value = false;
   }
 };
-const handleEditAction = async () => {
-  const { call } = useBackendService(`/enrollments/`, "patch");
+const handleRequestAction = async () => {
+  const { call } = useBackendService(`/enrollments`, "post");
 
   isActionLoading.value = true;
   try {
     await call({
-      enrollment_status: "APPROVED",
+      student_id: authState.user?.student_id,
+      course_id: selectedCourse.value?.course_id,
+      session_id: selectedCourse.value?.session_id,
+      enrollment_status: "PENDING",
     });
-    toast.success("Enrollment accepted successfully");
-    fetchData();
-
-    showEditModal.value = false;
+    showSuccessDialog.value = true;
+    showDeleteModal.value = false;
     selectedCourse.value = null;
   } catch (error) {
-    toast.error("Failed to reject enrollment");
+    showFailureDialog.value = true;
   } finally {
     isActionLoading.value = false;
   }

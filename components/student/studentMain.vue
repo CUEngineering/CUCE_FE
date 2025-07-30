@@ -3,12 +3,14 @@
     <div class="registrar-header">
       <div class="registrar-info">
         <div class="name-status-wrapper">
-          <h3 class="registrar-name">{{ selectedCourse.course_title }}</h3>
+          <h3 class="registrar-name">
+            {{ selectedCourse.course_title || selectedCourse.courseName }}
+          </h3>
         </div>
         <div class="status-badge">
-          {{ selectedCourse.course_code }}<Dot />{{
-            selectedCourse.course_credits
-          }}Units
+          {{ selectedCourse.course_code || selectedCourse.courseCode }}<Dot />{{
+            selectedCourse.course_credits || selectedCourse.courseCredit
+          }}{{ " " }}Units
         </div>
       </div>
       <div class="registrar-actions">
@@ -47,7 +49,7 @@ interface Course {
 }
 
 interface Props {
-  selectedCourse: Course;
+  selectedCourse: any;
 }
 
 const props = defineProps<Props>();
