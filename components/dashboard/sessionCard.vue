@@ -361,9 +361,6 @@ if (role === "REGISTRAR") {
   }
 }
 
-/* ====================
-   Header Section
-   ==================== */
 .registrar-header {
   display: flex;
   align-items: flex-start;
