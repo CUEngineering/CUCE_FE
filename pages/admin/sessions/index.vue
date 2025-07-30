@@ -604,7 +604,7 @@ const confirmStart = async () => {
 const confirmClose = async () => {
   const { call: confirmDeactivate } = useBackendService(
     `/sessions/${selectedSession.value?.sessionId}`,
-    ""
+    "patch"
   );
 
   if (!selectedSession.value) return;
