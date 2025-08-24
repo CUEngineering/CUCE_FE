@@ -1,15 +1,26 @@
 <template>
   <Teleport to="body">
     <Transition name="modal-fade">
-      <div v-if="modelValue" class="modal-overlay" @click="onOverlayClick">
-        <div class="modal-container" @click.stop>
+      <div
+        v-if="modelValue"
+        class="modal-overlay"
+        @click="onOverlayClick"
+      >
+        <div
+          class="modal-container"
+          @click.stop
+        >
           <div class="modal o-visible">
             <div class="modal-header">
               <div class="header-content">
                 <h2 class="modal-title">{{ modalTitle }}</h2>
                 <p class="">{{ modalSubTitle }}</p>
               </div>
-              <button class="close-button" @click="close" aria-label="Close">
+              <button
+                class="close-button"
+                aria-label="Close"
+                @click="close"
+              >
                 <CloseCircleIcon />
               </button>
             </div>
@@ -19,7 +30,9 @@
                 <!-- Program details section - show only in add/edit mode -->
                 <template v-if="mode !== 'addCourses'">
                   <div class="form-field">
-                    <label for="program-type" class="form-label"
+                    <label
+                      for="program-type"
+                      class="form-label"
                       >Course Type</label
                     >
                     <div class="radio-group">
@@ -31,7 +44,9 @@
                         ]"
                         :key="option"
                         class="radio-option"
-                        :class="{ selected: form.data.course_type === option }"
+                        :class="{
+                          selected: form.data.course_type === option,
+                        }"
                         @click="form.data.course_type = option"
                       >
                         <div class="radio">
@@ -43,15 +58,18 @@
                         <span class="radio-label">{{ option }}</span>
                       </div>
                     </div>
-                    <p v-if="form.errors.course_type" class="input-error">
+                    <p
+                      v-if="form.errors.course_type"
+                      class="input-error"
+                    >
                       {{ form.errors.course_type }}
                     </p>
                   </div>
 
                   <FormInput
                     id="course-title"
-                    label="Course Title"
                     v-model="form.data.course_title"
+                    label="Course Title"
                     placeholder="Enter course title"
                     required
                     :error="form.errors.course_title"
@@ -59,8 +77,8 @@
                   <div style="display: flex">
                     <FormInput
                       id="course-code"
-                      label="Course Code"
                       v-model="form.data.course_code"
+                      label="Course Code"
                       placeholder="e.g. AI101"
                       style="margin: 5px"
                       required
@@ -68,8 +86,8 @@
                     />
                     <FormInput
                       id="course-credits"
-                      label="Course Credits"
                       v-model="form.data.course_credits"
+                      label="Course Credits"
                       type="number"
                       placeholder="0"
                       style="margin: 5px"
@@ -82,7 +100,12 @@
             </div>
 
             <div class="modal-footer">
-              <Button variant="secondary" @click="close"> Cancel </Button>
+              <Button
+                variant="secondary"
+                @click="close"
+              >
+                Cancel
+              </Button>
               <Button
                 variant="primary"
                 :disabled="isLoading"
@@ -100,13 +123,13 @@
 </template>
 
 <script setup lang="ts">
-import { onClickOutside } from "@vueuse/core";
-import { computed, onMounted, reactive, ref, watch } from "vue";
-import { useToast } from "~/composables/useToast";
-import type { ProgramOutput } from "~/types/program";
-import CloseCircleIcon from "./icons/CloseCircleIcon.vue";
-import Button from "./ui/Button.vue";
-import FormInput from "./ui/FormInput.vue";
+import { onClickOutside } from '@vueuse/core';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { useToast } from '~/composables/useToast';
+import type { ProgramOutput } from '~/types/program';
+import CloseCircleIcon from './icons/CloseCircleIcon.vue';
+import Button from './ui/Button.vue';
+import FormInput from './ui/FormInput.vue';
 
 interface Course {
   id: number;
@@ -120,7 +143,7 @@ interface Props {
   modelValue: boolean;
   loading?: boolean;
   persistent?: boolean;
-  mode?: "add" | "edit" | "addCourses";
+  mode?: 'add' | 'edit' | 'addCourses';
   program?: any | null;
   availableCourses?: Course[];
   selectedProgramCourses?: Course[];
@@ -129,15 +152,15 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   loading: false,
   persistent: false,
-  mode: "add",
+  mode: 'add',
   program: null,
 });
 
 const emit = defineEmits<{
-  (e: "update:modelValue", value: boolean): void;
-  (e: "program-added", program: ProgramOutput): void;
-  (e: "program-updated", program: ProgramOutput): void;
-  (e: "courses-added", courses: Course[]): void;
+  (e: 'update:modelValue', value: boolean): void;
+  (e: 'program-added', program: ProgramOutput): void;
+  (e: 'program-updated', program: ProgramOutput): void;
+  (e: 'courses-added', courses: Course[]): void;
 }>();
 
 const isLoading = ref(false);
@@ -162,10 +185,10 @@ const form = reactive<{
   };
 }>({
   data: {
-    course_title: "",
-    course_code: "",
-    course_credits: "0",
-    course_type: "",
+    course_title: '',
+    course_code: '',
+    course_credits: '0',
+    course_type: '',
   },
   errors: {},
 });
@@ -173,36 +196,36 @@ const form = reactive<{
 // Computed properties
 const modalTitle = computed(() => {
   switch (props.mode) {
-    case "edit":
-      return "Course Details";
-    case "addCourses":
-      return "Add Courses to Program";
-    case "add":
+    case 'edit':
+      return 'Course Details';
+    case 'addCourses':
+      return 'Add Courses to Program';
+    case 'add':
     default:
-      return "Create a new course";
+      return 'Create a new course';
   }
 });
 const modalSubTitle = computed(() => {
   switch (props.mode) {
-    case "edit":
-      return "";
-    case "addCourses":
-      return "";
-    case "add":
+    case 'edit':
+      return '';
+    case 'addCourses':
+      return '';
+    case 'add':
     default:
-      return "Enter necessary details to create course";
+      return 'Enter necessary details to create course';
   }
 });
 
 const submitButtonText = computed(() => {
   switch (props.mode) {
-    case "edit":
-      return "Save";
-    case "addCourses":
-      return "Add";
-    case "add":
+    case 'edit':
+      return 'Save';
+    case 'addCourses':
+      return 'Add';
+    case 'add':
     default:
-      return "Create";
+      return 'Create';
   }
 });
 
@@ -210,19 +233,22 @@ const validateForm = (): boolean => {
   form.errors = {};
 
   if (!form.data.course_title) {
-    form.errors.course_title = "Course title is required";
+    form.errors.course_title = 'Course title is required';
   }
 
   if (!form.data.course_code) {
-    form.errors.course_code = "Course code is required";
+    form.errors.course_code = 'Course code is required';
   }
 
   if (!form.data.course_type) {
-    form.errors.course_type = "Course type is required";
+    form.errors.course_type = 'Course type is required';
   }
 
-  if (!form.data.course_credits || isNaN(Number(form.data.course_credits))) {
-    form.errors.course_credits = "Valid credits are required";
+  if (
+    !form.data.course_credits ||
+    isNaN(Number(form.data.course_credits))
+  ) {
+    form.errors.course_credits = 'Valid credits are required';
   }
 
   return Object.keys(form.errors).length === 0;
@@ -244,38 +270,42 @@ const handleSubmit = async () => {
   };
 
   try {
-    if (props.mode === "add") {
+    if (props.mode === 'add') {
       const {
         call: addCourse,
         isLoading: loading,
         data: courseData,
-      } = useBackendService("/courses", "post");
+      } = useBackendService('/courses', 'post');
 
       await addCourse(payload);
-      emit("program-added", courseData.value);
-      toast.success(`Course "${form.data.course_title}" created successfully`);
-    } else if (props.mode === "edit" && props.program) {
+      emit('program-added', courseData.value);
+      toast.success(
+        `Course "${form.data.course_title}" created successfully`,
+      );
+    } else if (props.mode === 'edit' && props.program) {
       const {
         call: updateCourse,
         isLoading,
         data: courseData,
       } = useBackendService(
         `/courses/${props.program.value.course_id}`,
-        "patch"
+        'patch',
       );
 
       updateCourse(payload);
 
-      emit("program-updated", courseData.value);
-      toast.success(`Course "${form.data.course_title}" updated successfully`);
+      emit('program-updated', courseData.value);
+      toast.success(
+        `Course "${form.data.course_title}" updated successfully`,
+      );
     }
 
     close();
   } catch (error: any) {
-    console.error("Submission error:", error);
+    console.error('Submission error:', error);
     toast.error(
       error.response?.data?.message ||
-        `Failed to ${props.mode} course. Please try again.`
+        `Failed to ${props.mode} course. Please try again.`,
     );
   } finally {
     isLoading.value = false;
@@ -283,7 +313,7 @@ const handleSubmit = async () => {
 };
 
 const close = () => {
-  emit("update:modelValue", false);
+  emit('update:modelValue', false);
 };
 
 const onOverlayClick = () => {
@@ -293,12 +323,14 @@ const onOverlayClick = () => {
 };
 
 const initializeForm = () => {
-  if (props.mode === "edit" && props.program) {
+  if (props.mode === 'edit' && props.program) {
     console.log(props.program);
-    form.data.course_title = props.program?.value.course_title || "";
-    form.data.course_code = props.program?.value.course_code || "";
-    form.data.course_credits = String(props.program?.value.course_credits || 0);
-    form.data.course_type = props.program?.value.course_type || "";
+    form.data.course_title = props.program?.value.course_title || '';
+    form.data.course_code = props.program?.value.course_code || '';
+    form.data.course_credits = String(
+      props.program?.value.course_credits || 0,
+    );
+    form.data.course_type = props.program?.value.course_type || '';
   }
 };
 
@@ -311,7 +343,7 @@ watch(
     if (value) {
       initializeForm();
     }
-  }
+  },
 );
 
 watch(
@@ -320,7 +352,7 @@ watch(
     if (props.modelValue) {
       initializeForm();
     }
-  }
+  },
 );
 
 const dropdownContainer = ref<HTMLElement | null>(null);

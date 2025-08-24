@@ -7,12 +7,15 @@
       <div class="title-and-filter">
         <h2 class="heading-txt">Courses</h2>
       </div>
-      <div v-if="programs.length > 0" class="search-and-actions">
+      <div
+        v-if="programs.length > 0"
+        class="search-and-actions"
+      >
         <div class="search-container">
           <FormInput
             id="program-search"
-            label=""
             v-model="searchQuery"
+            label=""
             placeholder="Find a course"
             size="sm"
           >
@@ -24,7 +27,11 @@
           </FormInput>
         </div>
 
-        <Button @click="openAddProgramModal" variant="primary" size="sm">
+        <Button
+          variant="primary"
+          size="sm"
+          @click="openAddProgramModal"
+        >
           <template #icon>
             <PlusIcon />
           </template>
@@ -51,7 +58,10 @@
         />
       </template>
       <template #action>
-        <Button @click="openAddProgramModal" variant="secondary">
+        <Button
+          variant="secondary"
+          @click="openAddProgramModal"
+        >
           <template #icon>
             <PlusIcon />
           </template>
@@ -71,13 +81,18 @@
             <th
               v-for="header in table.getHeaderGroups()[0].headers"
               :key="header.id"
-              @click="header.column.getToggleSortingHandler()"
               class="table-header"
+              @click="header.column.getToggleSortingHandler()"
             >
               <div class="header-content">
                 {{ header.column.columnDef.header }}
-                <span v-if="header.column.getIsSorted()" class="sort-indicator">
-                  {{ header.column.getIsSorted() === "desc" ? "▼" : "▲" }}
+                <span
+                  v-if="header.column.getIsSorted()"
+                  class="sort-indicator"
+                >
+                  {{
+                    header.column.getIsSorted() === 'desc' ? '▼' : '▲'
+                  }}
                 </span>
               </div>
             </th>
@@ -87,16 +102,23 @@
           <tr
             v-for="row in table.getRowModel().rows"
             :key="row.id"
-            @click="viewCourseDetails(row.original.course_id)"
             class="table-row"
+            @click="viewCourseDetails(row.original.course_id)"
           >
             <td
               v-for="cell in row.getVisibleCells()"
               :key="cell.id"
               class="table-cell"
             >
-              <template v-if="typeof cell.column.columnDef.cell === 'function'">
-                <div v-if="cell.column.id === 'actions'" class="action-cell">
+              <template
+                v-if="
+                  typeof cell.column.columnDef.cell === 'function'
+                "
+              >
+                <div
+                  v-if="cell.column.id === 'actions'"
+                  class="action-cell"
+                >
                   <button class="action-button">
                     <DotsVerticalIcon />
                   </button>
@@ -109,15 +131,19 @@
                   <span
                     class="pill pill-md"
                     :class="
-                      row.original.course_type.toLowerCase() === 'undergraduate'
+                      row.original.course_type.toLowerCase() ===
+                      'undergraduate'
                         ? 'p-green'
-                        : row.original.course_type.toLowerCase() === 'doctorate'
-                        ? 'p-yellow'
-                        : 'p-blue'
+                        : row.original.course_type.toLowerCase() ===
+                            'doctorate'
+                          ? 'p-yellow'
+                          : 'p-blue'
                     "
                   >
                     {{
-                      capitalizeFirst(row.original.course_type.toLowerCase())
+                      capitalizeFirst(
+                        row.original.course_type.toLowerCase(),
+                      )
                     }}
                   </span>
                 </div>
@@ -129,7 +155,9 @@
                   {{ cell.renderValue() || 0 }}
                 </div>
                 <div
-                  v-else-if="cell.column.id === 'total_enrolled_students'"
+                  v-else-if="
+                    cell.column.id === 'total_enrolled_students'
+                  "
                   class="courses-cell profile-count pill p-grey pill-lg"
                   style="width: fit-content"
                 >
@@ -147,8 +175,10 @@
         <MobileMain
           v-for="row in table.getRowModel().rows"
           :key="row.id"
-          :selectedCourse="row.original"
-          @viewDetails="viewCourseDetails(row.original.course_id as any)"
+          :selected-course="row.original"
+          @viewDetails="
+            viewCourseDetails(row.original.course_id as any)
+          "
         />
       </div>
 
@@ -156,9 +186,9 @@
       <div class="pagination">
         <div class="pagination-controls">
           <button
-            @click="table.previousPage()"
             :disabled="!table.getCanPreviousPage()"
             class="pagination-button"
+            @click="table.previousPage()"
           >
             <svg
               width="16"
@@ -181,19 +211,20 @@
             <button
               v-for="page in calculatePageRange()"
               :key="page"
-              @click="goToPage(page - 1)"
               class="page-button"
               :class="{
-                active: table.getState().pagination.pageIndex === page - 1,
+                active:
+                  table.getState().pagination.pageIndex === page - 1,
               }"
+              @click="goToPage(page - 1)"
             >
               {{ page }}
             </button>
           </div>
           <button
-            @click="table.nextPage()"
             :disabled="!table.getCanNextPage()"
             class="pagination-button"
+            @click="table.nextPage()"
           >
             Next
             <svg
@@ -229,7 +260,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ColumnSort } from "@tanstack/vue-table";
+import type { ColumnSort } from '@tanstack/vue-table';
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -237,18 +268,18 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useVueTable,
-} from "@tanstack/vue-table";
-import { computed, h, onMounted, reactive, ref } from "vue";
-import AddCourseModal from "~/components/AddCourseModal.vue";
-import MobileMain from "~/components/courses/MobileMain.vue";
-import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
-import PlusIcon from "~/components/icons/PlusIcon.vue";
-import Button from "~/components/ui/Button.vue";
-import EmptyState from "~/components/ui/EmptyState.vue";
-import FormInput from "~/components/ui/FormInput.vue";
-import ToastContainer from "~/components/ui/ToastContainer.vue";
-import { capitalizeFirst } from "~/helper/formatData";
-import type { ProgramOutput } from "~/types/program";
+} from '@tanstack/vue-table';
+import { computed, h, onMounted, reactive, ref } from 'vue';
+import AddCourseModal from '~/components/AddCourseModal.vue';
+import MobileMain from '~/components/courses/MobileMain.vue';
+import DotsVerticalIcon from '~/components/icons/DotsVerticalIcon.vue';
+import PlusIcon from '~/components/icons/PlusIcon.vue';
+import Button from '~/components/ui/Button.vue';
+import EmptyState from '~/components/ui/EmptyState.vue';
+import FormInput from '~/components/ui/FormInput.vue';
+import ToastContainer from '~/components/ui/ToastContainer.vue';
+import { capitalizeFirst } from '~/helper/formatData';
+import type { ProgramOutput } from '~/types/program';
 
 interface Program {
   course_id: string;
@@ -261,15 +292,15 @@ interface Program {
 }
 const loading = ref(false);
 const { call: fetchPrograms, data: programsData } = useBackendService(
-  "/courses",
-  "get"
+  '/courses',
+  'get',
 );
 
 const programs = ref<Program[]>([]);
 
 console.log(programs.value);
 
-const programsDataCache = useState<any>("courseData", () => null);
+const programsDataCache = useState<any>('courseData', () => null);
 
 const fetchData = async () => {
   await fetchPrograms();
@@ -289,15 +320,20 @@ onMounted(async () => {
       await fetchData();
       loading.value = false;
     } catch (err) {
-      console.error("Failed to fetch dashboard stats", err);
+      console.error('Failed to fetch dashboard stats', err);
     }
   }
 
   if (programsDataCache.value) {
-    if (programsDataCache.value && Array.isArray(programsDataCache.value)) {
-      programs.value = programsDataCache.value.map((program: any) => ({
-        ...program,
-      }));
+    if (
+      programsDataCache.value &&
+      Array.isArray(programsDataCache.value)
+    ) {
+      programs.value = programsDataCache.value.map(
+        (program: any) => ({
+          ...program,
+        }),
+      );
     }
   }
 });
@@ -305,39 +341,39 @@ onMounted(async () => {
 const columnHelper = createColumnHelper<Program>();
 
 const columns = [
-  columnHelper.accessor("course_title", {
-    header: "Course Title",
+  columnHelper.accessor('course_title', {
+    header: 'Course Title',
     cell: (props) => props.getValue(),
   }),
-  columnHelper.accessor("course_code", {
-    header: "Course Code",
+  columnHelper.accessor('course_code', {
+    header: 'Course Code',
     cell: (props) => props.getValue(),
   }),
-  columnHelper.accessor("total_enrolled_students", {
-    header: "Enrolled Students",
+  columnHelper.accessor('total_enrolled_students', {
+    header: 'Enrolled Students',
     cell: (props) => props.getValue() || 0,
   }),
-  columnHelper.accessor("course_type", {
-    header: "Course Type",
+  columnHelper.accessor('course_type', {
+    header: 'Course Type',
     cell: (props) => props.getValue(),
   }),
-  columnHelper.accessor("course_credits", {
-    header: "Credits Value",
+  columnHelper.accessor('course_credits', {
+    header: 'Credits Value',
     cell: (props) => props.getValue() || 0,
   }),
   columnHelper.display({
-    id: "actions",
-    header: "Action",
+    id: 'actions',
+    header: 'Action',
     cell: (props) => {
       return h(
-        "button",
+        'button',
         {
           onClick: (e) => {
             e.stopPropagation();
           },
-          class: "action-button",
+          class: 'action-button',
         },
-        h(DotsVerticalIcon)
+        h(DotsVerticalIcon),
       );
     },
   }),
@@ -349,7 +385,7 @@ const tableState = reactive({
     pageSize: 10,
   },
   sorting: [] as ColumnSort[],
-  globalFilter: "",
+  globalFilter: '',
 });
 
 // Keep searchQuery in sync with globalFilter
@@ -372,12 +408,16 @@ const table = useVueTable({
   },
   onSortingChange: (updater) => {
     const newValue =
-      typeof updater === "function" ? updater(tableState.sorting) : updater;
+      typeof updater === 'function'
+        ? updater(tableState.sorting)
+        : updater;
     tableState.sorting = newValue;
   },
   onPaginationChange: (updater) => {
     const newValue =
-      typeof updater === "function" ? updater(tableState.pagination) : updater;
+      typeof updater === 'function'
+        ? updater(tableState.pagination)
+        : updater;
     tableState.pagination = newValue;
   },
   getCoreRowModel: getCoreRowModel(),
@@ -396,7 +436,10 @@ const calculatePageRange = () => {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }
 
-  let startPage = Math.max(currentPage - Math.floor(maxVisiblePages / 2), 1);
+  let startPage = Math.max(
+    currentPage - Math.floor(maxVisiblePages / 2),
+    1,
+  );
   let endPage = startPage + maxVisiblePages - 1;
 
   if (endPage > totalPages) {
@@ -406,7 +449,7 @@ const calculatePageRange = () => {
 
   return Array.from(
     { length: endPage - startPage + 1 },
-    (_, i) => startPage + i
+    (_, i) => startPage + i,
   );
 };
 
@@ -433,7 +476,7 @@ const viewCourseDetails = (id: string) => {
 
 // Define that this page uses the dashboard layout
 definePageMeta({
-  layout: "dashboard",
+  layout: 'dashboard',
 });
 </script>
 

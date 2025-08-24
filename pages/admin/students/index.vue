@@ -7,12 +7,15 @@
       <div class="title-and-filter">
         <h2 class="heading-txt">Students</h2>
       </div>
-      <div v-if="enrollments.length > 0" class="search-and-actions">
+      <div
+        v-if="enrollments.length > 0"
+        class="search-and-actions"
+      >
         <div class="search-container">
           <FormInput
             id="program-search"
-            label=""
             v-model="searchQuery"
+            label=""
             placeholder="Find a student"
             size="sm"
           >
@@ -42,7 +45,11 @@
         />
       </template>
       <template #action>
-        <Button @click="showInviteModal = true" variant="outline" size="sm">
+        <Button
+          variant="outline"
+          size="sm"
+          @click="showInviteModal = true"
+        >
           <template #icon>
             <PlusIcon />
           </template>
@@ -64,18 +71,29 @@
             style="margin: auto; margin-left: 20px"
             class="web profile-count pill p-grey pill-sm"
           >
-            ({{ startRecord }} - {{ endRecord }}) of {{ totalRecords }}
+            ({{ startRecord }} - {{ endRecord }}) of
+            {{ totalRecords }}
           </div>
         </div>
 
-        <div style="display: flex" class="web header-actions">
-          <Button @click="showInviteModal = true" variant="primary" size="sm">
+        <div
+          style="display: flex"
+          class="web header-actions"
+        >
+          <Button
+            variant="primary"
+            size="sm"
+            @click="showInviteModal = true"
+          >
             <template #icon>
               <PlusIcon />
             </template>
             New Student
           </Button>
-          <FilterIcon style="margin-left: 5px" class="avatar" />
+          <FilterIcon
+            style="margin-left: 5px"
+            class="avatar"
+          />
         </div>
       </div>
       <div>
@@ -86,8 +104,8 @@
                 <th
                   v-for="header in table.getHeaderGroups()[0].headers"
                   :key="header.id"
-                  @click="header.column.getToggleSortingHandler()"
                   class="table-header"
+                  @click="header.column.getToggleSortingHandler()"
                 >
                   <div class="header-content">
                     {{ header.column.columnDef.header }}
@@ -95,7 +113,11 @@
                       v-if="header.column.getIsSorted()"
                       class="sort-indicator"
                     >
-                      {{ header.column.getIsSorted() === "desc" ? "▼" : "▲" }}
+                      {{
+                        header.column.getIsSorted() === 'desc'
+                          ? '▼'
+                          : '▲'
+                      }}
                     </span>
                   </div>
                 </th>
@@ -105,8 +127,8 @@
               <tr
                 v-for="row in table.getRowModel().rows"
                 :key="row.id"
-                @click="handleInfo(row.original)"
                 class="table-row"
+                @click="handleInfo(row.original)"
               >
                 <td
                   v-for="cell in row.getVisibleCells()"
@@ -114,7 +136,9 @@
                   class="table-cell"
                 >
                   <template
-                    v-if="typeof cell.column.columnDef.cell === 'function'"
+                    v-if="
+                      typeof cell.column.columnDef.cell === 'function'
+                    "
                   >
                     <div
                       v-if="cell.column.id === 'actions'"
@@ -122,24 +146,31 @@
                     >
                       <div class="dropdown">
                         <button
-                          @click.stop="toggleDropdown(row.original.student_id)"
                           class="action-button"
                           aria-haspopup="true"
                           :aria-expanded="
                             openDropdownId === row.original.student_id
+                          "
+                          @click.stop="
+                            toggleDropdown(row.original.student_id)
                           "
                         >
                           <DotsVerticalIcon />
                         </button>
                         <transition name="dropdown">
                           <div
-                            v-if="openDropdownId === row.original.student_id"
+                            v-if="
+                              openDropdownId ===
+                              row.original.student_id
+                            "
                             class="dropdown-menu"
                             @click.stop
                           >
                             <button
-                              @click.stop="showSuspendDialog(row.original)"
                               class="dropdown-item"
+                              @click.stop="
+                                showSuspendDialog(row.original)
+                              "
                             >
                               <span class="dropdown-icon">
                                 <CloseCircleIcon />
@@ -148,8 +179,10 @@
                             </button>
 
                             <button
-                              @click.stop="showDeleteDialog(row.original)"
                               class="dropdown-item"
+                              @click.stop="
+                                showDeleteDialog(row.original)
+                              "
                             >
                               <span class="dropdown-icon">
                                 <DeleteIcon />
@@ -161,7 +194,7 @@
                       </div>
                     </div>
                     <div
-                      v-else-if="cell.column.id === 'first_name'"
+                      v-else-if="cell.column.id === 'student_id'"
                       class="student-info"
                     >
                       <img
@@ -171,7 +204,7 @@
                       />
                       <div class="student-details">
                         <div class="student-name">
-                          {{ cell.row.original.first_name }}{{ " "
+                          {{ cell.row.original.first_name }}{{ ' '
                           }}{{ cell.row.original.last_name }}
                         </div>
                         <div class="student-id">
@@ -180,23 +213,55 @@
                       </div>
                     </div>
                     <div v-else-if="cell.column.id === 'email'">
+                      <div class="email">
+                        {{ cell.row.original.email }}
+                        <div
+                          v-if="cell.row.original.invite?.status"
+                          :class="[
+                            'status-badge',
+                            getStatusClass(
+                              cell.row.original.invite.status,
+                            ),
+                          ]"
+                          style="width: fit-content"
+                        >
+                          {{
+                            capitalizeFirst(
+                              cell.row.original.invite.status,
+                            )
+                          }}
+                        </div>
+                      </div>
+                    </div>
+                    <div v-else-if="cell.column.id === 'program'">
                       {{ cell.row.original?.program.program_name }}
                     </div>
                     <div
-                      v-else-if="cell.column.id === 'reg_number'"
+                      v-else-if="
+                        cell.column.id === 'program_program_type'
+                      "
                       class="status-badge"
                       :class="
-                        getStatusClass(cell.row.original?.program.program_type)
+                        getStatusClass(
+                          cell.row.original?.program.program_type,
+                        )
                       "
                     >
                       {{
-                        capitalizeFirst(cell.row.original?.program.program_type)
+                        capitalizeFirst(
+                          cell.row.original?.program.program_type,
+                        )
                       }}
                     </div>
-                    <div v-else-if="cell.column.id === 'last_name'">
+                    <div
+                      v-else-if="
+                        cell.column.id === 'enrollments_registrar_id'
+                      "
+                    >
                       <template
                         v-if="
-                          cell.row.original.enrollments[0]?.registrars?.email
+                          cell.row.original.enrollments[0]?.registrars
+                            ?.email
                         "
                       >
                         <div
@@ -205,24 +270,24 @@
                         >
                           <img
                             :src="
-                              cell.row.original.enrollments[0].registrars
-                                .profile_picture
+                              cell.row.original.enrollments[0]
+                                .registrars.profile_picture
                             "
                             :alt="
-                              cell.row.original.enrollments[0].registrars
-                                .first_name
+                              cell.row.original.enrollments[0]
+                                .registrars.first_name
                             "
                             class="avatar"
                           />
                           <div class="student-details">
                             <div class="student-name">
                               {{
-                                cell.row.original.enrollments[0].registrars
-                                  .first_name
+                                cell.row.original.enrollments[0]
+                                  .registrars.first_name
                               }}
                               {{
-                                cell.row.original.enrollments[0].registrars
-                                  .last_name
+                                cell.row.original.enrollments[0]
+                                  .registrars.last_name
                               }}
                             </div>
                           </div>
@@ -235,6 +300,7 @@
                       </template>
                     </div>
                     <div v-else>
+                      {{ { data: cell.column } }}
                       {{ cell.renderValue() }}
                     </div>
                   </template>
@@ -247,15 +313,15 @@
           <StudentMobile
             v-for="row in table.getRowModel().rows"
             :key="row.id"
-            :selectedCourse="row.original"
+            :selected-course="row.original"
           />
         </div>
         <div class="pagination">
           <div class="pagination-controls">
             <button
-              @click="table.previousPage()"
               :disabled="!table.getCanPreviousPage()"
               class="pagination-button"
+              @click="table.previousPage()"
             >
               <svg
                 width="16"
@@ -278,19 +344,21 @@
               <button
                 v-for="page in calculatePageRange()"
                 :key="page"
-                @click="goToPage(page - 1)"
                 class="page-button"
                 :class="{
-                  active: table.getState().pagination.pageIndex === page - 1,
+                  active:
+                    table.getState().pagination.pageIndex ===
+                    page - 1,
                 }"
+                @click="goToPage(page - 1)"
               >
                 {{ page }}
               </button>
             </div>
             <button
-              @click="table.nextPage()"
               :disabled="!table.getCanNextPage()"
               class="pagination-button"
+              @click="table.nextPage()"
             >
               Next
               <svg
@@ -326,11 +394,11 @@
       message="Your invitation have been sent to the provided email address. The invited student will receive an email with a link to join the platform."
       variant="success"
       :icon="true"
-      cancelButtonText="Awesome 🎉"
-      confirmButtonText=""
-      :showCancelButton="true"
-      :showConfirmButton="false"
-      :showCloseButton="true"
+      cancel-button-text="Awesome 🎉"
+      confirm-button-text=""
+      :show-cancel-button="true"
+      :show-confirm-button="false"
+      :show-close-button="true"
       :persistent="false"
       :loading="false"
     />
@@ -340,11 +408,11 @@
       message="There was an issue, We’re unable to send your invite to the provided email address. Please try again."
       variant="danger"
       :icon="true"
-      cancelButtonText="Try again!"
-      confirmButtonText=""
-      :showCancelButton="true"
-      :showConfirmButton="false"
-      :showCloseButton="true"
+      cancel-button-text="Try again!"
+      confirm-button-text=""
+      :show-cancel-button="true"
+      :show-confirm-button="false"
+      :show-close-button="true"
       :persistent="false"
       :loading="false"
     />
@@ -371,7 +439,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ColumnSort } from "@tanstack/vue-table";
+import type { ColumnSort } from '@tanstack/vue-table';
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -379,19 +447,19 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useVueTable,
-} from "@tanstack/vue-table";
-import { computed, reactive, ref } from "vue";
-import CloseCircleIcon from "~/components/icons/CloseCircleIcon.vue";
-import DeleteIcon from "~/components/icons/DeleteIcon.vue";
-import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
-import FilterIcon from "~/components/icons/FilterIcon.vue";
-import PlusIcon from "~/components/icons/PlusIcon.vue";
-import AddModal from "~/components/student/AddModal.vue";
-import Button from "~/components/ui/Button.vue";
-import Dialog from "~/components/ui/Dialog.vue";
-import EmptyState from "~/components/ui/EmptyState.vue";
-import FormInput from "~/components/ui/FormInput.vue";
-import { capitalizeFirst, getStatusClass } from "~/helper/formatData";
+} from '@tanstack/vue-table';
+import { computed, reactive, ref } from 'vue';
+import CloseCircleIcon from '~/components/icons/CloseCircleIcon.vue';
+import DeleteIcon from '~/components/icons/DeleteIcon.vue';
+import DotsVerticalIcon from '~/components/icons/DotsVerticalIcon.vue';
+import FilterIcon from '~/components/icons/FilterIcon.vue';
+import PlusIcon from '~/components/icons/PlusIcon.vue';
+import AddModal from '~/components/student/AddModal.vue';
+import Button from '~/components/ui/Button.vue';
+import Dialog from '~/components/ui/Dialog.vue';
+import EmptyState from '~/components/ui/EmptyState.vue';
+import FormInput from '~/components/ui/FormInput.vue';
+import { capitalizeFirst, getStatusClass } from '~/helper/formatData';
 
 interface Student {
   student_id: number;
@@ -403,6 +471,12 @@ interface Student {
   program_id: number;
   enrollments: Enrollment[];
   program: Program;
+  invite?: {
+    status: 'ACCEPTED' | 'PENDING';
+    expires_at: string | Date;
+    created_at: string | Date;
+    updated_at: string | Date;
+  };
 }
 
 interface Enrollment {
@@ -451,7 +525,7 @@ const confirmDeactivate = async () => {
     data: confirmDeactivateData,
   } = useBackendService(
     `/students/${selectedStudent.value?.student_id}`,
-    "delete"
+    'delete',
   );
 
   if (!selectedStudent.value) return;
@@ -463,12 +537,14 @@ const confirmDeactivate = async () => {
     // await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Success case
-    toast.success(`${selectedStudent.value.first_name} has been Deleted`);
+    toast.success(
+      `${selectedStudent.value.first_name} has been Deleted`,
+    );
 
     await fetchData();
   } catch (error) {
     // Error case
-    toast.error("Failed to delete student");
+    toast.error('Failed to delete student');
   } finally {
     isActionLoading.value = false;
     showDeactivateConfirm.value = false;
@@ -481,7 +557,7 @@ const confirmSuspend = async () => {
     data: confirmSuspendData,
   } = useBackendService(
     `/students/${selectedStudent.value?.student_id}/reject`,
-    "patch"
+    'patch',
   );
   if (!selectedStudent.value) return;
 
@@ -492,12 +568,14 @@ const confirmSuspend = async () => {
     // await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Success case
-    toast.success(`${selectedStudent.value.first_name} has been suspended`);
+    toast.success(
+      `${selectedStudent.value.first_name} has been suspended`,
+    );
 
     await fetchData();
   } catch (error) {
     // Error case
-    toast.error("Failed to suspend student");
+    toast.error('Failed to suspend student');
   } finally {
     isActionLoading.value = false;
     showSuspendConfirm.value = false;
@@ -516,16 +594,20 @@ const handleInviteFailure = async () => {
   await fetchData();
 };
 
-const openDropdownId = inject<Ref<number | null>>("openDropdownId", ref(null));
+const openDropdownId = inject<Ref<number | null>>(
+  'openDropdownId',
+  ref(null),
+);
 
 // Toggle dropdown
 const toggleDropdown = (studentId: number) => {
-  openDropdownId.value = openDropdownId.value === studentId ? null : studentId;
+  openDropdownId.value =
+    openDropdownId.value === studentId ? null : studentId;
 };
 
-const { call, data } = useBackendService("/students", "get");
+const { call, data } = useBackendService('/students', 'get');
 const enrollments = ref<Student[]>([]);
-const enrollmentsDataCache = useState("studentscachT", () => null);
+const enrollmentsDataCache = useState('studentscachT', () => null);
 const fetchData = async () => {
   await call();
   enrollmentsDataCache.value = data.value;
@@ -538,7 +620,7 @@ onMounted(async () => {
       await fetchData();
       loading.value = false;
     } catch (err) {
-      console.error("Failed to fetch dashboard stats", err);
+      console.error('Failed to fetch dashboard stats', err);
     }
   }
 
@@ -551,30 +633,34 @@ const columnHelper = createColumnHelper<Student>();
 
 const columns = computed(() => {
   const cols: any[] = [
-    columnHelper.accessor("first_name", {
-      header: "Student name",
+    columnHelper.accessor('student_id', {
+      header: 'Student Name',
       cell: (props) => props.getValue(),
     }),
-    columnHelper.accessor("email", {
-      header: "Enrolled Programme",
+    columnHelper.accessor('email', {
+      header: 'Student Email',
       cell: (props) => props.getValue(),
     }),
-    columnHelper.accessor("reg_number", {
-      header: "Programme Type",
+    columnHelper.accessor('program', {
+      header: 'Enrolled Programme',
       cell: (props) => props.getValue(),
     }),
-    columnHelper.accessor("last_name", {
-      header: "Assigned Registrar",
+    columnHelper.accessor('program.program_type', {
+      header: 'Programme Type',
+      cell: (props) => props.getValue(),
+    }),
+    columnHelper.accessor('enrollments.registrar_id', {
+      header: 'Assigned Registrar',
       cell: (props) => props.getValue(),
     }),
   ];
 
   cols.push(
     columnHelper.display({
-      id: "actions",
-      header: "Action",
+      id: 'actions',
+      header: 'Action',
       cell: () => {},
-    })
+    }),
   );
 
   return cols;
@@ -586,7 +672,7 @@ const tableState = reactive({
     pageSize: 10,
   },
   sorting: [] as ColumnSort[],
-  globalFilter: "",
+  globalFilter: '',
 });
 
 const searchQuery = computed({
@@ -609,12 +695,16 @@ const table = useVueTable({
   },
   onSortingChange: (updater) => {
     const newValue =
-      typeof updater === "function" ? updater(tableState.sorting) : updater;
+      typeof updater === 'function'
+        ? updater(tableState.sorting)
+        : updater;
     tableState.sorting = newValue;
   },
   onPaginationChange: (updater) => {
     const newValue =
-      typeof updater === "function" ? updater(tableState.pagination) : updater;
+      typeof updater === 'function'
+        ? updater(tableState.pagination)
+        : updater;
     tableState.pagination = newValue;
   },
   getCoreRowModel: getCoreRowModel(),
@@ -633,7 +723,10 @@ const calculatePageRange = () => {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }
 
-  let startPage = Math.max(currentPage - Math.floor(maxVisiblePages / 2), 1);
+  let startPage = Math.max(
+    currentPage - Math.floor(maxVisiblePages / 2),
+    1,
+  );
   let endPage = startPage + maxVisiblePages - 1;
 
   if (endPage > totalPages) {
@@ -643,7 +736,7 @@ const calculatePageRange = () => {
 
   return Array.from(
     { length: endPage - startPage + 1 },
-    (_, i) => startPage + i
+    (_, i) => startPage + i,
   );
 };
 
@@ -671,7 +764,7 @@ const goToPage = (pageIndex: number) => {
 };
 
 definePageMeta({
-  layout: "dashboard",
+  layout: 'dashboard',
 });
 
 const totalRecords = computed(() => enrollments.value.length);
@@ -687,7 +780,9 @@ const endRecord = computed(() => {
   const possibleEnd =
     (table.getState().pagination.pageIndex + 1) *
     table.getState().pagination.pageSize;
-  return possibleEnd > totalRecords.value ? totalRecords.value : possibleEnd;
+  return possibleEnd > totalRecords.value
+    ? totalRecords.value
+    : possibleEnd;
 });
 </script>
 
@@ -969,7 +1064,8 @@ const endRecord = computed(() => {
   min-width: 180px;
   background-color: $white;
   border-radius: 8px;
-  box-shadow: 0px 12px 16px -4px rgba(16, 24, 40, 0.08),
+  box-shadow:
+    0px 12px 16px -4px rgba(16, 24, 40, 0.08),
     0px 4px 6px -2px rgba(16, 24, 40, 0.03);
   border: 1px solid $gray-200;
   // overflow: hidden;

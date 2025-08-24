@@ -1,9 +1,15 @@
 <template>
   <div class="dashboard-layout">
     <!-- Pass both collapsed and mobile open states to sidebar component -->
-    <component :is="getSidebarComponent" :is-collapsed="!sidebarOpen" />
+    <component
+      :is="getSidebarComponent"
+      :is-collapsed="!sidebarOpen"
+    />
 
-    <div class="content-wrapper" :class="{ 'sidebar-collapsed': !sidebarOpen }">
+    <div
+      class="content-wrapper"
+      :class="{ 'sidebar-collapsed': !sidebarOpen }"
+    >
       <!-- Header -->
       <header class="dashboard-header">
         <div class="header-left">
@@ -14,8 +20,15 @@
           >
             <MenuIcon />
           </button>
-          <button style="background-color: #06061b" class="header-iconm">
-            <img :src="logoFull" alt="Charisma Logo" class="logo-icon" />
+          <button
+            style="background-color: #06061b"
+            class="header-iconm"
+          >
+            <img
+              :src="logoFull"
+              alt="Charisma Logo"
+              class="logo-icon"
+            />
           </button>
         </div>
 
@@ -35,7 +48,11 @@
           </button>
 
           <div class="user-profile">
-            <img :src="avatar" alt="User avatar" class="avatar" />
+            <img
+              :src="avatar"
+              alt="User avatar"
+              class="avatar"
+            />
           </div>
         </div>
       </header>
@@ -49,44 +66,49 @@
 </template>
 
 <script setup>
-import logoFull from "@/assets/images/logost.svg";
-import { useRouter } from "vue-router";
-import AdminSidebar from "~/components/AdminSidebar.vue";
-import BellIcon from "~/components/icons/BellIcon.vue";
-import LogoutIcon from "~/components/icons/LogoutIcon.vue";
-import MenuIcon from "~/components/icons/MenuIcon.vue";
-import RegistrarSidebar from "~/components/RegistrarSidebar.vue";
-import StudentSidebar from "~/components/StudentSidebar.vue";
-import { useToast } from "~/composables/useToast";
+import logoFull from '@/assets/images/logost.svg';
+import AdminSidebar from '~/components/AdminSidebar.vue';
+import BellIcon from '~/components/icons/BellIcon.vue';
+import LogoutIcon from '~/components/icons/LogoutIcon.vue';
+import MenuIcon from '~/components/icons/MenuIcon.vue';
+import RegistrarSidebar from '~/components/RegistrarSidebar.vue';
+import StudentSidebar from '~/components/StudentSidebar.vue';
+import { useToast } from '~/composables/useToast';
 
 // Initialize sidebar as closed on mobile, open on desktop
-const sidebarOpen = ref(process.client ? window.innerWidth > 768 : true);
+const sidebarOpen = ref(
+  import.meta.client ? window.innerWidth > 768 : true,
+);
 const authStore = useAuthStore();
 const { success } = useToast();
-const router = useRouter();
 // const role = useCookie("role").value;
 // const userCookie = useCookie("user").value;
 
 // const defaultAvatar = "https://randomuser.me/api/portraits/women/44.jpg";
 // const avatar = computed(() => userCookie?.profile_picture ?? defaultAvatar);
 const role = authStore.role;
-const defaultAvatar = "https://randomuser.me/api/portraits/women/44.jpg";
-const avatar = computed(() => authStore.user?.profile_picture ?? defaultAvatar);
+const defaultAvatar =
+  'https://randomuser.me/api/portraits/women/44.jpg';
+const avatar = computed(() => {
+  return authStore.user?.profile_picture ?? defaultAvatar;
+});
 
 function toggleSidebar() {
   sidebarOpen.value = !sidebarOpen.value;
 }
 
-function handleLogout() {
-  authStore.logout();
-  success("Logged out successfully");
-  router.push("/login");
+async function handleLogout() {
+  await authStore.logout();
+  success('Logged out successfully');
+  await navigateTo({
+    name: 'login',
+  });
 }
 
 const getSidebarComponent = computed(() => {
-  if (role === "ADMIN") return AdminSidebar;
-  if (role === "STUDENT") return StudentSidebar;
-  if (role === "REGISTRAR") return RegistrarSidebar;
+  if (role === 'ADMIN') return AdminSidebar;
+  if (role === 'STUDENT') return StudentSidebar;
+  if (role === 'REGISTRAR') return RegistrarSidebar;
   return null;
 });
 </script>

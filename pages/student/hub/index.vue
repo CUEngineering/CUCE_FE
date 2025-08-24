@@ -6,16 +6,22 @@
     <div class="page-header dashlet">
       <div class="title-and-filter">
         <h2 class="heading-txt">Courses</h2>
-        <div style="margin: auto" class="web profile-count pill p-grey pill-sm">
+        <div
+          style="margin: auto"
+          class="web profile-count pill p-grey pill-sm"
+        >
           {{ programs.length }}
         </div>
       </div>
-      <div v-if="programs.length > 0" class="search-and-actions">
+      <div
+        v-if="programs.length > 0"
+        class="search-and-actions"
+      >
         <div class="search-container">
           <FormInput
             id="program-search"
-            label=""
             v-model="searchQuery"
+            label=""
             placeholder="Find a course"
             size="sm"
           >
@@ -58,13 +64,18 @@
             <th
               v-for="header in table.getHeaderGroups()[0].headers"
               :key="header.id"
-              @click="header.column.getToggleSortingHandler()"
               class="table-header"
+              @click="header.column.getToggleSortingHandler()"
             >
               <div class="header-content">
                 {{ header.column.columnDef.header }}
-                <span v-if="header.column.getIsSorted()" class="sort-indicator">
-                  {{ header.column.getIsSorted() === "desc" ? "▼" : "▲" }}
+                <span
+                  v-if="header.column.getIsSorted()"
+                  class="sort-indicator"
+                >
+                  {{
+                    header.column.getIsSorted() === 'desc' ? '▼' : '▲'
+                  }}
                 </span>
               </div>
             </th>
@@ -81,17 +92,32 @@
               :key="cell.id"
               class="table-cell"
             >
-              <template v-if="typeof cell.column.columnDef.cell === 'function'">
-                <div v-if="cell.column.id === 'actions'" class="action-cell">
+              <template
+                v-if="
+                  typeof cell.column.columnDef.cell === 'function'
+                "
+              >
+                <div
+                  v-if="cell.column.id === 'actions'"
+                  class="action-cell"
+                >
                   <!-- Enroll button if course is open -->
-                  <div v-if="row.original.availability_status === 'OPEN'">
-                    <Button variant="secondary" @click="enroll(row.original)">
+                  <div
+                    v-if="row.original.availability_status === 'OPEN'"
+                  >
+                    <Button
+                      variant="secondary"
+                      @click="enroll(row.original)"
+                    >
                       Enroll
                     </Button>
                   </div>
 
                   <div v-else>
-                    <Button variant="yellow" @click="request(row.original)">
+                    <Button
+                      variant="yellow"
+                      @click="request(row.original)"
+                    >
                       Request
                     </Button>
                   </div>
@@ -105,15 +131,19 @@
                   <span
                     class="pill pill-md"
                     :class="
-                      row.original.course_type.toLowerCase() === 'undergraduate'
+                      row.original.course_type.toLowerCase() ===
+                      'undergraduate'
                         ? 'p-green'
-                        : row.original.course_type.toLowerCase() === 'doctorate'
-                        ? 'p-yellow'
-                        : 'p-blue'
+                        : row.original.course_type.toLowerCase() ===
+                            'doctorate'
+                          ? 'p-yellow'
+                          : 'p-blue'
                     "
                   >
                     {{
-                      capitalizeFirst(row.original.course_type.toLowerCase())
+                      capitalizeFirst(
+                        row.original.course_type.toLowerCase(),
+                      )
                     }}
                   </span>
                 </div>
@@ -126,23 +156,30 @@
                   {{ cell.renderValue() || 0 }}
                 </div>
                 <div
-                  @click="viewCourseDetails(row.original)"
-                  v-else-if="cell.column.id === 'total_enrolled_students'"
+                  v-else-if="
+                    cell.column.id === 'total_enrolled_students'
+                  "
                   class="courses-cell profile-count pill p-grey pill-lg"
                   style="width: fit-content"
+                  @click="viewCourseDetails(row.original)"
                 >
                   {{ cell.renderValue() || 0 }}
                 </div>
                 <div
-                  @click="viewCourseDetails(row.original)"
                   v-else-if="cell.column.id === 'availability_status'"
                   class="status-badge"
-                  :class="getStatusClass(cell.renderValue() as string)"
+                  :class="
+                    getStatusClass(cell.renderValue() as string)
+                  "
+                  @click="viewCourseDetails(row.original)"
                 >
                   <span class="status-dot"></span>
                   {{ capitalizeFirst(cell.renderValue() as string) }}
                 </div>
-                <div @click="viewCourseDetails(row.original)" v-else>
+                <div
+                  v-else
+                  @click="viewCourseDetails(row.original)"
+                >
                   {{ cell.renderValue() }}
                 </div>
               </template>
@@ -154,8 +191,10 @@
         <StudentMain
           v-for="row in table.getRowModel().rows"
           :key="row.id"
-          :selectedCourse="row.original"
-          @viewDetails="viewCourseDetails(row.original.course_id as any)"
+          :selected-course="row.original"
+          @viewDetails="
+            viewCourseDetails(row.original.course_id as any)
+          "
         />
       </div>
 
@@ -163,9 +202,9 @@
       <div class="pagination">
         <div class="pagination-controls">
           <button
-            @click="table.previousPage()"
             :disabled="!table.getCanPreviousPage()"
             class="pagination-button"
+            @click="table.previousPage()"
           >
             <svg
               width="16"
@@ -188,19 +227,20 @@
             <button
               v-for="page in calculatePageRange()"
               :key="page"
-              @click="goToPage(page - 1)"
               class="page-button"
               :class="{
-                active: table.getState().pagination.pageIndex === page - 1,
+                active:
+                  table.getState().pagination.pageIndex === page - 1,
               }"
+              @click="goToPage(page - 1)"
             >
               {{ page }}
             </button>
           </div>
           <button
-            @click="table.nextPage()"
             :disabled="!table.getCanNextPage()"
             class="pagination-button"
+            @click="table.nextPage()"
           >
             Next
             <svg
@@ -226,23 +266,23 @@
     <!-- Toast Container -->
     <ToastContainer />
     <Dialog
-      v-model="showEditModal"
+      v-model="showEnrollModal"
       title="Enroll"
       :message="`Are you sure you want to enroll in ${selectedCourse?.course_code} this session? Click 'Yes' to continue`"
       variant="warning"
       :loading="isActionLoading"
       confirm-button-text="Yes, Enroll"
-      cancelButtonText="No, cancel"
+      cancel-button-text="No, cancel"
       @confirm="handleEnrollAction"
     />
     <Dialog
-      v-model="showDeleteModal"
+      v-model="showRequestModal"
       title="Submit a request"
       :message="`This class (${selectedCourse?.course_code}) is <strong>currently closed</strong> for this session. Please Confirm your request to be added to the class`"
       variant="warning"
       :loading="isActionLoading"
       confirm-button-text="Submit Request"
-      cancelButtonText="Cancel"
+      cancel-button-text="Cancel"
       @confirm="handleRequestAction"
     />
 
@@ -252,11 +292,11 @@
       :message="`Your request to be added to ${selectedCourse?.course_code} has successfully been sent.`"
       variant="success"
       :icon="true"
-      cancelButtonText="Awesome 🎉"
-      confirmButtonText=""
-      :showCancelButton="true"
-      :showConfirmButton="false"
-      :showCloseButton="true"
+      cancel-button-text="Awesome 🎉"
+      confirm-button-text=""
+      :show-cancel-button="true"
+      :show-confirm-button="false"
+      :show-close-button="true"
       :persistent="false"
       :loading="false"
     />
@@ -266,37 +306,28 @@
       message="There was an issue, your request didn’t go through, Please try again."
       variant="danger"
       :icon="true"
-      cancelButtonText="Try again!"
-      confirmButtonText=""
-      :showCancelButton="true"
-      :showConfirmButton="false"
-      :showCloseButton="true"
+      cancel-button-text="Try again!"
+      confirm-button-text=""
+      :show-cancel-button="true"
+      :show-confirm-button="false"
+      :show-close-button="true"
       :persistent="false"
       :loading="false"
     />
-    <DetailsStudent
+    <StudentDetailsStudent
       v-model="showInfoModal"
       :loading="isActionLoading"
-      :selectedEnrollment="selectedCourse"
-      :showButton="false"
-      @confirm="
-        () => {
-          selectedCourse = selectedCourse;
-          showEditModal = true;
-        }
-      "
-      @cancel="
-        () => {
-          selectedCourse = selectedCourse;
-          showDeleteModal = true;
-        }
-      "
+      :selected-enrollment="selectedCourse"
+      :show-button="false"
+      @enroll="showEnrollModal = true"
+      @request="showRequestModal = true"
+      @close="showInfoModal = false"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import type { ColumnSort } from "@tanstack/vue-table";
+import type { ColumnSort } from '@tanstack/vue-table';
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -304,15 +335,14 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useVueTable,
-} from "@tanstack/vue-table";
-import { computed, onMounted, reactive, ref } from "vue";
-import DetailsStudent from "~/components/student/DetailsStudent.vue";
-import Button from "~/components/ui/Button.vue";
-import Dialog from "~/components/ui/Dialog.vue";
-import EmptyState from "~/components/ui/EmptyState.vue";
-import FormInput from "~/components/ui/FormInput.vue";
-import ToastContainer from "~/components/ui/ToastContainer.vue";
-import { capitalizeFirst, getStatusClass } from "~/helper/formatData";
+} from '@tanstack/vue-table';
+import { computed, onMounted, reactive, ref } from 'vue';
+import Button from '~/components/ui/Button.vue';
+import Dialog from '~/components/ui/Dialog.vue';
+import EmptyState from '~/components/ui/EmptyState.vue';
+import FormInput from '~/components/ui/FormInput.vue';
+import ToastContainer from '~/components/ui/ToastContainer.vue';
+import { capitalizeFirst, getStatusClass } from '~/helper/formatData';
 
 interface Course {
   course_id: string;
@@ -330,12 +360,12 @@ const authState = useAuthStore();
 const loading = ref(false);
 const { call: fetchPrograms, data: programsData } = useBackendService(
   `/courses/eligible/${authState.user?.student_id}`,
-  "get"
+  'get',
 );
 
 const programs = ref<Course[]>([]);
 
-const programsDataCache = useState<any>("courseDataSTD", () => null);
+const programsDataCache = useState<any>('courseDataSTD', () => null);
 
 const fetchData = async () => {
   await fetchPrograms();
@@ -355,15 +385,20 @@ onMounted(async () => {
       await fetchData();
       loading.value = false;
     } catch (err) {
-      console.error("Failed to fetch dashboard stats", err);
+      console.error('Failed to fetch dashboard stats', err);
     }
   }
 
   if (programsDataCache.value) {
-    if (programsDataCache.value && Array.isArray(programsDataCache.value)) {
-      programs.value = programsDataCache.value.map((program: any) => ({
-        ...program,
-      }));
+    if (
+      programsDataCache.value &&
+      Array.isArray(programsDataCache.value)
+    ) {
+      programs.value = programsDataCache.value.map(
+        (program: any) => ({
+          ...program,
+        }),
+      );
     }
   }
 });
@@ -371,21 +406,21 @@ onMounted(async () => {
 const columnHelper = createColumnHelper<Course>();
 
 const columns = [
-  columnHelper.accessor("course_title", {
-    header: "Course Title",
+  columnHelper.accessor('course_title', {
+    header: 'Course Title',
     cell: (props) => props.getValue(),
   }),
-  columnHelper.accessor("course_code", {
-    header: "Course Code",
+  columnHelper.accessor('course_code', {
+    header: 'Course Code',
     cell: (props) => props.getValue(),
   }),
 
-  columnHelper.accessor("course_credits", {
-    header: "Credits Value",
+  columnHelper.accessor('course_credits', {
+    header: 'Credits Value',
     cell: (props) => props.getValue() || 0,
   }),
-  columnHelper.accessor("availability_status", {
-    header: "Course Status",
+  columnHelper.accessor('availability_status', {
+    header: 'Course Status',
     cell: (props) => props.getValue() || 0,
   }),
 ];
@@ -396,7 +431,7 @@ const tableState = reactive({
     pageSize: 10,
   },
   sorting: [] as ColumnSort[],
-  globalFilter: "",
+  globalFilter: '',
 });
 
 // Keep searchQuery in sync with globalFilter
@@ -419,12 +454,16 @@ const table = useVueTable({
   },
   onSortingChange: (updater) => {
     const newValue =
-      typeof updater === "function" ? updater(tableState.sorting) : updater;
+      typeof updater === 'function'
+        ? updater(tableState.sorting)
+        : updater;
     tableState.sorting = newValue;
   },
   onPaginationChange: (updater) => {
     const newValue =
-      typeof updater === "function" ? updater(tableState.pagination) : updater;
+      typeof updater === 'function'
+        ? updater(tableState.pagination)
+        : updater;
     tableState.pagination = newValue;
   },
   getCoreRowModel: getCoreRowModel(),
@@ -443,7 +482,10 @@ const calculatePageRange = () => {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }
 
-  let startPage = Math.max(currentPage - Math.floor(maxVisiblePages / 2), 1);
+  let startPage = Math.max(
+    currentPage - Math.floor(maxVisiblePages / 2),
+    1,
+  );
   let endPage = startPage + maxVisiblePages - 1;
 
   if (endPage > totalPages) {
@@ -453,7 +495,7 @@ const calculatePageRange = () => {
 
   return Array.from(
     { length: endPage - startPage + 1 },
-    (_, i) => startPage + i
+    (_, i) => startPage + i,
   );
 };
 
@@ -462,8 +504,8 @@ const goToPage = (pageIndex: number) => {
 };
 
 const selectedCourse = ref<Course | null>(null);
-const showEditModal = ref(false);
-const showDeleteModal = ref(false);
+const showEnrollModal = ref(false);
+const showRequestModal = ref(false);
 const showInfoModal = ref(false);
 const isActionLoading = ref(false);
 const showSuccessDialog = ref(false);
@@ -471,18 +513,18 @@ const showFailureDialog = ref(false);
 
 const enroll = async (rowData: Course) => {
   selectedCourse.value = rowData;
-  showEditModal.value = true;
+  showEnrollModal.value = true;
 };
 const request = async (rowData: Course) => {
   selectedCourse.value = rowData;
-  showDeleteModal.value = true;
+  showRequestModal.value = true;
 };
 const viewCourseDetails = async (rowData: Course) => {
   selectedCourse.value = rowData;
   showInfoModal.value = true;
 };
 const handleEnrollAction = async () => {
-  const { call } = useBackendService(`/enrollments`, "post");
+  const { call } = useBackendService(`/enrollments`, 'post');
 
   isActionLoading.value = true;
   try {
@@ -490,11 +532,11 @@ const handleEnrollAction = async () => {
       student_id: authState.user?.student_id,
       course_id: selectedCourse.value?.course_id,
       session_id: selectedCourse.value?.session_id,
-      enrollment_status: "PENDING",
+      enrollment_status: 'PENDING',
     });
     showSuccessDialog.value = true;
 
-    showDeleteModal.value = false;
+    showRequestModal.value = false;
     selectedCourse.value = null;
   } catch (error) {
     showFailureDialog.value = true;
@@ -503,7 +545,7 @@ const handleEnrollAction = async () => {
   }
 };
 const handleRequestAction = async () => {
-  const { call } = useBackendService(`/enrollments`, "post");
+  const { call } = useBackendService(`/enrollments`, 'post');
 
   isActionLoading.value = true;
   try {
@@ -511,10 +553,10 @@ const handleRequestAction = async () => {
       student_id: authState.user?.student_id,
       course_id: selectedCourse.value?.course_id,
       session_id: selectedCourse.value?.session_id,
-      enrollment_status: "PENDING",
+      enrollment_status: 'PENDING',
     });
     showSuccessDialog.value = true;
-    showDeleteModal.value = false;
+    showRequestModal.value = false;
     selectedCourse.value = null;
   } catch (error) {
     showFailureDialog.value = true;
@@ -525,7 +567,7 @@ const handleRequestAction = async () => {
 
 // Define that this page uses the dashboard layout
 definePageMeta({
-  layout: "student",
+  layout: 'student',
 });
 </script>
 

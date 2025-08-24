@@ -2,7 +2,10 @@
   <div class="programs-page dashlet-wrapper">
     <div class="page-header dashlet">
       <div class="page-title">
-        <button class="back-icon" @click="back">
+        <button
+          class="back-icon"
+          @click="back"
+        >
           <ArrowLeftIcon />
         </button>
         <h2 class="heading-txt">Session Details</h2>
@@ -11,13 +14,16 @@
 
     <Loader v-if="loading" />
 
-    <div v-if="!loading" class="dashlet program-details">
+    <div
+      v-if="!loading"
+      class="dashlet program-details"
+    >
       <div class="program-overview">
         <div style="display: flex">
           <h1 class="program-title">{{ sessions?.session_name }}</h1>
           <IconsEditIcon
-            @click="edit"
             style="margin-top: 5px; margin-left: 5px; cursor: pointer"
+            @click="edit"
           />
         </div>
 
@@ -27,8 +33,8 @@
             <div class="inlineborder profile-count pill p-grey">
               <div>
                 <span><SessionIcon /></span>
-                {{ formatDate(sessions?.start_date || "") }} -
-                {{ formatDate(sessions?.end_date || "") }}
+                {{ formatDate(sessions?.start_date || '') }} -
+                {{ formatDate(sessions?.end_date || '') }}
               </div>
             </div>
           </div>
@@ -37,21 +43,27 @@
             <div class="stat-details">
               <div
                 class="status-badge"
-                :class="getStatusClass(sessions?.session_status || '')"
+                :class="
+                  getStatusClass(sessions?.session_status || '')
+                "
               >
                 <span class="status-dot"></span>
-                {{ getStatusText(sessions?.session_status || "") }}
+                {{ getStatusText(sessions?.session_status || '') }}
               </div>
             </div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Enrollment Deadline</div>
             <div
-              style="padding: 5px 15px; text-align: center; margin-left: 10px"
+              style="
+                padding: 5px 15px;
+                text-align: center;
+                margin-left: 10px;
+              "
               class="profile-count pill p-grey"
             >
               <span><SessionIcon /></span>
-              {{ formatDate(sessions?.enrollment_deadline || "") }}
+              {{ formatDate(sessions?.enrollment_deadline || '') }}
             </div>
           </div>
 
@@ -60,7 +72,11 @@
 
             <div class="stat-details">
               <div
-                style="padding: 5px 15px; text-align: center; margin-left: 10px"
+                style="
+                  padding: 5px 15px;
+                  text-align: center;
+                  margin-left: 10px;
+                "
                 class="profile-count pill p-grey"
               >
                 {{ sessions?.session_courses.length }}
@@ -72,7 +88,11 @@
 
             <div class="stat-details">
               <div
-                style="padding: 5px 15px; text-align: center; margin-left: 10px"
+                style="
+                  padding: 5px 15px;
+                  text-align: center;
+                  margin-left: 10px;
+                "
                 class="profile-count pill p-grey"
               >
                 {{ sessions?.session_students.length }}
@@ -83,7 +103,10 @@
       </div>
     </div>
 
-    <div v-if="!loading" class="enrollments-content dashlet program-tabs">
+    <div
+      v-if="!loading"
+      class="enrollments-content dashlet program-tabs"
+    >
       <div class="tabs-heading">
         <!-- Tabs for students/courses -->
         <div style="display: flex">
@@ -107,18 +130,22 @@
             style="margin: auto; margin-left: 20px"
             class="web profile-count pill p-grey pill-sm"
           >
-            ({{ startRecord }} - {{ endRecord }}) of {{ totalRecords }}
+            ({{ startRecord }} - {{ endRecord }}) of
+            {{ totalRecords }}
           </div>
         </div>
 
-        <div style="display: flex" class="header-actions">
+        <div
+          style="display: flex"
+          class="header-actions"
+        >
           <div class="web">
             <div class="search-and-actions">
               <div class="search-container">
                 <FormInput
                   id="program-search"
-                  label=""
                   v-model="searchQuery"
+                  label=""
                   :placeholder="
                     activeTab === 'courses'
                       ? 'Search Courses'
@@ -136,10 +163,14 @@
             </div>
           </div>
           <div
-            style="margin-left: 10px; margin-right: 10px"
             v-if="activeTab === 'students'"
+            style="margin-left: 10px; margin-right: 10px"
           >
-            <Button @click="handleAddStudent" variant="primary" size="sm">
+            <Button
+              variant="primary"
+              size="sm"
+              @click="handleAddStudent"
+            >
               <template #icon>
                 <PlusIcon />
               </template>
@@ -159,8 +190,8 @@
               <th
                 v-for="header in table.getHeaderGroups()[0].headers"
                 :key="header.id"
-                @click="header.column.getToggleSortingHandler()"
                 class="table-header"
+                @click="header.column.getToggleSortingHandler()"
               >
                 <div class="header-content">
                   {{ header.column.columnDef.header }}
@@ -168,7 +199,11 @@
                     v-if="header.column.getIsSorted()"
                     class="sort-indicator"
                   >
-                    {{ header.column.getIsSorted() === "desc" ? "▼" : "▲" }}
+                    {{
+                      header.column.getIsSorted() === 'desc'
+                        ? '▼'
+                        : '▲'
+                    }}
                   </span>
                 </div>
               </th>
@@ -186,25 +221,39 @@
                 class="table-cell"
               >
                 <template
-                  v-if="typeof cell.column.columnDef.cell === 'function'"
+                  v-if="
+                    typeof cell.column.columnDef.cell === 'function'
+                  "
                 >
-                  <div v-if="cell.column.id === 'actions'" class="action-cell">
+                  <div
+                    v-if="cell.column.id === 'actions'"
+                    class="action-cell"
+                  >
                     <div v-if="activeTab === 'courses'">
                       <label class="switch">
                         <!-- <input type="checkbox" id="toggle" /> -->
                         <input
-                          type="checkbox"
                           :id="`toggle-${cell.row.original.courseId}`"
-                          :checked="cell.row.original.status === 'OPEN'"
-                          @change="handleToggleChange(cell.row.original)"
+                          type="checkbox"
+                          :checked="
+                            cell.row.original.status === 'OPEN'
+                          "
+                          @change="
+                            handleToggleChange(cell.row.original)
+                          "
                         />
                         <span class="slider"></span>
                       </label>
                     </div>
 
-                    <button v-else class="action-button edit-button">
+                    <button
+                      v-else
+                      class="action-button edit-button"
+                    >
                       <DeleteIcon
-                        @click="handleDeleteStudent(cell.row.original)"
+                        @click="
+                          handleDeleteStudent(cell.row.original)
+                        "
                       />
                     </button>
                   </div>
@@ -212,10 +261,14 @@
                   <div
                     v-else-if="cell.column.id === 'status'"
                     class="status-badge"
-                    :class="getStatusClass(cell.renderValue() as string)"
+                    :class="
+                      getStatusClass(cell.renderValue() as string)
+                    "
                   >
                     <span class="status-dot"></span>
-                    {{ capitalizeFirst(cell.renderValue() as string) }}
+                    {{
+                      capitalizeFirst(cell.renderValue() as string)
+                    }}
                   </div>
                   <div
                     v-else-if="cell.column.id === 'firstName'"
@@ -228,7 +281,7 @@
                     />
                     <div class="student-details">
                       <div class="student-name">
-                        {{ cell.row.original.firstName }}{{ " " }}
+                        {{ cell.row.original.firstName }}{{ ' ' }}
                         {{ cell.row.original.lastName }}
                       </div>
                     </div>
@@ -252,12 +305,14 @@
                         <div
                           class="status-badge"
                           :class="
-                            getStatusClass(cell.row.original.program.type || '')
+                            getStatusClass(
+                              cell.row.original.program.type || '',
+                            )
                           "
                         >
                           {{
                             capitalizeFirst(
-                              cell.row.original.program.type.toLowerCase()
+                              cell.row.original.program.type.toLowerCase(),
                             )
                           }}
                         </div>
@@ -272,11 +327,13 @@
                       <div class="stat-details">
                         <div
                           class="status-badge"
-                          :class="getStatusClass(cell.row.original.type)"
+                          :class="
+                            getStatusClass(cell.row.original.type)
+                          "
                         >
                           {{
                             capitalizeFirst(
-                              cell.row.original.type.toLowerCase()
+                              cell.row.original.type.toLowerCase(),
                             )
                           }}
                         </div>
@@ -350,9 +407,9 @@
       <div class="pagination">
         <div class="pagination-controls">
           <button
-            @click="table.previousPage()"
             :disabled="!table.getCanPreviousPage()"
             class="pagination-button"
+            @click="table.previousPage()"
           >
             <svg
               width="16"
@@ -375,19 +432,20 @@
             <button
               v-for="page in calculatePageRange()"
               :key="page"
-              @click="goToPage(page - 1)"
               class="page-button"
               :class="{
-                active: table.getState().pagination.pageIndex === page - 1,
+                active:
+                  table.getState().pagination.pageIndex === page - 1,
               }"
+              @click="goToPage(page - 1)"
             >
               {{ page }}
             </button>
           </div>
           <button
-            @click="table.nextPage()"
             :disabled="!table.getCanNextPage()"
             class="pagination-button"
+            @click="table.nextPage()"
           >
             Next
             <svg
@@ -412,9 +470,9 @@
     <AddStudentModal
       v-model="showAddStudent"
       :available-students="students"
-      :sessionId="sessionId"
-      @click="handleInviteStudent"
+      :session-id="sessionId"
       mode="single"
+      @click="handleInviteStudent"
       @submit-session-form="handleAddStudentFinal"
     />
     <EditSession
@@ -435,7 +493,11 @@
 
     <Dialog
       v-model="showCourseStatusModal"
-      :title="courseStatusAction === 'open' ? 'Open Course?' : 'Close Course?'"
+      :title="
+        courseStatusAction === 'open'
+          ? 'Open Course?'
+          : 'Close Course?'
+      "
       :message="`Are you sure you want to ${courseStatusAction} this course (${
         selectedCourse?.title || 'this course'
       })?`"
@@ -458,37 +520,42 @@ import {
   getSortedRowModel,
   useVueTable,
   type ColumnSort,
-} from "@tanstack/vue-table";
-import { useRoute } from "vue-router";
-import ArrowLeftIcon from "~/components/icons/ArrowLeftIcon.vue";
-import DeleteIcon from "~/components/icons/DeleteIcon.vue";
-import FilterIcon from "~/components/icons/FilterIcon.vue";
-import PlusIcon from "~/components/icons/PlusIcon.vue";
-import SessionIcon from "~/components/icons/sessionIcon.vue";
-import AddStudentModal from "~/components/session/AddStudentModal.vue";
-import EditSession from "~/components/session/EditSession.vue";
-import MobileCourses from "~/components/session/MobileCourses.vue";
-import MobileStudent from "~/components/session/MobileStudent.vue";
-import Button from "~/components/ui/Button.vue";
-import Dialog from "~/components/ui/Dialog.vue";
-import FormInput from "~/components/ui/FormInput.vue";
+} from '@tanstack/vue-table';
+import ArrowLeftIcon from '~/components/icons/ArrowLeftIcon.vue';
+import DeleteIcon from '~/components/icons/DeleteIcon.vue';
+import FilterIcon from '~/components/icons/FilterIcon.vue';
+import PlusIcon from '~/components/icons/PlusIcon.vue';
+import SessionIcon from '~/components/icons/sessionIcon.vue';
+import AddStudentModal from '~/components/session/AddStudentModal.vue';
+import EditSession from '~/components/session/EditSession.vue';
+import MobileCourses from '~/components/session/MobileCourses.vue';
+import MobileStudent from '~/components/session/MobileStudent.vue';
+import Button from '~/components/ui/Button.vue';
+import Dialog from '~/components/ui/Dialog.vue';
+import FormInput from '~/components/ui/FormInput.vue';
 import {
   capitalizeFirst,
   formatDate,
   getStatusClass,
   getStatusText,
-} from "~/helper/formatData";
+} from '~/helper/formatData';
 
 definePageMeta({
-  layout: "dashboard",
+  layout: 'dashboard',
 });
-const route = useRoute();
-const sessionId = route.params.id as string;
-const activeTab = ref("students");
+
+const router = useRouter();
+const sessionId = computed(() =>
+  router.currentRoute.value.name === 'admin-sessions-id'
+    ? String(router.currentRoute.value.params.id)
+    : undefined,
+);
+
+const activeTab = ref('students');
 const showEditModal = ref(false);
 
 const back = () => {
-  navigateTo("/admin/sessions");
+  navigateTo('/admin/sessions');
 };
 const edit = () => {
   showEditModal.value = true;
@@ -535,7 +602,7 @@ export interface Student {
 export interface Course {
   courseId: number;
   title?: string;
-  status: "OPEN" | "CLOSED";
+  status: 'OPEN' | 'CLOSED';
 }
 const toast = useToast();
 const showAddStudent = ref(false);
@@ -546,7 +613,7 @@ const isActionLoading = ref(false);
 
 const selectedStudent = ref<Student | null>(null);
 const selectedCourse = ref<Course | null>(null);
-const courseStatusAction = ref<"open" | "close">("open");
+const courseStatusAction = ref<'open' | 'close'>('open');
 const pendingToggleEvent = ref<Event | null>(null);
 const showCourseStatusModal = ref(false);
 
@@ -569,21 +636,22 @@ const handleDeleteStudent = (student: Student) => {
   showDeleteConfirm.value = true;
 };
 const handleToggleChange = (course: Course) => {
-  const isCurrentlyOpen = course.status === "OPEN";
+  const isCurrentlyOpen = course.status === 'OPEN';
   originalCourseStatus.value = course.status;
   selectedCourse.value = course;
-  courseStatusAction.value = isCurrentlyOpen ? "close" : "open";
+  courseStatusAction.value = isCurrentlyOpen ? 'close' : 'open';
   showCourseStatusModal.value = true;
 };
 
 const confirmCourseStatusChange = async () => {
   if (!selectedCourse.value) return;
 
-  const newStatus = courseStatusAction.value === "open" ? "OPEN" : "CLOSED";
+  const newStatus =
+    courseStatusAction.value === 'open' ? 'OPEN' : 'CLOSED';
 
   const { call: updateCourseStatus } = useBackendService(
-    `/sessions/${sessionId}/courses/${selectedCourse.value.courseId}/status`,
-    "patch"
+    `/sessions/${sessionId.value}/courses/${selectedCourse.value.courseId}/status`,
+    'patch',
   );
 
   isActionLoading.value = true;
@@ -594,7 +662,7 @@ const confirmCourseStatusChange = async () => {
     });
 
     const courseIndex = courses.value.findIndex(
-      (c) => c.courseId === selectedCourse.value?.courseId
+      (c) => c.courseId === selectedCourse.value?.courseId,
     );
     if (courseIndex !== -1) {
       courses.value[courseIndex].status = newStatus;
@@ -602,8 +670,8 @@ const confirmCourseStatusChange = async () => {
 
     toast.success(
       `Course has been ${
-        courseStatusAction.value === "open" ? "opened" : "closed"
-      } successfully`
+        courseStatusAction.value === 'open' ? 'opened' : 'closed'
+      } successfully`,
     );
 
     await fetchData();
@@ -616,6 +684,7 @@ const confirmCourseStatusChange = async () => {
     resetModalState();
   }
 };
+
 const handleModalClose = () => {
   if (!isActionLoading.value) {
     revertToggleSwitch();
@@ -626,14 +695,14 @@ const handleModalClose = () => {
 const revertToggleSwitch = () => {
   if (selectedCourse.value && originalCourseStatus.value) {
     const toggleInput = document.getElementById(
-      `toggle-${selectedCourse.value.courseId}`
+      `toggle-${selectedCourse.value.courseId}`,
     ) as HTMLInputElement;
     if (toggleInput) {
-      toggleInput.checked = originalCourseStatus.value === "OPEN";
+      toggleInput.checked = originalCourseStatus.value === 'OPEN';
     }
 
     const courseIndex = courses.value.findIndex(
-      (c) => c.courseId === selectedCourse.value?.courseId
+      (c) => c.courseId === selectedCourse.value?.courseId,
     );
     if (courseIndex !== -1) {
       courses.value[courseIndex].status = originalCourseStatus.value;
@@ -656,8 +725,8 @@ const confirmDeleteStudent = async () => {
   if (!selectedStudent.value) return;
 
   const { call: deleteStudentFromSession } = useBackendService(
-    `/sessions/${sessionId}/students/${selectedStudent.value.studentId}`,
-    "delete"
+    `/sessions/${sessionId.value}/students/${selectedStudent.value.studentId}`,
+    'delete',
   );
 
   isActionLoading.value = true;
@@ -666,11 +735,11 @@ const confirmDeleteStudent = async () => {
     await deleteStudentFromSession();
     await refereshStudent();
     toast.success(
-      `${selectedStudent.value.firstName} ${selectedStudent.value.lastName} has been removed from the session`
+      `${selectedStudent.value.firstName} ${selectedStudent.value.lastName} has been removed from the session`,
     );
   } catch (error) {
-    console.error("Error removing student:", error);
-    toast.error("Failed to remove student from session");
+    console.error('Error removing student:', error);
+    toast.error('Failed to remove student from session');
   } finally {
     isActionLoading.value = false;
     showDeleteConfirm.value = false;
@@ -678,94 +747,106 @@ const confirmDeleteStudent = async () => {
   }
 };
 
-const { call, isLoading, data } = useBackendService(
-  `/sessions/${sessionId}`,
-  "get"
-);
-const {
-  call: courseCall,
-  isLoading: courseLoading,
-  data: courseData,
-} = useBackendService(`/sessions/${sessionId}/courses`, "get");
-const {
-  call: studentCall,
-  isLoading: studentLoad,
-  data: studentData,
-} = useBackendService(`/sessions/${sessionId}/students`, "get");
-const { call: updated, isLoading: studentLoading } = useBackendService(
-  `/sessions/${sessionId}`,
-  "patch"
-);
-
 const handleEditSession = async (update: Partial<Session>) => {
+  const { call } = useBackendService(
+    `/sessions/${sessionId.value}`,
+    'patch',
+  );
+
   if (sessions.value) {
     sessions.value = {
       ...sessions.value,
-      session_name: update.session_name ?? sessions.value.session_name,
+      session_name:
+        update.session_name ?? sessions.value.session_name,
       start_date: update.start_date ?? sessions.value.start_date,
       end_date: update.end_date ?? sessions.value.end_date,
       enrollment_deadline:
-        update.enrollment_deadline ?? sessions.value.enrollment_deadline,
+        update.enrollment_deadline ??
+        sessions.value.enrollment_deadline,
     };
   }
-  await updated({
+  await call({
     session_name: sessions.value?.session_name,
     start_date: sessions.value?.start_date,
     end_date: sessions.value?.end_date,
     enrollment_deadline: sessions.value?.enrollment_deadline,
   });
 
-  toast.success("Session updated successfully");
+  toast.success('Session updated successfully');
   showEditModal.value = false;
   await fetchData();
 };
-const dataCache = useState("callCache", () => null);
-const courseDataCache = useState("courseCallCache", () => null);
-const studentDataCache = useState("studentCallCache", () => null);
+
+const dataCache = useState('callCache', () => null);
+const courseDataCache = useState('courseCallCache', () => null);
+const studentDataCache = useState('studentCallCache', () => null);
 const loading = ref(false);
+
 const fetchData = async () => {
-  await call();
+  const { call: sessionCall, data: sessionData } = useBackendService(
+    `/sessions/${sessionId.value}`,
+    'get',
+  );
+
+  const { call: courseCall, data: courseData } = useBackendService(
+    `/sessions/${sessionId.value}/courses`,
+    'get',
+  );
+
+  const { call: studentCall, data: studentData } = useBackendService(
+    `/sessions/${sessionId.value}/students`,
+    'get',
+  );
+
+  await sessionCall();
   await courseCall();
   await studentCall();
-  sessions.value = data.value || null;
-  dataCache.value = data.value || null;
+  sessions.value = sessionData.value || null;
+  dataCache.value = sessionData.value || null;
   courses.value = courseData.value || [];
   courseDataCache.value = courseData.value || [];
   students.value = studentData.value || [];
   studentDataCache.value = studentData.value || [];
 };
-const refereshStudent = async () => {
-  await studentCall();
 
-  students.value = studentData.value || [];
-  studentDataCache.value = studentData.value || [];
-};
-onMounted(async () => {
-  if (!dataCache.value && !courseDataCache.value && !studentDataCache.value) {
-    try {
+watch(
+  sessionId,
+  async (sessionId) => {
+    if (sessionId) {
+      dataCache.value = null;
+      courseDataCache.value = null;
+      studentDataCache.value = null;
+
       loading.value = true;
       await fetchData();
       loading.value = false;
-    } catch (err) {
-      console.error("Failed to fetch dashboard stats", err);
     }
-  }
+  },
+  {
+    immediate: true,
+  },
+);
 
-  if (dataCache.value || courseDataCache.value || studentDataCache.value) {
-    sessions.value = dataCache.value || null;
-    courses.value = courseDataCache.value || [];
-    students.value = studentDataCache.value || [];
-  }
-});
+const refereshStudent = async () => {
+  const { call: studentCall, data: studentData } = useBackendService(
+    `/sessions/${sessionId.value}/students`,
+    'get',
+  );
+
+  await studentCall();
+  students.value = studentData.value || [];
+  studentDataCache.value = studentData.value || [];
+};
+
 const handleAddStudentFinal = async () => {
   showAddStudent.value = false;
   await fetchData();
 };
 
 const filteredData = computed(() => {
-  if (activeTab.value === "students") {
+  if (activeTab.value === 'students') {
     return students.value;
-  } else if (activeTab.value === "courses") {
+  } else if (activeTab.value === 'courses') {
     return courses.value;
   }
   return [];
@@ -774,118 +855,126 @@ const filteredData = computed(() => {
 const columnHelper = createColumnHelper<any>();
 
 const columns = computed(() => {
-  if (activeTab.value === "students") {
+  if (activeTab.value === 'students') {
     // Student columns
     return [
-      columnHelper.accessor("firstName", {
-        header: "Student Name",
+      columnHelper.accessor('firstName', {
+        header: 'Student Name',
         cell: (props) => {
           const student = props.row.original;
-          return h("div", { class: "student-info" }, [
-            h("img", {
-              src: student.profilePicture || "/default-avatar.png",
+          return h('div', { class: 'student-info' }, [
+            h('img', {
+              src: student.profilePicture || '/default-avatar.png',
               alt: `${student.firstName} ${student.lastName}`,
-              class: "avatar",
+              class: 'avatar',
             }),
-            h("div", { class: "student-details" }, [
+            h('div', { class: 'student-details' }, [
               h(
-                "div",
-                { class: "student-name" },
-                `${student.firstName} ${student.lastName}`
+                'div',
+                { class: 'student-name' },
+                `${student.firstName} ${student.lastName}`,
               ),
             ]),
           ]);
         },
       }),
-      columnHelper.accessor("email", {
-        header: "Email",
+      columnHelper.accessor('email', {
+        header: 'Email',
         cell: (props) => props.getValue(),
       }),
-      columnHelper.accessor("regNumber", {
-        header: "Programme Type",
+      columnHelper.accessor('regNumber', {
+        header: 'Programme Type',
         cell: (props) => {
           const student = props.row.original;
-          return h("div", { class: "student-info" }, [
-            h("div", { class: "student-details" }, [
-              h("div", { class: "student-name" }, `${student.program.type}`),
+          return h('div', { class: 'student-info' }, [
+            h('div', { class: 'student-details' }, [
+              h(
+                'div',
+                { class: 'student-name' },
+                `${student.program.type}`,
+              ),
             ]),
           ]);
         },
       }),
-      columnHelper.accessor("studentId", {
-        header: "Programme Name",
+      columnHelper.accessor('studentId', {
+        header: 'Programme Name',
         cell: (props) => {
           const student = props.row.original;
-          return h("div", { class: "student-info" }, [
-            h("div", { class: "student-details" }, [
-              h("div", { class: "student-name" }, `${student.program.name}`),
+          return h('div', { class: 'student-info' }, [
+            h('div', { class: 'student-details' }, [
+              h(
+                'div',
+                { class: 'student-name' },
+                `${student.program.name}`,
+              ),
             ]),
           ]);
         },
       }),
 
       columnHelper.display({
-        id: "actions",
-        header: "Action",
+        id: 'actions',
+        header: 'Action',
         cell: () => {},
       }),
     ];
-  } else if (activeTab.value === "courses") {
+  } else if (activeTab.value === 'courses') {
     // Course columns
     return [
-      columnHelper.accessor("title", {
-        header: "Course Title",
+      columnHelper.accessor('title', {
+        header: 'Course Title',
         cell: (props) => props.getValue(),
       }),
-      columnHelper.accessor("code", {
-        header: "Course Code",
+      columnHelper.accessor('code', {
+        header: 'Course Code',
         cell: (props) => {
           const course = props.row.original;
           return h(
-            "div",
+            'div',
             {
-              class: "courses-cell",
-              style: "display: flex; flex-direction: row",
+              class: 'courses-cell',
+              style: 'display: flex; flex-direction: row',
             },
             [
               h(
-                "div",
+                'div',
                 {
-                  class: "profile-count pill p-grey status-badge",
-                  style: "padding: 3px 12px; text-align: center",
+                  class: 'profile-count pill p-grey status-badge',
+                  style: 'padding: 3px 12px; text-align: center',
                 },
-                course.code
+                course.code,
               ),
-              course.status === "CLOSED"
+              course.status === 'CLOSED'
                 ? h(
-                    "div",
+                    'div',
                     {
-                      class: "status-badge status-deactivated",
-                      style: "text-align: center; margin-left: 10px",
+                      class: 'status-badge status-deactivated',
+                      style: 'text-align: center; margin-left: 10px',
                     },
-                    [h("span", [h("StatusBadge")]), course.status]
+                    [h('span', [h('StatusBadge')]), course.status],
                   )
                 : null,
-            ]
+            ],
           );
         },
       }),
-      columnHelper.accessor("type", {
-        header: "Course Type",
+      columnHelper.accessor('type', {
+        header: 'Course Type',
         cell: (props) => props.getValue(),
       }),
-      columnHelper.accessor("credits", {
-        header: "Course Credits",
+      columnHelper.accessor('credits', {
+        header: 'Course Credits',
         cell: (props) => props.getValue(),
       }),
 
-      columnHelper.accessor("numberOfStudents", {
-        header: "Enrolled Students",
+      columnHelper.accessor('numberOfStudents', {
+        header: 'Enrolled Students',
         cell: (props) => props.getValue(),
       }),
       columnHelper.display({
-        id: "actions",
-        header: "Action",
+        id: 'actions',
+        header: 'Action',
         cell: () => {},
       }),
     ];
@@ -900,7 +989,7 @@ const tableState = reactive({
     pageSize: 10,
   },
   sorting: [] as ColumnSort[],
-  globalFilter: "",
+  globalFilter: '',
 });
 
 const searchQuery = computed({
@@ -923,12 +1012,16 @@ const table = useVueTable({
   },
   onSortingChange: (updater) => {
     const newValue =
-      typeof updater === "function" ? updater(tableState.sorting) : updater;
+      typeof updater === 'function'
+        ? updater(tableState.sorting)
+        : updater;
     tableState.sorting = newValue;
   },
   onPaginationChange: (updater) => {
     const newValue =
-      typeof updater === "function" ? updater(tableState.pagination) : updater;
+      typeof updater === 'function'
+        ? updater(tableState.pagination)
+        : updater;
     tableState.pagination = newValue;
   },
   getCoreRowModel: getCoreRowModel(),
@@ -946,7 +1039,10 @@ const calculatePageRange = () => {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }
 
-  let startPage = Math.max(currentPage - Math.floor(maxVisiblePages / 2), 1);
+  let startPage = Math.max(
+    currentPage - Math.floor(maxVisiblePages / 2),
+    1,
+  );
   let endPage = startPage + maxVisiblePages - 1;
 
   if (endPage > totalPages) {
@@ -956,7 +1052,7 @@ const calculatePageRange = () => {
 
   return Array.from(
     { length: endPage - startPage + 1 },
-    (_, i) => startPage + i
+    (_, i) => startPage + i,
   );
 };
 
@@ -978,7 +1074,9 @@ const endRecord = computed(() => {
   const possibleEnd =
     (table.getState().pagination.pageIndex + 1) *
     table.getState().pagination.pageSize;
-  return possibleEnd > totalRecords.value ? totalRecords.value : possibleEnd;
+  return possibleEnd > totalRecords.value
+    ? totalRecords.value
+    : possibleEnd;
 });
 </script>
 
@@ -1009,7 +1107,7 @@ const endRecord = computed(() => {
 }
 
 .slider::before {
-  content: "";
+  content: '';
   position: absolute;
   height: 20px;
   width: 20px;

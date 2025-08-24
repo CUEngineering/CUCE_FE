@@ -1,16 +1,23 @@
 <template>
-  <div @click="viewDetails" class="registrar-card card-active">
+  <div
+    class="registrar-card card-active"
+    @click="viewDetails"
+  >
     <div class="registrar-header">
       <div class="registrar-info">
         <div class="name-status-wrapper">
           <h3 class="registrar-name">
-            {{ selectedCourse.course_title || selectedCourse.courseName }}
+            {{
+              selectedCourse.course_title || selectedCourse.courseName
+            }}
           </h3>
         </div>
         <div class="status-badge">
-          {{ selectedCourse.course_code || selectedCourse.courseCode }}<Dot />{{
-            selectedCourse.course_credits || selectedCourse.courseCredit
-          }}{{ " " }}Units
+          {{ selectedCourse.course_code || selectedCourse.courseCode
+          }}<Dot />{{
+            selectedCourse.course_credits ||
+            selectedCourse.courseCredit
+          }}{{ ' ' }}Units
         </div>
       </div>
       <div class="registrar-actions">
@@ -24,7 +31,13 @@
               Enroll
             </Button>
 
-            <Button v-else variant="yellow" @click=""> Request </Button>
+            <Button
+              v-else
+              variant="yellow"
+              @click=""
+            >
+              Request
+            </Button>
           </div>
         </template>
       </div>
@@ -33,9 +46,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
-import Dot from "../icons/Dot.vue";
-import Button from "../ui/Button.vue";
+import {
+  computed,
+  inject,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+} from 'vue';
+import Dot from '../icons/Dot.vue';
+import Button from '../ui/Button.vue';
 
 interface Course {
   course_id: string;
@@ -55,14 +74,17 @@ interface Props {
 const props = defineProps<Props>();
 
 const emit = defineEmits<{
-  (e: "viewDetails"): void;
+  (e: 'viewDetails'): void;
 }>();
 
 // Create a unique ID for this card instance
-const cardId = Symbol("registrar-card");
+const cardId = Symbol('registrar-card');
 
 // Global registry of open dropdowns
-const openDropdownId = inject<Ref<Symbol | null>>("openDropdownId", ref(null));
+const openDropdownId = inject<Ref<symbol | null>>(
+  'openDropdownId',
+  ref(null),
+);
 const dropdownOpen = computed({
   get: () => openDropdownId.value === cardId,
   set: (value) => {
@@ -88,28 +110,28 @@ const closeDropdown = (event: MouseEvent) => {
 };
 
 const viewDetails = () => {
-  emit("viewDetails");
+  emit('viewDetails');
 };
 
 // Add and remove event listeners
 onMounted(() => {
-  document.addEventListener("click", closeDropdown);
+  document.addEventListener('click', closeDropdown);
 });
 
 onBeforeUnmount(() => {
-  document.removeEventListener("click", closeDropdown);
+  document.removeEventListener('click', closeDropdown);
 });
 
 // Status classes
 const statusClass = computed(() => {
   switch (props.selectedCourse.course_type.toLowerCase()) {
-    case "undergraduate":
-    case "doctorate":
-      return "status-active";
-    case "masters":
-      return "status-suspended";
+    case 'undergraduate':
+    case 'doctorate':
+      return 'status-active';
+    case 'masters':
+      return 'status-suspended';
     default:
-      return "";
+      return '';
   }
 });
 </script>
@@ -374,7 +396,8 @@ const statusClass = computed(() => {
   min-width: 180px;
   background-color: $white;
   border-radius: 8px;
-  box-shadow: 0px 12px 16px -4px rgba(16, 24, 40, 0.08),
+  box-shadow:
+    0px 12px 16px -4px rgba(16, 24, 40, 0.08),
     0px 4px 6px -2px rgba(16, 24, 40, 0.03);
   border: 1px solid $gray-200;
   overflow: hidden;
@@ -455,7 +478,9 @@ const statusClass = computed(() => {
 /* Dropdown transition styles */
 .dropdown-enter-active,
 .dropdown-leave-active {
-  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+  transition:
+    opacity 0.2s ease-in-out,
+    transform 0.2s ease-in-out;
 }
 
 .dropdown-enter-from,
