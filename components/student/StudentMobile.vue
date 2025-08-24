@@ -2,43 +2,55 @@
   <div class="registrar-card card-active">
     <div class="registrar-header">
       <div class="registrar-avatar">
-        <img :src="selectedCourse.profile_picture" alt="Registrar avatar" />
+        <img
+          :src="selectedCourse.profile_picture"
+          alt="Registrar avatar"
+        />
       </div>
       <div class="registrar-info">
         <div class="name-status-wrapper">
           <h3 class="registrar-name">
-            {{ selectedCourse.first_name }}{{ " "
+            {{ selectedCourse.first_name }}{{ ' '
             }}{{ selectedCourse.last_name }}
           </h3>
-          <div class="status-badge" :class="statusClass">
+          <div
+            class="status-badge"
+            :class="statusClass"
+          >
             <span class="status-dot"></span>
             {{ capitalizeFirst(selectedCourse.program.program_type) }}
           </div>
         </div>
-        <div class="">@{{ capitalizeFirst(selectedCourse.reg_number) }}</div>
+        <div class="">
+          @{{ capitalizeFirst(selectedCourse.reg_number) }}
+        </div>
       </div>
       <div class="registrar-actions">
         <div class="dropdown">
           <button
-            @click.stop="toggleDropdown"
             class="action-button"
             aria-haspopup="true"
             :aria-expanded="dropdownOpen"
+            @click.stop="toggleDropdown"
           >
             <DotsVerticalIcon />
           </button>
           <transition name="dropdown">
-            <div v-if="dropdownOpen" class="dropdown-menu" @click.stop>
+            <div
+              v-if="dropdownOpen"
+              class="dropdown-menu"
+              @click.stop
+            >
               <button class="dropdown-item">
                 <span class="dropdown-icon">
-                  <CloseCircleIcon />
+                  <IconsCloseCircleIcon />
                 </span>
                 Suspend Account
               </button>
 
               <button class="dropdown-item">
                 <span class="dropdown-icon">
-                  <DeleteIcon />
+                  <IconsDeleteIcon />
                 </span>
                 Remove Account
               </button>
@@ -54,22 +66,34 @@
         <div class="stat-item">
           <div class="stat-label">Registrar</div>
           <div class="stat-value">
-            <template v-if="selectedCourse.enrollments[0]?.registrars?.email">
+            <template
+              v-if="selectedCourse.enrollments[0]?.registrars?.email"
+            >
               <div
                 style="width: fit-content"
                 class="student-info status-badge profile-count pill p-grey"
               >
                 <img
                   :src="
-                    selectedCourse.enrollments[0].registrars.profile_picture
+                    selectedCourse.enrollments[0].registrars
+                      .profile_picture
                   "
-                  :alt="selectedCourse.enrollments[0].registrars.first_name"
+                  :alt="
+                    selectedCourse.enrollments[0].registrars
+                      .first_name
+                  "
                   class="avatar"
                 />
                 <div class="student-details">
                   <div class="student-name">
-                    {{ selectedCourse.enrollments[0].registrars.first_name }}
-                    {{ selectedCourse.enrollments[0].registrars.last_name }}
+                    {{
+                      selectedCourse.enrollments[0].registrars
+                        .first_name
+                    }}
+                    {{
+                      selectedCourse.enrollments[0].registrars
+                        .last_name
+                    }}
                   </div>
                 </div>
               </div>
@@ -96,9 +120,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
-import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
-import { capitalizeFirst } from "~/helper/formatData";
+import {
+  computed,
+  inject,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+} from 'vue';
+import DotsVerticalIcon from '~/components/icons/DotsVerticalIcon.vue';
+import { capitalizeFirst } from '~/helper/formatData';
 
 interface Student {
   student_id: number;
@@ -139,14 +169,17 @@ interface Props {
 const props = defineProps<Props>();
 
 const emit = defineEmits<{
-  (e: "viewDetails"): void;
+  (e: 'viewDetails'): void;
 }>();
 
 // Create a unique ID for this card instance
-const cardId = Symbol("registrar-card");
+const cardId = Symbol('registrar-card');
 
 // Global registry of open dropdowns
-const openDropdownId = inject<Ref<Symbol | null>>("openDropdownId", ref(null));
+const openDropdownId = inject<Ref<symbol | null>>(
+  'openDropdownId',
+  ref(null),
+);
 const dropdownOpen = computed({
   get: () => openDropdownId.value === cardId,
   set: (value) => {
@@ -165,35 +198,35 @@ const toggleDropdown = (event: MouseEvent) => {
 };
 
 // Close dropdown when clicking outside
-const closeDropdown = (event: MouseEvent) => {
+const closeDropdown = (/* event: MouseEvent */) => {
   if (dropdownOpen.value) {
     dropdownOpen.value = false;
   }
 };
 
 const viewDetails = () => {
-  emit("viewDetails");
+  emit('viewDetails');
 };
 
 // Add and remove event listeners
 onMounted(() => {
-  document.addEventListener("click", closeDropdown);
+  document.addEventListener('click', closeDropdown);
 });
 
 onBeforeUnmount(() => {
-  document.removeEventListener("click", closeDropdown);
+  document.removeEventListener('click', closeDropdown);
 });
 
 // Status classes
 const statusClass = computed(() => {
   switch (props.selectedCourse.program.program_type.toLowerCase()) {
-    case "undergraduate":
-    case "doctorate":
-      return "status-active";
-    case "masters":
-      return "status-suspended";
+    case 'undergraduate':
+    case 'doctorate':
+      return 'status-active';
+    case 'masters':
+      return 'status-suspended';
     default:
-      return "";
+      return '';
   }
 });
 </script>
@@ -463,7 +496,8 @@ const statusClass = computed(() => {
   min-width: 180px;
   background-color: $white;
   border-radius: 8px;
-  box-shadow: 0px 12px 16px -4px rgba(16, 24, 40, 0.08),
+  box-shadow:
+    0px 12px 16px -4px rgba(16, 24, 40, 0.08),
     0px 4px 6px -2px rgba(16, 24, 40, 0.03);
   border: 1px solid $gray-200;
   overflow: hidden;
@@ -544,7 +578,9 @@ const statusClass = computed(() => {
 /* Dropdown transition styles */
 .dropdown-enter-active,
 .dropdown-leave-active {
-  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+  transition:
+    opacity 0.2s ease-in-out,
+    transform 0.2s ease-in-out;
 }
 
 .dropdown-enter-from,

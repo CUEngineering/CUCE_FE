@@ -1,13 +1,22 @@
 <template>
   <div class="dashboard-layout">
     <!-- Pass both collapsed and mobile open states to sidebar component -->
-    <component :is="getSidebarComponent" :is-collapsed="!sidebarOpen" />
+    <component
+      :is="getSidebarComponent"
+      :is-collapsed="!sidebarOpen"
+    />
 
-    <div class="content-wrapper" :class="{ 'sidebar-collapsed': !sidebarOpen }">
+    <div
+      class="content-wrapper"
+      :class="{ 'sidebar-collapsed': !sidebarOpen }"
+    >
       <!-- Header -->
       <header class="dashboard-header">
         <div class="header-left">
-          <button class="menu-toggle" @click="toggleSidebar">
+          <button
+            class="menu-toggle"
+            @click="toggleSidebar"
+          >
             <MenuIcon />
           </button>
         </div>
@@ -19,12 +28,19 @@
             </button>
           </div>
 
-          <button class="logout-button" @click="handleLogout">
+          <button
+            class="logout-button"
+            @click="handleLogout"
+          >
             <LogoutIcon />
           </button>
 
           <div class="user-profile">
-            <img :src="avatar" alt="User avatar" class="avatar" />
+            <img
+              :src="avatar"
+              alt="User avatar"
+              class="avatar"
+            />
           </div>
         </div>
       </header>
@@ -38,40 +54,46 @@
 </template>
 
 <script setup>
-import { useRouter } from "vue-router";
-import AdminSidebar from "~/components/AdminSidebar.vue";
-import BellIcon from "~/components/icons/BellIcon.vue";
-import LogoutIcon from "~/components/icons/LogoutIcon.vue";
-import MenuIcon from "~/components/icons/MenuIcon.vue";
-import RegistrarSidebar from "~/components/RegistrarSidebar.vue";
-import StudentSidebar from "~/components/StudentSidebar.vue";
-import { useToast } from "~/composables/useToast";
+import AdminSidebar from '~/components/AdminSidebar.vue';
+import BellIcon from '~/components/icons/BellIcon.vue';
+import LogoutIcon from '~/components/icons/LogoutIcon.vue';
+import MenuIcon from '~/components/icons/MenuIcon.vue';
+import RegistrarSidebar from '~/components/RegistrarSidebar.vue';
+import StudentSidebar from '~/components/StudentSidebar.vue';
+import { useToast } from '~/composables/useToast';
 
 // Initialize sidebar as closed on mobile, open on desktop
-const sidebarOpen = ref(process.client ? window.innerWidth > 768 : true);
+const sidebarOpen = ref(
+  import.meta.client ? window.innerWidth > 768 : true,
+);
 const authStore = useAuthStore();
 const { success } = useToast();
-const router = useRouter();
 // const role = useCookie("role").value;
 // const userCookie = useCookie("user").value;
 const role = authStore.role;
-const defaultAvatar = "https://randomuser.me/api/portraits/women/44.jpg";
-const avatar = computed(() => authStore.user?.profile_picture ?? defaultAvatar);
+const defaultAvatar =
+  'https://randomuser.me/api/portraits/women/44.jpg';
+
+const avatar = computed(
+  () => authStore.user?.profile_picture ?? defaultAvatar,
+);
 
 function toggleSidebar() {
   sidebarOpen.value = !sidebarOpen.value;
 }
 
-function handleLogout() {
-  authStore.logout();
-  success("Logged out successfully");
-  router.push("/login");
+async function handleLogout() {
+  await authStore.logout();
+  success('Logged out successfully');
+  await navigateTo({
+    name: 'login',
+  });
 }
 
 const getSidebarComponent = computed(() => {
-  if (role === "ADMIN") return AdminSidebar;
-  if (role === "STUDENT") return StudentSidebar;
-  if (role === "REGISTRAR") return RegistrarSidebar;
+  if (role === 'ADMIN') return AdminSidebar;
+  if (role === 'STUDENT') return StudentSidebar;
+  if (role === 'REGISTRAR') return RegistrarSidebar;
   return null;
 });
 </script>

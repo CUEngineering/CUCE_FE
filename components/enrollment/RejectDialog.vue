@@ -1,16 +1,20 @@
 <template>
   <Teleport to="body">
     <Transition name="dialog-fade">
-      <div v-if="modelValue" class="dialog-overlay" @click="onOverlayClick">
+      <div
+        v-if="modelValue"
+        class="dialog-overlay"
+        @click="onOverlayClick"
+      >
         <div class="dialog-container">
           <Transition name="dialog-scale">
             <div
               v-if="modelValue"
               class="dialog"
               :class="[variant]"
-              @click.stop
               role="dialog"
               aria-modal="true"
+              @click.stop
             >
               <div class="dialog-header">
                 <div
@@ -18,29 +22,36 @@
                   class="dialog-icon"
                   :class="`dialog-icon-${variant}`"
                 >
-                  <img :src="getIconComponent" :alt="`${variant} icon`" />
+                  <img
+                    :src="getIconComponent"
+                    :alt="`${variant} icon`"
+                  />
                 </div>
                 <h3 class="dialog-title">{{ title }}</h3>
                 <button
                   v-if="showCloseButton"
                   class="dialog-close"
-                  @click="close"
                   aria-label="Close dialog"
+                  @click="close"
                 >
                   <CloseCircleIcon />
                 </button>
               </div>
 
               <div class="dialog-content">
-                <p v-if="message" class="dialog-message" v-html="message"></p>
+                <p
+                  v-if="message"
+                  class="dialog-message"
+                  v-html="message"
+                ></p>
 
                 <slot></slot>
               </div>
 
               <FormSelect
                 id="reason"
-                label="Rejection Reason"
                 v-model="form.reason"
+                label="Rejection Reason"
                 :options="[
                   {
                     label: 'Outstanding Balance',
@@ -50,7 +61,10 @@
                     label: 'Class already Taken',
                     value: 'Class already Taken',
                   },
-                  { label: 'Class at capacity', value: 'Class at capacity' },
+                  {
+                    label: 'Class at capacity',
+                    value: 'Class at capacity',
+                  },
                   { label: 'Other reason', value: 'Other reason' },
                 ]"
                 placeholder="Select Reason"
@@ -60,15 +74,18 @@
 
               <FormInput
                 v-if="isOtherReason"
-                v-model="form.customReason"
                 id="custom-reason"
+                v-model="form.customReason"
                 label="Please specify"
                 placeholder="Enter your reason"
                 required
                 size="md"
               />
 
-              <div style="margin-top: 20px" class="dialog-footer">
+              <div
+                style="margin-top: 20px"
+                class="dialog-footer"
+              >
                 <Button
                   v-if="showCancelButton"
                   variant="outline"
@@ -79,8 +96,8 @@
                 <Button
                   v-if="showConfirmButton"
                   :variant="confirmButtonVariant"
-                  @click="confirm"
                   :loading="loading"
+                  @click="confirm"
                 >
                   {{ confirmButtonText }}
                 </Button>
@@ -94,27 +111,30 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import ErrorIcon from "~/assets/images/Dialog_Error.svg";
-import SuccessIcon from "~/assets/images/Dialog_Success.svg";
-import WarningIcon from "~/assets/images/Dialog_Warning.svg";
-import CloseCircleIcon from "~/components/icons/CloseCircleIcon.vue";
-import Button from "../ui/Button.vue";
-import FormInput from "../ui/FormInput.vue";
-import FormSelect from "../ui/FormSelect.vue";
+import { computed, ref } from 'vue';
+import ErrorIcon from '~/assets/images/Dialog_Error.svg';
+import SuccessIcon from '~/assets/images/Dialog_Success.svg';
+import WarningIcon from '~/assets/images/Dialog_Warning.svg';
+import CloseCircleIcon from '~/components/icons/CloseCircleIcon.vue';
+import Button from '../ui/Button.vue';
+import FormInput from '../ui/FormInput.vue';
+import FormSelect from '../ui/FormSelect.vue';
+
 const toast = useToast();
 
 const form = ref({
-  reason: "",
-  customReason: "",
+  reason: '',
+  customReason: '',
 });
-const isOtherReason = computed(() => form.value.reason === "Other reason");
+const isOtherReason = computed(
+  () => form.value.reason === 'Other reason',
+);
 
 interface Props {
   modelValue: boolean;
   title: string;
   message?: string;
-  variant?: "default" | "warning" | "danger" | "success";
+  variant?: 'default' | 'warning' | 'danger' | 'success';
   icon?: boolean;
   cancelButtonText?: string;
   confirmButtonText?: string;
@@ -126,10 +146,10 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  variant: "default",
+  variant: 'default',
   icon: true,
-  cancelButtonText: "Cancel",
-  confirmButtonText: "Confirm",
+  cancelButtonText: 'Cancel',
+  confirmButtonText: 'Confirm',
   showCancelButton: true,
   showConfirmButton: true,
   showCloseButton: true,
@@ -138,17 +158,20 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-  (e: "update:modelValue", value: boolean): void;
-  (e: "cancel"): void;
-  (e: "confirm", payload: { reason: string; customReason: string }): void;
+  (e: 'update:modelValue', value: boolean): void;
+  (e: 'cancel'): void;
+  (
+    e: 'confirm',
+    payload: { reason: string; customReason: string },
+  ): void;
 }>();
 
 const close = () => {
-  emit("update:modelValue", false);
+  emit('update:modelValue', false);
 };
 
 const cancel = () => {
-  emit("cancel");
+  emit('cancel');
   if (!props.loading) {
     close();
   }
@@ -159,10 +182,10 @@ const confirm = () => {
     !form.value.reason ||
     (isOtherReason.value && !form.value.customReason.trim())
   ) {
-    toast.error("Please provide a valid rejection reason.");
+    toast.error('Please provide a valid rejection reason.');
     return;
   }
-  emit("confirm", {
+  emit('confirm', {
     reason: form.value.reason,
     customReason: form.value.customReason,
   });
@@ -180,39 +203,39 @@ watch(
   () => props.modelValue,
   (val) => {
     if (val) {
-      form.value = { reason: "", customReason: "" };
+      form.value = { reason: '', customReason: '' };
     }
-  }
+  },
 );
 
 const getIconComponent = computed(() => {
   switch (props.variant) {
-    case "success":
+    case 'success':
       return SuccessIcon;
-    case "danger":
+    case 'danger':
       return ErrorIcon;
-    case "warning":
+    case 'warning':
       return WarningIcon;
-    case "default":
+    case 'default':
     default:
       return ErrorIcon;
   }
 });
 
 const confirmButtonVariant = computed(
-  (): "primary" | "secondary" | "outline" | "danger" => {
+  (): 'primary' | 'secondary' | 'outline' | 'danger' => {
     switch (props.variant) {
-      case "danger":
-        return "danger";
-      case "warning":
-        return "secondary";
-      case "success":
-        return "primary";
-      case "default":
+      case 'danger':
+        return 'danger';
+      case 'warning':
+        return 'secondary';
+      case 'success':
+        return 'primary';
+      case 'default':
       default:
-        return "primary";
+        return 'primary';
     }
-  }
+  },
 );
 </script>
 
@@ -380,7 +403,8 @@ const confirmButtonVariant = computed(
 
 .dialog-scale-enter-active,
 .dialog-scale-leave-active {
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+  transition:
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
     opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 

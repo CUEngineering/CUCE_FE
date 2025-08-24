@@ -3,14 +3,13 @@
     <Loader v-if="loading" />
 
     <div v-if="!loading">
-      <StudentEnroll />
+      <DashboardStudentEnroll />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import StudentEnroll from "~/components/dashboard/StudentEnroll.vue";
+import { ref } from 'vue';
 
 const loading = ref(false);
 
@@ -26,13 +25,13 @@ interface DashboardStats {
 }
 
 const cachedStats = useState<DashboardStats | null>(
-  "dashboard-stats",
-  () => null
+  'dashboard-stats',
+  () => null,
 );
 
 const { call, error, data } = useBackendService(
-  "/dashboard/admin/stats",
-  "get"
+  '/dashboard/admin/stats',
+  'get',
 );
 
 const fetchStats = async () => {
@@ -51,7 +50,7 @@ onMounted(async () => {
       await fetchStats();
       loading.value = false;
     } catch (err) {
-      console.error("Failed to fetch dashboard stats", err);
+      console.error('Failed to fetch dashboard stats', err);
     }
   }
 
@@ -64,7 +63,7 @@ onMounted(async () => {
 });
 
 definePageMeta({
-  layout: "student",
+  layout: 'student',
 });
 </script>
 

@@ -1,16 +1,20 @@
 <template>
   <Teleport to="body">
     <Transition name="dialog-fade">
-      <div v-if="modelValue" class="dialog-overlay" @click="onOverlayClick">
+      <div
+        v-if="modelValue"
+        class="dialog-overlay"
+        @click="onOverlayClick"
+      >
         <div class="dialog-container">
           <Transition name="dialog-scale">
             <div
               v-if="modelValue"
               class="dialog"
               :class="[variant]"
-              @click.stop
               role="dialog"
               aria-modal="true"
+              @click.stop
             >
               <div class="dialog-header">
                 <div
@@ -18,65 +22,103 @@
                   class="dialog-icon"
                   :class="`dialog-icon-${variant}`"
                 >
-                  <img :src="getIconComponent" :alt="`${variant} icon`" />
+                  <img
+                    :src="getIconComponent"
+                    :alt="`${variant} icon`"
+                  />
                 </div>
                 <h3 class="dialog-title">{{ title }}</h3>
                 <button
                   v-if="showCloseButton"
                   class="dialog-close"
-                  @click="close"
                   aria-label="Close dialog"
+                  @click="close"
                 >
-                  <CloseCircleIcon />
+                  <IconsCloseCircleIcon />
                 </button>
               </div>
 
               <div class="dialog-content">
-                <p v-if="message" class="dialog-message" v-html="message"></p>
+                <p
+                  v-if="message"
+                  class="dialog-message"
+                  v-html="message"
+                ></p>
 
                 <slot></slot>
               </div>
 
-              <div className="rejection-history">
-                <div className="rejection-history-container">
-                  <div className="rejection-history-content">
-                    <div className="rejection-history-text">
-                      <h3 className="rejection-history-title">
-                        Rejection History
-                      </h3>
-                      <p className="rejection-history-subtitle">
-                        This enrollment has been rejected [{{
-                          props.rejectionCount
-                        }}] time(s).
-                      </p>
-                    </div>
-                  </div>
-
-                  <div @click="viewDetails" className="rejection-history-link">
-                    <span className="rejection-history-link-text"
-                      >View Details -></span
+              <div className="history">
+                <h5 class="recon">Enrollment History</h5>
+                <table class="enrollments-table table-container">
+                  <thead>
+                    <tr>
+                      <th class="table-header">S/N</th>
+                      <th class="table-header">Date</th>
+                      <th class="table-header">Message</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="(enrollment, index) in history"
+                      :key="index"
+                      :class="[
+                        `table-row`,
+                        getStatusClass(enrollment.enrollment_status),
+                      ]"
                     >
-                    <ChevronRight className="rejection-history-arrow" />
-                  </div>
-                </div>
+                      <td class="table-cell pill p-grey status-badg">
+                        0{{ index + 1 }}
+                      </td>
+                      <td class="table-cell">
+                        {{
+                          formatDateToDateAndTime(
+                            enrollment.updated_at,
+                          )
+                        }}
+                      </td>
+                      <td class="table-cell">
+                        <template
+                          v-if="
+                            enrollment.enrollment_status === 'PENDING'
+                          "
+                        >
+                          pending
+                        </template>
+                        <template
+                          v-else-if="
+                            enrollment.enrollment_status ===
+                            'REJECTED'
+                          "
+                        >
+                          {{ enrollment.rejection_reason }}
+                        </template>
+                        <template v-else> Enrolled </template>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
 
-              <div style="margin-top: 20px" class="dialog-footer">
-                <Button
+              <div
+                style="margin-top: 20px"
+                class="dialog-footer"
+              >
+                <UiButton
                   v-if="showCancelButton"
                   variant="outline"
                   @click="cancel"
                 >
                   {{ cancelButtonText }}
-                </Button>
-                <Button
+                </UiButton>
+                <UiButton
                   v-if="showConfirmButton"
                   :variant="confirmButtonVariant"
-                  @click="confirm"
                   :loading="loading"
+                  @click="confirm"
                 >
                   {{ confirmButtonText }}
-                </Button>
+                </UiButton>
               </div>
             </div>
           </Transition>
@@ -87,25 +129,33 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import ErrorIcon from "~/assets/images/Dialog_Error.svg";
-import SuccessIcon from "~/assets/images/Dialog_Success.svg";
-import WarningIcon from "~/assets/images/Dialog_Warning.svg";
-import CloseCircleIcon from "~/components/icons/CloseCircleIcon.vue";
-import Button from "../ui/Button.vue";
-const toast = useToast();
+import { orderBy } from 'lodash-es';
+import { computed, ref } from 'vue';
+import ErrorIcon from '~/assets/images/Dialog_Error.svg';
+import SuccessIcon from '~/assets/images/Dialog_Success.svg';
+import WarningIcon from '~/assets/images/Dialog_Warning.svg';
+import {
+  formatDateToDateAndTime,
+  getStatusClass,
+} from '~/helper/formatData';
+import type { StudentCourseListType } from '~/types/course';
+
+// const toast = useToast();
 
 const form = ref({
-  reason: "",
-  customReason: "",
+  reason: '',
+  customReason: '',
 });
-const isOtherReason = computed(() => form.value.reason === "Other reason");
+
+// const isOtherReason = computed(
+//   () => form.value.reason === 'Other reason',
+// );
 
 interface Props {
   modelValue: boolean;
   title: string;
   message?: string;
-  variant?: "default" | "warning" | "danger" | "success";
+  variant?: 'default' | 'warning' | 'danger' | 'success';
   icon?: boolean;
   cancelButtonText?: string;
   confirmButtonText?: string;
@@ -114,14 +164,14 @@ interface Props {
   showCloseButton?: boolean;
   persistent?: boolean;
   loading?: boolean;
-  rejectionCount?: number;
+  enrollments?: StudentCourseListType['student_course_enrollements'];
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  variant: "default",
+  variant: 'default',
   icon: true,
-  cancelButtonText: "Cancel",
-  confirmButtonText: "Confirm",
+  cancelButtonText: 'Cancel',
+  confirmButtonText: 'Confirm',
   showCancelButton: true,
   showConfirmButton: true,
   showCloseButton: true,
@@ -130,29 +180,27 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-  (e: "update:modelValue", value: boolean): void;
-  (e: "cancel"): void;
-  (e: "confirm"): void;
-  (e: "viewDetails"): void;
+  (e: 'update:modelValue', value: boolean): void;
+  (e: 'cancel' | 'confirm'): void;
 }>();
 
-const viewDetails = () => {
-  emit("viewDetails");
-};
-
 const close = () => {
-  emit("update:modelValue", false);
+  emit('update:modelValue', false);
 };
 
-const cancel = () => {
-  emit("cancel");
+const cancel = async () => {
+  emit('cancel');
+
+  await nextTick();
   if (!props.loading) {
     close();
   }
 };
 
-const confirm = () => {
-  emit("confirm");
+const confirm = async () => {
+  emit('confirm');
+
+  await nextTick();
   if (!props.loading) {
     close();
   }
@@ -163,41 +211,56 @@ const onOverlayClick = () => {
     cancel();
   }
 };
+
 watch(
   () => props.modelValue,
   (val) => {
     if (val) {
-      form.value = { reason: "", customReason: "" };
+      form.value = { reason: '', customReason: '' };
     }
-  }
+  },
 );
+
 const getIconComponent = computed(() => {
   switch (props.variant) {
-    case "success":
+    case 'success':
       return SuccessIcon;
-    case "danger":
+    case 'danger':
       return ErrorIcon;
-    case "warning":
+    case 'warning':
       return WarningIcon;
-    case "default":
+    case 'default':
     default:
       return ErrorIcon;
   }
 });
+
 const confirmButtonVariant = computed(
-  (): "primary" | "secondary" | "outline" | "danger" => {
+  (): 'primary' | 'secondary' | 'outline' | 'danger' => {
     switch (props.variant) {
-      case "danger":
-        return "danger";
-      case "warning":
-        return "secondary";
-      case "success":
-        return "primary";
-      case "default":
+      case 'danger':
+        return 'danger';
+      case 'warning':
+        return 'secondary';
+      case 'success':
+        return 'primary';
+      case 'default':
       default:
-        return "primary";
+        return 'primary';
     }
-  }
+  },
+);
+
+const history = computed(() =>
+  orderBy(
+    props.enrollments ?? [],
+    [
+      (e) => (e.enrollment_status === 'PENDING' ? 0 : 1),
+      (e) => new Date(e.updated_at).getTime(),
+      (e) => new Date(e.created_at).getTime(),
+    ],
+    ['asc', 'desc', 'desc'],
+  ),
 );
 </script>
 
@@ -253,6 +316,65 @@ const confirmButtonVariant = computed(
   display: flex;
   align-items: center;
   justify-content: center;
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 8px 1px 6px;
+    border-radius: 16px;
+    font-size: $text-xxs;
+    font-weight: 500;
+    line-height: 1.8;
+    white-space: nowrap;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .status-active {
+    background-color: $success-50;
+    color: $success-400;
+    border: 1px solid $success-400;
+
+    .status-dot {
+      background-color: $success-400;
+    }
+  }
+
+  .status-unassigned {
+    background-color: $warning-50;
+    color: $warning-700;
+    border: 1px solid $warning-300;
+
+    .status-dot {
+      background-color: $primary-color-500;
+    }
+  }
+
+  .status-suspended {
+    background-color: $primary-color-50;
+    color: $primary-color-500;
+    border: 1px solid $primary-color-500;
+
+    .status-dot {
+      background-color: $primary-color-500;
+    }
+  }
+
+  .status-deactivated {
+    background-color: $error-50;
+    color: $error-700;
+    border: 1px solid $error-200;
+
+    .status-dot {
+      background-color: $error-400;
+    }
+  }
 }
 
 .dialog {
@@ -365,7 +487,8 @@ const confirmButtonVariant = computed(
 
 .dialog-scale-enter-active,
 .dialog-scale-leave-active {
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+  transition:
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
     opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -381,77 +504,77 @@ const confirmButtonVariant = computed(
     gap: 16px;
   }
 }
-.rejection-history {
-  background-image: url("~/assets/images/RejectImage.png");
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
-  padding: 5px;
-  border-radius: 10px;
-  border: 1px solid #fedf89;
-}
+// .rejection-history {
+//   background-image: url('~/assets/images/RejectImage.png');
+//   background-repeat: no-repeat;
+//   background-size: cover;
+//   background-position: center;
+//   padding: 5px;
+//   border-radius: 10px;
+//   border: 1px solid #fedf89;
+// }
 
-.rejection-history-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+// .rejection-history-container {
+//   display: flex;
+//   align-items: center;
+//   justify-content: space-between;
+// }
 
-.rejection-history-content {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
+// .rejection-history-content {
+//   display: flex;
+//   align-items: flex-start;
+//   gap: 12px;
+// }
 
-.rejection-history-icon {
-  width: 12px;
-  height: 12px;
-  background-color: #dc6803;
-  transform: rotate(45deg);
-  margin-top: 4px;
-  flex-shrink: 0;
-}
+// .rejection-history-icon {
+//   width: 12px;
+//   height: 12px;
+//   background-color: #dc6803;
+//   transform: rotate(45deg);
+//   margin-top: 4px;
+//   flex-shrink: 0;
+// }
 
-.rejection-history-text {
-  display: flex;
-  flex-direction: column;
-}
+// .rejection-history-text {
+//   display: flex;
+//   flex-direction: column;
+// }
 
-.rejection-history-title {
-  color: #101828;
-  font-weight: 600;
-  font-size: 15px;
-  line-height: 1.2;
-  margin: 0;
-}
+// .rejection-history-title {
+//   color: #101828;
+//   font-weight: 600;
+//   font-size: 15px;
+//   line-height: 1.2;
+//   margin: 0;
+// }
 
-.rejection-history-subtitle {
-  color: #667085;
-  font-size: 12px;
-  margin: 4px 0 0 0;
-}
+// .rejection-history-subtitle {
+//   color: #667085;
+//   font-size: 12px;
+//   margin: 4px 0 0 0;
+// }
 
-.rejection-history-link {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: #dc6803;
-  text-decoration: none;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
+// .rejection-history-link {
+//   display: flex;
+//   align-items: center;
+//   gap: 4px;
+//   color: #dc6803;
+//   text-decoration: none;
+//   cursor: pointer;
+//   transition: color 0.2s ease;
+// }
 
-.rejection-history-link:hover {
-  color: #b54708;
-}
+// .rejection-history-link:hover {
+//   color: #b54708;
+// }
 
-.rejection-history-link-text {
-  font-size: 12px;
-  font-weight: 500;
-}
+// .rejection-history-link-text {
+//   font-size: 12px;
+//   font-weight: 500;
+// }
 
-.rejection-history-arrow {
-  width: 16px;
-  height: 16px;
-}
+// .rejection-history-arrow {
+//   width: 16px;
+//   height: 16px;
+// }
 </style>

@@ -1,16 +1,20 @@
 <template>
   <Teleport to="body">
     <Transition name="dialog-fade">
-      <div v-if="modelValue" class="dialog-overlay" @click="onOverlayClick">
+      <div
+        v-if="modelValue"
+        class="dialog-overlay"
+        @click="onOverlayClick"
+      >
         <div class="dialog-container">
           <Transition name="dialog-scale">
             <div
               v-if="modelValue"
               class="dialog"
               :class="[variant]"
-              @click.stop
               role="dialog"
               aria-modal="true"
+              @click.stop
             >
               <div class="dialog-header">
                 <div
@@ -18,21 +22,28 @@
                   class="dialog-icon"
                   :class="`dialog-icon-${variant}`"
                 >
-                  <img :src="getIconComponent" :alt="`${variant} icon`" />
+                  <img
+                    :src="getIconComponent"
+                    :alt="`${variant} icon`"
+                  />
                 </div>
                 <h3 class="dialog-title">{{ title }}</h3>
                 <button
                   v-if="showCloseButton"
                   class="dialog-close"
-                  @click="close"
                   aria-label="Close dialog"
+                  @click="close"
                 >
                   <CloseCircleIcon />
                 </button>
               </div>
 
               <div class="dialog-content">
-                <p v-if="message" class="dialog-message">{{ message }}</p>
+                <p
+                  v-if="message"
+                  class="dialog-message"
+                  v-html="message"
+                />
                 <slot></slot>
               </div>
 
@@ -47,8 +58,8 @@
                 <Button
                   v-if="showConfirmButton"
                   :variant="confirmButtonVariant"
-                  @click="confirm"
                   :loading="loading"
+                  @click="confirm"
                 >
                   {{ confirmButtonText }}
                 </Button>
@@ -62,18 +73,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import ErrorIcon from "~/assets/images/Dialog_Error.svg";
-import SuccessIcon from "~/assets/images/Dialog_Success.svg";
-import WarningIcon from "~/assets/images/Dialog_Warning.svg";
-import CloseCircleIcon from "~/components/icons/CloseCircleIcon.vue";
-import Button from "./Button.vue";
+import { computed } from 'vue';
+import ErrorIcon from '~/assets/images/Dialog_Error.svg';
+import SuccessIcon from '~/assets/images/Dialog_Success.svg';
+import WarningIcon from '~/assets/images/Dialog_Warning.svg';
+import CloseCircleIcon from '~/components/icons/CloseCircleIcon.vue';
+import Button from './Button.vue';
 
 interface Props {
   modelValue: boolean;
   title: string;
   message?: string;
-  variant?: "default" | "warning" | "danger" | "success";
+  variant?: 'default' | 'warning' | 'danger' | 'success';
   icon?: boolean;
   cancelButtonText?: string;
   confirmButtonText?: string;
@@ -85,10 +96,10 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  variant: "default",
+  variant: 'default',
   icon: true,
-  cancelButtonText: "Cancel",
-  confirmButtonText: "Confirm",
+  cancelButtonText: 'Cancel',
+  confirmButtonText: 'Confirm',
   showCancelButton: true,
   showConfirmButton: true,
   showCloseButton: true,
@@ -97,24 +108,27 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-  (e: "update:modelValue", value: boolean): void;
-  (e: "cancel"): void;
-  (e: "confirm"): void;
+  (e: 'update:modelValue', value: boolean): void;
+  (e: 'cancel' | 'confirm'): void;
 }>();
 
 const close = () => {
-  emit("update:modelValue", false);
+  emit('update:modelValue', false);
 };
 
-const cancel = () => {
-  emit("cancel");
+const cancel = async () => {
+  emit('cancel');
+
+  await nextTick();
   if (!props.loading) {
     close();
   }
 };
 
-const confirm = () => {
-  emit("confirm");
+const confirm = async () => {
+  emit('confirm');
+
+  await nextTick();
   if (!props.loading) {
     close();
   }
@@ -128,32 +142,32 @@ const onOverlayClick = () => {
 
 const getIconComponent = computed(() => {
   switch (props.variant) {
-    case "success":
+    case 'success':
       return SuccessIcon;
-    case "danger":
+    case 'danger':
       return ErrorIcon;
-    case "warning":
+    case 'warning':
       return WarningIcon;
-    case "default":
+    case 'default':
     default:
       return ErrorIcon;
   }
 });
 
 const confirmButtonVariant = computed(
-  (): "primary" | "secondary" | "outline" | "danger" => {
+  (): 'primary' | 'secondary' | 'outline' | 'danger' => {
     switch (props.variant) {
-      case "danger":
-        return "danger";
-      case "warning":
-        return "secondary";
-      case "success":
-        return "primary";
-      case "default":
+      case 'danger':
+        return 'danger';
+      case 'warning':
+        return 'secondary';
+      case 'success':
+        return 'primary';
+      case 'default':
       default:
-        return "primary";
+        return 'primary';
     }
-  }
+  },
 );
 </script>
 
@@ -293,7 +307,8 @@ const confirmButtonVariant = computed(
 
 .dialog-scale-enter-active,
 .dialog-scale-leave-active {
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+  transition:
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
     opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 

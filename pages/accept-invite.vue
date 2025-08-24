@@ -12,17 +12,22 @@
           <!-- Welcome Text -->
           <div class="welcome-text">
             <h1>Create Your Account</h1>
-            <p>Please enter your details below to create your account.</p>
+            <p>
+              Please enter your details below to create your account.
+            </p>
           </div>
 
           <form @submit.prevent="handleSubmit">
             <!-- Step 1 -->
-            <div v-if="step === 1" class="form-step">
+            <div
+              v-if="step === 1"
+              class="form-step"
+            >
               <!-- <h2>Step 1: Account Setup</h2> -->
               <FormInput
                 id="email"
-                label="Email"
                 v-model="form.email"
+                label="Email"
                 type="email"
                 placeholder="Enter email"
                 required
@@ -32,8 +37,8 @@
 
               <FormInput
                 id="password"
-                label="Password"
                 v-model="form.password"
+                label="Password"
                 :type="showPassword ? 'text' : 'password'"
                 placeholder="Enter password"
                 required
@@ -53,26 +58,33 @@
 
               <FormInput
                 id="confirm-password"
-                label="Confirm Password"
                 v-model="form.confirmPassword"
+                label="Confirm Password"
                 :type="showPassword ? 'text' : 'password'"
                 placeholder="Confirm password"
                 required
                 :error="passwordError"
               />
 
-              <Button type="button" variant="primary" @click="nextStep">
+              <Button
+                type="button"
+                variant="primary"
+                @click="nextStep"
+              >
                 Next
               </Button>
             </div>
 
             <!-- Step 2 -->
-            <div v-else-if="step === 2" class="form-step">
+            <div
+              v-else-if="step === 2"
+              class="form-step"
+            >
               <!-- <h2>Step 2: Personal Details</h2> -->
               <FormInput
                 id="firstname"
-                label="First Name"
                 v-model="form.firstName"
+                label="First Name"
                 type="text"
                 placeholder="Enter first name"
                 required
@@ -81,8 +93,8 @@
 
               <FormInput
                 id="lastname"
-                label="Last Name"
                 v-model="form.lastName"
+                label="Last Name"
                 type="text"
                 placeholder="Enter last name"
                 required
@@ -90,8 +102,13 @@
               />
 
               <div class="form-group">
-                <label for="profile">Upload Profile picture (Optional)</label>
-                <div class="upload-container" @click="triggerFileDialog">
+                <label for="profile"
+                  >Upload Profile picture (Optional)</label
+                >
+                <div
+                  class="upload-container"
+                  @click="triggerFileDialog"
+                >
                   <img
                     v-if="previewUrl"
                     :src="previewUrl"
@@ -103,30 +120,42 @@
                   <template v-else>
                     <div class="upload-icon"><UploadIcon /></div>
                     <h2 class="upload-title">Upload File</h2>
-                    <p class="upload-subtitle">Maximum size upload: 50MB</p>
+                    <p class="upload-subtitle">
+                      Maximum size upload: 50MB
+                    </p>
                   </template>
                   <input
-                    type="file"
                     id="profile"
+                    ref="fileInput"
+                    type="file"
                     class="hidden-input"
                     accept="*/*"
-                    ref="fileInput"
                     @change="handleFileUpload"
                   />
                 </div>
               </div>
 
               <div class="button-group">
-                <Button type="button" variant="secondary" @click="prevStep"
+                <Button
+                  type="button"
+                  variant="secondary"
+                  @click="prevStep"
                   >Back</Button
                 >
-                <Button type="submit" variant="primary" :loading="isLoading">
-                  {{ isLoading ? "Submitting..." : "Submit" }}
+                <Button
+                  type="submit"
+                  variant="primary"
+                  :loading="isLoading"
+                >
+                  {{ isLoading ? 'Submitting...' : 'Submit' }}
                 </Button>
               </div>
             </div>
 
-            <div v-if="formError" class="error-message">
+            <div
+              v-if="formError"
+              class="error-message"
+            >
               {{ formError }}
             </div>
           </form>
@@ -150,26 +179,25 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import EyeIcon from "~/components/icons/EyeIcon.vue";
-import EyeOffIcon from "~/components/icons/EyeOffIcon.vue";
-import UploadIcon from "~/components/icons/UploadIcon.vue";
-import Logo from "~/components/Logo.vue";
-import Button from "~/components/ui/Button.vue";
-import Carousel from "~/components/ui/Carousel.vue";
-import FormInput from "~/components/ui/FormInput.vue";
-import { useBackendService } from "~/composables/useBackendService";
-import { decodeEmail } from "~/helper/formatData";
+import { onMounted, ref } from 'vue';
+import EyeIcon from '~/components/icons/EyeIcon.vue';
+import EyeOffIcon from '~/components/icons/EyeOffIcon.vue';
+import UploadIcon from '~/components/icons/UploadIcon.vue';
+import Logo from '~/components/Logo.vue';
+import Button from '~/components/ui/Button.vue';
+import Carousel from '~/components/ui/Carousel.vue';
+import FormInput from '~/components/ui/FormInput.vue';
+import { useBackendService } from '~/composables/useBackendService';
+import { decodeEmail } from '~/helper/formatData';
 
 // State
 const step = ref(1);
 const showPassword = ref(false);
-const formError = ref("");
-const emailError = ref("");
-const passwordError = ref("");
-const firstName = ref("");
-const lastName = ref("");
-const router = useRouter();
+const formError = ref('');
+const emailError = ref('');
+const passwordError = ref('');
+const firstName = ref('');
+const lastName = ref('');
 const route = useRoute();
 
 const toast = useToast();
@@ -180,10 +208,10 @@ const email = decodeEmail(emailParam);
 
 const form = ref({
   email: email,
-  password: "",
-  confirmPassword: "",
-  firstName: "",
-  lastName: "",
+  password: '',
+  confirmPassword: '',
+  firstName: '',
+  lastName: '',
   profilePicture: null as File | null,
 });
 
@@ -194,33 +222,33 @@ const validateEmail = (value: string) => {
   return regex.test(value);
 };
 
-onMounted(() => {
-  authStore.logout();
+onMounted(async () => {
+  await authStore.logout();
 });
 
 const { call, isLoading, data } = useBackendService(
-  "/registrars/accept-invite",
-  "post"
+  '/registrars/accept-invite',
+  'post',
 );
 
 const nextStep = () => {
-  formError.value = "";
+  formError.value = '';
   if (
     !form.value.email ||
     !form.value.password ||
     !form.value.confirmPassword
   ) {
-    formError.value = "Please fill out all fields.";
-    emailError.value = "Email is required";
+    formError.value = 'Please fill out all fields.';
+    emailError.value = 'Email is required';
     return;
   }
   if (form.value.password !== form.value.confirmPassword) {
-    passwordError.value = "Passwords do not match.";
+    passwordError.value = 'Passwords do not match.';
     return;
   }
   if (!validateEmail(form.value.email)) {
-    formError.value = "Invalid email format.";
-    emailError.value = "Enter a valid email address.";
+    formError.value = 'Invalid email format.';
+    emailError.value = 'Enter a valid email address.';
 
     return;
   }
@@ -248,37 +276,43 @@ const handleFileUpload = (e: Event) => {
 };
 
 const handleSubmit = async () => {
-  formError.value = "";
+  formError.value = '';
 
   if (!form.value.firstName || !form.value.lastName) {
-    formError.value = "Please fill out all personal details.";
-    firstName.value = "First name is required";
-    lastName.value = "Last name is required";
+    formError.value = 'Please fill out all personal details.';
+    firstName.value = 'First name is required';
+    lastName.value = 'Last name is required';
     return;
   }
 
   const payload = new FormData();
-  payload.append("email", form.value.email);
-  payload.append("password", form.value.password);
-  payload.append("first_name", form.value.firstName);
-  payload.append("last_name", form.value.lastName);
-  payload.append("token", token);
+  payload.append('email', form.value.email);
+  payload.append('password', form.value.password);
+  payload.append('first_name', form.value.firstName);
+  payload.append('last_name', form.value.lastName);
+  payload.append('token', token);
 
   if (form.value.profilePicture) {
-    payload.append("profile_picture", form.value.profilePicture);
+    payload.append('profile_picture', form.value.profilePicture);
   }
 
   try {
-    await call(payload, { headers: { "Content-Type": "multipart/form-data" } });
-    toast.success("Registrar accepted successfully!");
-    authStore.setAuth(
+    await call(payload, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    toast.success('Registrar accepted successfully!');
+    await authStore.setAuth(
       data.value.session.access_token,
       data.value.role,
-      data.value.user
+      data.value.user,
     );
-    router.push("/registrar/dashboard");
-  } catch (err: any) {
-    formError.value = "Failed to submit form.";
+
+    await navigateTo({
+      name: 'registrar-dashboard',
+    });
+  } catch (err) {
+    console.dir(err);
+    formError.value = 'Failed to submit form.';
   }
 };
 </script>
@@ -355,7 +389,7 @@ const handleSubmit = async () => {
     gap: 0.5rem;
     font-family: $font-family;
     font-size: $text-sm;
-    input[type="checkbox"] {
+    input[type='checkbox'] {
       width: auto;
     }
   }
@@ -414,7 +448,8 @@ const handleSubmit = async () => {
   position: absolute;
   inset: 0;
   opacity: 0.95;
-  background: url("@/assets/images/BG_Image.png") center/cover no-repeat;
+  background: url('@/assets/images/BG_Image.png') center/cover
+    no-repeat;
   mix-blend-mode: normal;
   pointer-events: none;
   filter: contrast(1.1) blur(20px);
@@ -491,7 +526,7 @@ const handleSubmit = async () => {
     margin-bottom: 0.5rem;
     font-weight: 500;
   }
-  input[type="file"] {
+  input[type='file'] {
     padding: 0.5rem 0;
   }
 }

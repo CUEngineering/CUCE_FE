@@ -3,14 +3,20 @@
     <!-- Back button header -->
     <div class="page-header dashlet">
       <div class="page-title">
-        <button class="back-icon" @click="navigateBack">
+        <button
+          class="back-icon"
+          @click="navigateBack"
+        >
           <ArrowLeftIcon />
         </button>
         <h2 class="heading-txt">Program Details</h2>
       </div>
 
       <div class="header-actions">
-        <Button variant="outline" @click="openEditModal">
+        <Button
+          variant="outline"
+          @click="openEditModal"
+        >
           <template #icon>
             <PencilIcon />
           </template>
@@ -19,9 +25,15 @@
       </div>
     </div>
     <Loader v-if="loading" />
-    <div v-if="!loading" class="dashlet program-details">
+    <div
+      v-if="!loading"
+      class="dashlet program-details"
+    >
       <!-- Program overview -->
-      <div v-if="program" class="program-overview">
+      <div
+        v-if="program"
+        class="program-overview"
+      >
         <h1 class="program-title">{{ program.name }}</h1>
 
         <div class="overview-stats">
@@ -33,8 +45,8 @@
                 program.type.toLowerCase() === 'undergraduate'
                   ? 'p-green'
                   : program.type.toLowerCase() === 'doctorate'
-                  ? 'p-yellow'
-                  : 'p-blue'
+                    ? 'p-yellow'
+                    : 'p-blue'
               "
             >
               {{ program.type }}
@@ -43,15 +55,17 @@
           <div class="stat-card">
             <div class="stat-label">Total Students</div>
             <div class="stat-details">
-              <div class="stat-value">{{ program.enrolledStudents }}</div>
+              <div class="stat-value">
+                {{ program.enrolledStudents }}
+              </div>
 
               <div class="pill pill-md p-blue-dark">
                 +{{
                   program.enrolledStudents === 1
                     ? 1
                     : program.enrolledStudents > 2
-                    ? program.enrolledStudents - 2
-                    : 0
+                      ? program.enrolledStudents - 2
+                      : 0
                 }}
                 new
               </div>
@@ -72,8 +86,8 @@
                   program.courses === 1
                     ? 1
                     : program.courses > 2
-                    ? program.courses - 2
-                    : 0
+                      ? program.courses - 2
+                      : 0
                 }}
                 new
               </div>
@@ -105,11 +119,13 @@
             <div class="search-container">
               <FormInput
                 id="student-search"
+                v-model="searchQuery"
                 label=""
                 :placeholder="
-                  activeTab === 'students' ? 'Find a student' : 'Find a course'
+                  activeTab === 'students'
+                    ? 'Find a student'
+                    : 'Find a course'
                 "
-                v-model="searchQuery"
                 size="sm"
               >
                 <template #button>
@@ -130,17 +146,21 @@
         </div>
 
         <!-- Students tab content -->
-        <div v-if="activeTab === 'students'" class="tab-content">
+        <div
+          v-if="activeTab === 'students'"
+          class="tab-content"
+        >
           <!-- Students table -->
           <div class="data-table-container">
             <table class="table-container">
               <thead>
                 <tr>
                   <th
-                    v-for="header in studentTable.getHeaderGroups()[0].headers"
+                    v-for="header in studentTable.getHeaderGroups()[0]
+                      .headers"
                     :key="header.id"
-                    @click="header.column.getToggleSortingHandler()"
                     class="table-header"
+                    @click="header.column.getToggleSortingHandler()"
                   >
                     <div class="header-content">
                       {{ header.column.columnDef.header }}
@@ -148,7 +168,11 @@
                         v-if="header.column.getIsSorted()"
                         class="sort-indicator"
                       >
-                        {{ header.column.getIsSorted() === "desc" ? "▼" : "▲" }}
+                        {{
+                          header.column.getIsSorted() === 'desc'
+                            ? '▼'
+                            : '▲'
+                        }}
                       </span>
                     </div>
                   </th>
@@ -177,7 +201,10 @@
         </div>
 
         <!-- Add after the students table -->
-        <div class="mobile-card-view" v-if="activeTab === 'students'">
+        <div
+          v-if="activeTab === 'students'"
+          class="mobile-card-view"
+        >
           <div
             v-for="student in studentTable.getRowModel().rows"
             :key="student.id"
@@ -190,8 +217,12 @@
                 alt="Student avatar"
               />
               <div class="avatar-info">
-                <h3 class="avatar-name">{{ student.original.name }}</h3>
-                <p class="avatar-email">{{ student.original.email }}</p>
+                <h3 class="avatar-name">
+                  {{ student.original.name }}
+                </h3>
+                <p class="avatar-email">
+                  {{ student.original.email }}
+                </p>
               </div>
             </div>
             <div class="card-progress">
@@ -200,7 +231,7 @@
                   class="progress-bar"
                   :style="{
                     width: calculateCreditProgress(
-                      student.original.creditsCompleted
+                      student.original.creditsCompleted,
                     ),
                   }"
                 ></div>
@@ -223,17 +254,21 @@
         </div>
 
         <!-- Courses tab content -->
-        <div v-if="activeTab === 'courses'" class="tab-content">
+        <div
+          v-if="activeTab === 'courses'"
+          class="tab-content"
+        >
           <!-- Courses table -->
           <div class="data-table-container">
             <table class="table-container">
               <thead>
                 <tr>
                   <th
-                    v-for="header in courseTable.getHeaderGroups()[0].headers"
+                    v-for="header in courseTable.getHeaderGroups()[0]
+                      .headers"
                     :key="header.id"
-                    @click="header.column.getToggleSortingHandler()"
                     class="table-header"
+                    @click="header.column.getToggleSortingHandler()"
                   >
                     <div class="header-content">
                       {{ header.column.columnDef.header }}
@@ -241,7 +276,11 @@
                         v-if="header.column.getIsSorted()"
                         class="sort-indicator"
                       >
-                        {{ header.column.getIsSorted() === "desc" ? "▼" : "▲" }}
+                        {{
+                          header.column.getIsSorted() === 'desc'
+                            ? '▼'
+                            : '▲'
+                        }}
                       </span>
                     </div>
                   </th>
@@ -266,7 +305,9 @@
                       {{ cell.renderValue() }}
                     </div>
                     <div
-                      v-else-if="cell.column.id === 'enrolledStudents'"
+                      v-else-if="
+                        cell.column.id === 'enrolledStudents'
+                      "
                       class="courses-cell profile-count pill p-grey pill-lg"
                       style="width: fit-content"
                     >
@@ -278,7 +319,9 @@
                     >
                       <button
                         class="action-button delete-button"
-                        @click.stop="openRemoveCourseDialog(row.original)"
+                        @click.stop="
+                          openRemoveCourseDialog(row.original)
+                        "
                       >
                         <IconsTrashIcon />
                       </button>
@@ -297,7 +340,10 @@
           </div>
         </div>
 
-        <div class="mobile-card-view" v-if="activeTab === 'courses'">
+        <div
+          v-if="activeTab === 'courses'"
+          class="mobile-card-view"
+        >
           <div
             v-for="course in courseTable.getRowModel().rows"
             :key="course.id"
@@ -305,7 +351,9 @@
           >
             <div>
               <div class="card-header">
-                <h3 class="card-title">{{ course.original.title }}</h3>
+                <h3 class="card-title">
+                  {{ course.original.title }}
+                </h3>
                 <div class="card-actions">
                   <Button
                     variant="outline"
@@ -319,13 +367,17 @@
                 </div>
               </div>
 
-              <span class="course-code">{{ course.original.code }}</span>
+              <span class="course-code">{{
+                course.original.code
+              }}</span>
             </div>
             <div class="card-details">
               <div class="detail-item">
                 <IconsBookIcon class="detail-icon" />
                 <span class="detail-label">Credits</span>
-                <span class="detail-value">{{ course.original.credits }}</span>
+                <span class="detail-value">{{
+                  course.original.credits
+                }}</span>
               </div>
               <div class="detail-item">
                 <IconsUsersIcon class="detail-icon" />
@@ -338,7 +390,10 @@
           </div>
         </div>
 
-        <div v-if="loading" class="loading-state">
+        <div
+          v-if="loading"
+          class="loading-state"
+        >
           <Loader />
         </div>
       </div>
@@ -378,7 +433,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ColumnSort } from "@tanstack/vue-table";
+import type { ColumnSort } from '@tanstack/vue-table';
 import {
   createColumnHelper,
   FlexRender,
@@ -387,28 +442,28 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useVueTable,
-} from "@tanstack/vue-table";
-import { computed, h, onMounted, reactive, ref } from "vue";
-import { useRoute } from "vue-router";
-import AddProgramModal from "~/components/AddProgramModal.vue";
-import IconsGraduationCapIcon from "~/components/icons/AcademicCapIcon.vue";
-import ArrowLeftIcon from "~/components/icons/ArrowLeftIcon.vue";
-import IconsBookIcon from "~/components/icons/BookOpenIcon.vue";
-import PencilIcon from "~/components/icons/PencilIcon.vue";
-import IconsPlusIcon from "~/components/icons/PlusIcon.vue";
-import IconsSearchIcon from "~/components/icons/SearchIcon.vue";
-import TrashIcon from "~/components/icons/TrashIcon.vue";
-import IconsUsersIcon from "~/components/icons/UsersIcon.vue";
-import Loader from "~/components/Loader.vue";
-import Button from "~/components/ui/Button.vue";
-import Dialog from "~/components/ui/Dialog.vue";
-import FormInput from "~/components/ui/FormInput.vue";
-import { useToast } from "~/composables/useToast";
-import type { ProgramOutput } from "~/types/program";
+} from '@tanstack/vue-table';
+import { computed, h, onMounted, reactive, ref } from 'vue';
+import { useRoute } from 'vue-router';
+import AddProgramModal from '~/components/AddProgramModal.vue';
+import IconsGraduationCapIcon from '~/components/icons/AcademicCapIcon.vue';
+import ArrowLeftIcon from '~/components/icons/ArrowLeftIcon.vue';
+import IconsBookIcon from '~/components/icons/BookOpenIcon.vue';
+import PencilIcon from '~/components/icons/PencilIcon.vue';
+import IconsPlusIcon from '~/components/icons/PlusIcon.vue';
+import IconsSearchIcon from '~/components/icons/SearchIcon.vue';
+import TrashIcon from '~/components/icons/TrashIcon.vue';
+import IconsUsersIcon from '~/components/icons/UsersIcon.vue';
+import Loader from '~/components/Loader.vue';
+import Button from '~/components/ui/Button.vue';
+import Dialog from '~/components/ui/Dialog.vue';
+import FormInput from '~/components/ui/FormInput.vue';
+import { useToast } from '~/composables/useToast';
+import type { ProgramOutput } from '~/types/program';
 
 // Define that this page uses the dashboard layout
 definePageMeta({
-  layout: "dashboard",
+  layout: 'dashboard',
 });
 
 // Get the program ID from the route
@@ -450,28 +505,28 @@ const showRemoveCourseDialog = ref(false);
 const courseToRemove = ref<Course | null>(null);
 
 // Tab state
-const activeTab = ref("students");
+const activeTab = ref('students');
 
 // Student Table State
-const studentSearchQuery = ref("");
+const studentSearchQuery = ref('');
 const studentTableState = reactive({
   pagination: {
     pageIndex: 0,
     pageSize: 10,
   },
   sorting: [] as ColumnSort[],
-  globalFilter: "",
+  globalFilter: '',
 });
 
 // Course Table State
-const courseSearchQuery = ref("");
+const courseSearchQuery = ref('');
 const courseTableState = reactive({
   pagination: {
     pageIndex: 0,
     pageSize: 6,
   },
   sorting: [] as ColumnSort[],
-  globalFilter: "",
+  globalFilter: '',
 });
 
 // Mock student data (replace with API call)
@@ -491,23 +546,23 @@ const allCourses = computed(() => {
 // Student columns with proper typing
 const studentColumnHelper = createColumnHelper<Student>();
 const studentColumns = [
-  studentColumnHelper.accessor("name", {
-    header: "Student Name",
+  studentColumnHelper.accessor('name', {
+    header: 'Student Name',
     cell: ({ row }) =>
-      h("div", { class: "avatar-cell" }, [
-        h("img", {
+      h('div', { class: 'avatar-cell' }, [
+        h('img', {
           src: row.original.avatar,
-          class: "avatar",
+          class: 'avatar',
           alt: row.original.name,
         }),
         row.original.name,
       ]),
   }),
-  studentColumnHelper.accessor("email", {
-    header: "Email Address",
+  studentColumnHelper.accessor('email', {
+    header: 'Email Address',
   }),
-  studentColumnHelper.accessor("creditsCompleted", {
-    header: "Credits Completed",
+  studentColumnHelper.accessor('creditsCompleted', {
+    header: 'Credits Completed',
   }),
 ];
 
@@ -526,35 +581,35 @@ const studentTable = computed(() => {
 // Replace the existing course columns with:
 const courseColumnHelper = createColumnHelper<Course>();
 const courseColumns = [
-  courseColumnHelper.accessor("title", {
-    header: "Course Name",
+  courseColumnHelper.accessor('title', {
+    header: 'Course Name',
     cell: (props) => props.getValue(),
   }),
-  courseColumnHelper.accessor("code", {
-    header: "Course Code",
+  courseColumnHelper.accessor('code', {
+    header: 'Course Code',
     cell: (props) => props.getValue(),
   }),
-  courseColumnHelper.accessor("credits", {
-    header: "Credits",
+  courseColumnHelper.accessor('credits', {
+    header: 'Credits',
     cell: (props) => props.getValue(),
   }),
-  courseColumnHelper.accessor("enrolledStudents", {
-    header: "Enrolled Students",
+  courseColumnHelper.accessor('enrolledStudents', {
+    header: 'Enrolled Students',
     cell: (props) => props.getValue(),
   }),
 
   courseColumnHelper.display({
-    id: "actions",
-    header: "Action",
+    id: 'actions',
+    header: 'Action',
     cell: ({ row }) =>
-      h("div", { class: "action-cell" }, [
+      h('div', { class: 'action-cell' }, [
         h(
-          "button",
+          'button',
           {
-            class: "action-button",
+            class: 'action-button',
             onClick: () => openRemoveCourseDialog(row.original),
           },
-          [h(TrashIcon)]
+          [h(TrashIcon)],
         ),
       ]),
   }),
@@ -578,26 +633,36 @@ const toast = useToast();
 const id = parseInt(route.params.id as string);
 const loading = ref(false);
 const { call: fetchProgramDetails, data: programDetailsData } =
-  useBackendService(`/programs/${id}`, "get");
+  useBackendService(`/programs/${id}`, 'get');
 
 const { call: fetchStudents, data: studentsData } = useBackendService(
   `/programs/${id}/students`,
-  "get"
+  'get',
 );
 
 const { call: fetchCourses, data: coursesData } = useBackendService(
   `/programs/${id}/courses`,
-  "get"
+  'get',
 );
-const coursesDataCache = useState<any | null>("coursesData", () => null);
+const coursesDataCache = useState<any | null>(
+  'coursesData',
+  () => null,
+);
 const programDetailsDataCache = useState<any | null>(
-  "programDetailsData",
-  () => null
+  'programDetailsData',
+  () => null,
 );
-const idCache = useState<any>("id", () => null);
-const studentsDataCache = useState<any | null>("studentsData", () => null);
+const idCache = useState<any>('id', () => null);
+const studentsDataCache = useState<any | null>(
+  'studentsData',
+  () => null,
+);
 const fetchData = async () => {
-  await Promise.all([fetchProgramDetails(), fetchStudents(), fetchCourses()]);
+  await Promise.all([
+    fetchProgramDetails(),
+    fetchStudents(),
+    fetchCourses(),
+  ]);
   coursesDataCache.value = coursesData.value;
   programDetailsDataCache.value = programDetailsData.value;
   studentsDataCache.value = studentsData.value;
@@ -639,7 +704,7 @@ const fetchData = async () => {
   programCourses.value = [...courses];
 
   availableCourses.value = allCourses.value.filter(
-    (course) => !programCourses.value.some((c) => c.id === course.id)
+    (course) => !programCourses.value.some((c) => c.id === course.id),
   );
 };
 onMounted(async () => {
@@ -654,7 +719,7 @@ onMounted(async () => {
       await fetchData();
       loading.value = false;
     } catch (err) {
-      console.error("Failed to fetch dashboard stats", err);
+      console.error('Failed to fetch dashboard stats', err);
     }
   }
 
@@ -668,7 +733,9 @@ onMounted(async () => {
       name: programDetailsDataCache.value.program_name,
       type:
         programDetailsDataCache.value.program_type.charAt(0) +
-        programDetailsDataCache.value.program_type.slice(1).toLowerCase(),
+        programDetailsDataCache.value.program_type
+          .slice(1)
+          .toLowerCase(),
       credits: programDetailsDataCache.value.total_credits,
     };
     const students = studentsDataCache.value.map((student: any) => ({
@@ -700,7 +767,8 @@ onMounted(async () => {
     programCourses.value = [...courses];
 
     availableCourses.value = allCourses.value.filter(
-      (course) => !programCourses.value.some((c) => c.id === course.id)
+      (course) =>
+        !programCourses.value.some((c) => c.id === course.id),
     );
   }
   if (parseInt(idCache.value) !== id || !idCache.value) {
@@ -725,7 +793,9 @@ const openRemoveCourseDialog = (course: Course) => {
   showRemoveCourseDialog.value = true;
 };
 
-const handleProgramUpdated = async (updatedProgram: ProgramOutput) => {
+const handleProgramUpdated = async (
+  updatedProgram: ProgramOutput,
+) => {
   if (program.value) {
     program.value = {
       ...program.value,
@@ -734,8 +804,9 @@ const handleProgramUpdated = async (updatedProgram: ProgramOutput) => {
       credits: updatedProgram.credits,
     };
   }
-  toast.success("Program updated successfully");
+
   await fetchData();
+  toast.success('Program updated successfully');
 };
 
 const handleCoursesAdded = async (courses: Course[]) => {
@@ -747,11 +818,11 @@ const handleCoursesAdded = async (courses: Course[]) => {
   }
 
   availableCourses.value = availableCourses.value.filter(
-    (c) => !courses.some((newCourse) => newCourse.id === c.id)
+    (c) => !courses.some((newCourse) => newCourse.id === c.id),
   );
 
-  toast.success(`${courses.length} courses added to program`);
   await fetchData();
+  toast.success(`${courses.length} courses added to program`);
 };
 
 const confirmRemoveCourse = async () => {
@@ -759,14 +830,14 @@ const confirmRemoveCourse = async () => {
   const courseId = courseToRemove.value.id;
   const { call: deleteCourse } = useBackendService(
     `/programs/${id}/courses/${courseId}`,
-    "Delete"
+    'Delete',
   );
 
   try {
     await deleteCourse();
 
     programCourses.value = programCourses.value.filter(
-      (c) => c.id !== courseId
+      (c) => c.id !== courseId,
     );
     mockCourseData.value = [...programCourses.value];
     if (program.value) {
@@ -785,24 +856,24 @@ const confirmRemoveCourse = async () => {
     courseToRemove.value = null;
     await fetchData();
   } catch (error) {
-    console.error("Error removing course:", error);
-    toast.error("Failed to remove course");
+    console.error('Error removing course:', error);
+    toast.error('Failed to remove course');
   }
 };
 
 // Navigation methods
 const navigateBack = () => {
-  navigateTo("/admin/programs");
+  navigateTo('/admin/programs');
 };
 
 // Add this computed property
 const searchQuery = computed({
   get: () =>
-    activeTab.value === "students"
+    activeTab.value === 'students'
       ? studentSearchQuery.value
       : courseSearchQuery.value,
   set: (value) => {
-    if (activeTab.value === "students") {
+    if (activeTab.value === 'students') {
       studentSearchQuery.value = value;
     } else {
       courseSearchQuery.value = value;
@@ -811,7 +882,7 @@ const searchQuery = computed({
 });
 
 const calculateCreditProgress = (creditsCompleted: string) => {
-  const [completed, total] = creditsCompleted.split("/").map(Number);
+  const [completed, total] = creditsCompleted.split('/').map(Number);
   return `${((completed / total) * 100).toFixed(2)}%`;
 };
 </script>

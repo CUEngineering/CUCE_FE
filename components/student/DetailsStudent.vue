@@ -1,94 +1,104 @@
 <template>
   <Teleport to="body">
     <Transition name="dialog-fade">
-      <div v-if="modelValue" class="dialog-overlay" @click="onOverlayClick">
+      <div
+        v-if="modelValue"
+        class="dialog-overlay"
+        @click="onOverlayClick"
+      >
         <div class="dialog-container">
           <Transition name="dialog-scale">
             <div
               v-if="modelValue"
               class="dialog"
-              @click.stop
               role="dialog"
               aria-modal="true"
+              @click.stop
             >
               <div class="dialog-header">
                 <div class="dialog-icon">
-                  {{
-                    props.selectedEnrollment?.course_code ||
-                    props.selectedEnrollment?.courseCode
-                  }}
+                  {{ course.course_code }}
                 </div>
 
                 <div
                   class="status-badge"
-                  :class="
-                    getStatusClass(
-                      props.selectedEnrollment?.availability_status ||
-                        props.selectedEnrollment?.courseStatus
-                    )
-                  "
+                  :class="getStatusClass(course.availability_status)"
                 >
                   <span class="status-dot"></span>
-                  {{
-                    capitalizeFirst(
-                      props.selectedEnrollment?.availability_status ||
-                        props.selectedEnrollment?.courseStatus
-                    )
-                  }}
+                  {{ capitalizeFirst(course.availability_status) }}
                 </div>
 
                 <p style="font-weight: bold">
-                  {{
-                    props.selectedEnrollment.course_title ||
-                    props.selectedEnrollment?.courseName
-                  }}
+                  {{ course.course_title }}
                 </p>
                 <div style="display: flex; align-items: center">
                   <div style="margin-right: 5px">
-                    {{
-                      props.selectedEnrollment.course_code ||
-                      props.selectedEnrollment?.courseCode
-                    }}
+                    {{ course.course_code }}
                   </div>
                   <Dot />
                   <div style="margin-left: 5px">
-                    {{
-                      props.selectedEnrollment.course_credits ||
-                      props.selectedEnrollment?.courseCredit
-                    }}{{ " " }}Units
+                    {{ course.course_credits }}{{ ' ' }}Units
                   </div>
                 </div>
                 <p>
-                  {{
-                    props.selectedEnrollment.course_desc ||
-                    props.selectedEnrollment?.courseDescription
-                  }}
+                  {{ course.course_desc }}
                 </p>
                 <div
+                  v-if="course.student_course_enrollements.length"
                   class="rejection-history"
-                  v-if="props.rejectionHistory?.length"
                 >
-                  <h5 class="recon">Rejection History</h5>
+                  <h5 class="recon">Enrollment History</h5>
                   <table class="enrollments-table table-container">
                     <thead>
                       <tr>
                         <th class="table-header">S/N</th>
-                        <th class="table-header">Reason for Rejection</th>
                         <th class="table-header">Date</th>
+                        <th class="table-header">Message</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr
-                        v-for="(item, index) in props.rejectionHistory"
+                        v-for="(
+                          enrollment, index
+                        ) in course.student_course_enrollements"
                         :key="index"
-                        class="table-row"
+                        :class="[
+                          `table-row`,
+                          getStatusClass(
+                            enrollment.enrollment_status,
+                          ),
+                        ]"
                       >
-                        <td class="table-cell pill p-grey status-badg">
+                        <td
+                          class="table-cell pill p-grey status-badg"
+                        >
                           0{{ index + 1 }}
                         </td>
-                        <td class="table-cell">{{ item.reason }}</td>
                         <td class="table-cell">
-                          {{ formatDateToDMY(item.updatedAt) }}
+                          {{
+                            formatDateToDateAndTime(
+                              enrollment.updated_at,
+                            )
+                          }}
+                        </td>
+                        <td class="table-cell">
+                          <template
+                            v-if="
+                              enrollment.enrollment_status ===
+                              'PENDING'
+                            "
+                          >
+                            pending
+                          </template>
+                          <template
+                            v-else-if="
+                              enrollment.enrollment_status ===
+                              'REJECTED'
+                            "
+                          >
+                            {{ enrollment.rejection_reason }}
+                          </template>
+                          <template v-else> Enrolled </template>
                         </td>
                       </tr>
                     </tbody>
@@ -100,43 +110,35 @@
                   style="margin-top: 20px"
                   class="dialog-footer"
                 >
-                  <div
-                    v-if="
-                      props.selectedEnrollment.availability_status === 'OPEN'
-                    "
-                  >
-                    <Button variant="secondary" @click="confirm">
-                      Enroll
+                  <div v-if="course.can_enroll">
+                    <Button
+                      variant="secondary"
+                      @click="enroll"
+                    >
+                      <template
+                        v-if="
+                          course.student_course_enrollements.length
+                        "
+                      >
+                        re-Enroll
+                      </template>
+                      <template v-else> Enroll </template>
                     </Button>
                   </div>
 
-                  <div
-                    v-if="
-                      props.selectedEnrollment.availability_status &&
-                      props.selectedEnrollment.availability_status !== 'OPEN'
-                    "
-                  >
-                    <Button variant="yellow" @click="cancel"> Request </Button>
-                  </div>
-                  <div v-if="props.selectedEnrollment.status === 'rejected'">
-                    <Button variant="secondary" @click="confirm">
-                      re-Enroll
+                  <div v-else-if="course.can_request">
+                    <Button
+                      variant="yellow"
+                      @click="request"
+                    >
+                      Request
                     </Button>
-                  </div>
-
-                  <div
-                    v-if="
-                      props.selectedEnrollment.status === 'rejected' &&
-                      props.selectedEnrollment.CourseStatus === 'CLOSED'
-                    "
-                  >
-                    <Button variant="yellow" @click="cancel"> Request </Button>
                   </div>
                 </div>
                 <button
                   class="dialog-close"
-                  @click="close"
                   aria-label="Close dialog"
+                  @click="close"
                 >
                   <CloseCircleIcon />
                 </button>
@@ -150,22 +152,21 @@
 </template>
 
 <script setup lang="ts">
-import CloseCircleIcon from "~/components/icons/CloseCircleIcon.vue";
+import CloseCircleIcon from '~/components/icons/CloseCircleIcon.vue';
 import {
   capitalizeFirst,
-  formatDateToDMY,
+  formatDateToDateAndTime,
   getStatusClass,
-} from "~/helper/formatData";
-import Dot from "../icons/Dot.vue";
-import Button from "../ui/Button.vue";
-const toast = useToast();
+} from '~/helper/formatData';
+import Dot from '../icons/Dot.vue';
+import Button from '../ui/Button.vue';
+import type { StudentCourseListType } from '~/types/course';
 
 interface Props {
   modelValue: boolean;
   persistent?: boolean;
   loading?: boolean;
-  selectedEnrollment?: any;
-  rejectionHistory?: any[];
+  course: StudentCourseListType;
   showButton?: boolean;
 }
 
@@ -174,27 +175,26 @@ const props = withDefaults(defineProps<Props>(), {
   loading: false,
   showButton: true,
 });
-console.log(props.selectedEnrollment);
 
 const emit = defineEmits<{
-  (e: "update:modelValue", value: boolean): void;
-  (e: "cancel"): void;
-  (e: "confirm"): void;
+  (e: 'update:modelValue', value: boolean): void;
+  (e: 'enroll' | 'request' | 'close'): void;
 }>();
 
 const close = () => {
-  emit("update:modelValue", false);
+  emit('update:modelValue', false);
+  emit('close');
 };
 
-const cancel = () => {
-  emit("cancel");
+const enroll = () => {
+  emit('enroll');
   if (!props.loading) {
     close();
   }
 };
 
-const confirm = () => {
-  emit("confirm");
+const request = () => {
+  emit('request');
   if (!props.loading) {
     close();
   }
@@ -202,7 +202,7 @@ const confirm = () => {
 
 const onOverlayClick = () => {
   if (!props.persistent && !props.loading) {
-    cancel();
+    close();
   }
 };
 </script>
@@ -262,7 +262,7 @@ const onOverlayClick = () => {
 }
 
 .dialog {
-  background-image: url("~/assets/images/StudentBack.svg");
+  background-image: url('~/assets/images/StudentBack.svg');
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
@@ -285,7 +285,7 @@ const onOverlayClick = () => {
     position: relative;
 
     .dialog-icon {
-      background-image: url("~/assets/images/HOLDER.svg");
+      background-image: url('~/assets/images/HOLDER.svg');
       background-repeat: no-repeat;
       background-position: center;
       width: 200px;
@@ -374,7 +374,8 @@ const onOverlayClick = () => {
 
 .dialog-scale-enter-active,
 .dialog-scale-leave-active {
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+  transition:
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
     opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
