@@ -42,6 +42,13 @@ export const getEnrollmentAsCourseListData = (
     (e) => e.enrollment_status === 'PENDING',
   );
 
+  const hasAcceptedEnrollment = sameStudentCourseEnrollements.some(
+    (e) =>
+      ['APPROVED', 'ACTIVE', 'COMPLETED'].includes(
+        e.enrollment_status,
+      ),
+  );
+
   return {
     course_id: String(enrollment.courseId),
     course_title: enrollment.courseName,
@@ -54,12 +61,12 @@ export const getEnrollmentAsCourseListData = (
     in_active_session: enrollment.isActiveSession,
     is_enrolled: enrollment.status === 'approved',
     can_enroll:
+      !(hasAcceptedEnrollment || hasPendingEnrollment) &&
       enrollment.isActiveSession &&
-      !hasPendingEnrollment &&
       enrollment.courseStatus.toLowerCase() === 'open',
     can_request:
+      !(hasAcceptedEnrollment || hasPendingEnrollment) &&
       enrollment.isActiveSession &&
-      !hasPendingEnrollment &&
       enrollment.courseStatus.toLowerCase() !== 'open',
     student_course_enrollements: sameStudentCourseEnrollements,
     active_session_ids: activeSessionIds,

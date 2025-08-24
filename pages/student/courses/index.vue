@@ -123,6 +123,7 @@
                   <div
                     v-if="cell.column.id === 'actions'"
                     class="action-cell"
+                    @click.stop
                   >
                     <template
                       v-if="
@@ -131,10 +132,7 @@
                       "
                     >
                       <!-- Enroll button if course is open -->
-                      <div
-                        v-if="row.original.can_enroll"
-                        @click.stop
-                      >
+                      <div v-if="row.original.can_enroll">
                         <Button
                           variant="secondary"
                           @click="enroll(row.original)"
@@ -748,7 +746,6 @@ const handleEnrollAction = async () => {
     showSuccessDialog.value = true;
     showEnrollModal.value = false;
     showRequestModal.value = false;
-    selectedCourse.value = null;
   } catch (error) {
     showFailureDialog.value = true;
   } finally {
@@ -790,7 +787,6 @@ const handleRequestAction = async () => {
     showSuccessDialog.value = true;
     showEnrollModal.value = false;
     showRequestModal.value = false;
-    selectedCourse.value = null;
   } catch (error) {
     showFailureDialog.value = true;
   } finally {
