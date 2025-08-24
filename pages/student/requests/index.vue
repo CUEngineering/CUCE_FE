@@ -603,9 +603,7 @@ const handleEnrollAction = async () => {
     });
     await studentStore.enrollmentsResp.refresh({ dedupe: 'cancel' });
     showSuccessDialog.value = true;
-
     showRequestModal.value = false;
-    selectedEnrollment.value = null;
   } catch (error) {
     showFailureDialog.value = true;
   } finally {
@@ -632,7 +630,6 @@ const handleRequestAction = async () => {
     await studentStore.enrollmentsResp.refresh({ dedupe: 'cancel' });
     showSuccessDialog.value = true;
     showRequestModal.value = false;
-    selectedEnrollment.value = null;
   } catch (error) {
     showFailureDialog.value = true;
   } finally {
