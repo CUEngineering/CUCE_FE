@@ -62,7 +62,7 @@
         v-else-if="!courses.length"
         class="dashlet"
         title="Courses"
-        description="There are currently no courses available for this current session at this time."
+        :description="emptyCoursesMessage"
       >
         <template #icon>
           <img
@@ -410,6 +410,7 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table';
+import { isAxiosError } from 'axios';
 import { isFunction, orderBy } from 'lodash-es';
 import { computed, h, reactive, ref } from 'vue';
 import DotsVerticalIcon from '~/components/icons/DotsVerticalIcon.vue';
@@ -502,6 +503,46 @@ const courses = computed(() => {
   });
 
   return list;
+});
+
+const emptyCoursesMessage = computed(() => {
+  if (courses.value.length) {
+    return '';
+  }
+
+  switch (activeTab.value) {
+    case 'program': {
+      return `There are currently no courses for this program.`;
+    }
+
+    case 'session': {
+      const err =
+        studentStore.coursesInCurrentSessionResp.error.value;
+      if (
+        err?.cause &&
+        isAxiosError(err.cause) &&
+        !!err.cause.response?.data
+      ) {
+        const errData = err.cause.response.data as {
+          code?: 'NOT_IN_ACTIVE_SESSION';
+          message: string;
+          statusCode: 400;
+        };
+
+        console.log('Error here ===== ', errData);
+
+        if (errData.code === 'NOT_IN_ACTIVE_SESSION') {
+          return `Ooops.. You have not been addded to this session. Contact your registrar for possible resolution...`;
+        }
+      }
+
+      return `There are currently no courses available for this current session at this time.`;
+    }
+
+    default: {
+      return 'There are currently no courses available at the moment for you';
+    }
+  }
 });
 
 watch(

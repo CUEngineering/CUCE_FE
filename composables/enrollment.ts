@@ -1,3 +1,4 @@
+import { isPast } from 'date-fns';
 import type { StudentCourseListType } from '~/types/course';
 import type {
   EnrollmentListType,
@@ -49,6 +50,9 @@ export const getEnrollmentAsCourseListData = (
       ),
   );
 
+  const enrollmentDeadline = new Date(enrollment.enrollmentDeadline);
+  const hasEnrollmentDeadlinePast = isPast(enrollmentDeadline);
+
   return {
     course_id: String(enrollment.courseId),
     course_title: enrollment.courseName,
@@ -63,10 +67,14 @@ export const getEnrollmentAsCourseListData = (
     can_enroll:
       !(hasAcceptedEnrollment || hasPendingEnrollment) &&
       enrollment.isActiveSession &&
+      !hasEnrollmentDeadlinePast &&
+      enrollment.isStudentInSession &&
       enrollment.courseStatus.toLowerCase() === 'open',
     can_request:
       !(hasAcceptedEnrollment || hasPendingEnrollment) &&
       enrollment.isActiveSession &&
+      !hasEnrollmentDeadlinePast &&
+      enrollment.isStudentInSession &&
       enrollment.courseStatus.toLowerCase() !== 'open',
     student_course_enrollements: sameStudentCourseEnrollements,
     active_session_ids: activeSessionIds,

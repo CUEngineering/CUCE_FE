@@ -14,10 +14,7 @@
             {{ enrollments.length }}
           </div>
         </div>
-        <div
-          v-if="enrollments.length > 0"
-          class="search-and-actions"
-        >
+        <div class="search-and-actions">
           <div class="search-container">
             <FormInput
               id="program-search"
@@ -35,7 +32,15 @@
           </div>
           <div class="tabs-heading">
             <div class="web header-actions">
-              <FilterIcon class="avatar" />
+              <UiFormSelect
+                id="session-filter"
+                v-model="selectedSessionId"
+                label=""
+                placeholder="Select Session"
+                type="string"
+                :options="sessionFilterList"
+                required
+              />
             </div>
           </div>
         </div>
@@ -43,7 +48,7 @@
       <Loader v-if="loading" />
 
       <!-- Empty state for when no enrollments exist -->
-      <EmptyState
+      <!-- <EmptyState
         v-if="!loading && !enrollments.length"
         class="dashlet"
         title="Enrollments"
@@ -56,11 +61,11 @@
             class="empty-state-illustration"
           />
         </template>
-      </EmptyState>
+      </EmptyState> -->
 
       <!-- enrollments table when enrollments exist -->
       <div
-        v-if="!loading && enrollments.length"
+        v-if="!loading"
         class="enrollments-content dashlet program-tabs"
       >
         <div>
@@ -360,9 +365,8 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table';
-import { isFunction } from 'lodash-es';
+import { isFunction, orderBy } from 'lodash-es';
 import { computed, reactive, ref } from 'vue';
-import FilterIcon from '~/components/icons/FilterIcon.vue';
 import StatusBadge from '~/components/icons/StatusBadge.vue';
 import StudentMain from '~/components/student/studentMain.vue';
 import Button from '~/components/ui/Button.vue';
@@ -376,6 +380,36 @@ import type { EnrollmentListType } from '~/types/enrollment';
 
 const authState = useAuthStore();
 const studentStore = useStudentStore();
+const sessionFilter = useSessionsFilter();
+const sessionFilterList = computed(() =>
+  (sessionFilter.data.value ?? []).map((s) => ({
+    value: String(s.session_id),
+    label: s.session_name,
+  })),
+);
+const selectedSessionId = computed({
+  get() {
+    return studentStore.selectedEnrollmentSessionId;
+  },
+  set(val: string) {
+    studentStore.selectedEnrollmentSessionId = val;
+  },
+});
+
+watch(sessionFilter.data, (list) => {
+  const selectedSession = orderBy(
+    list ?? [],
+    [
+      (s) => (s.session_status === 'ACTIVE' ? 1 : 0),
+      (s) => new Date(s.created_at).getTime(),
+    ],
+    ['desc', 'asc'],
+  )[0];
+
+  if (selectedSession) {
+    selectedSessionId.value = String(selectedSession.session_id);
+  }
+});
 
 const loading = computed(
   () =>
@@ -795,8 +829,17 @@ definePageMeta({
       display: flex;
       gap: $spacing-2;
 
+      > * {
+        display: inline-flex;
+        align-items: center;
+      }
+
       :deep(.base-button) {
         width: unset;
+      }
+
+      #session-filter {
+        gap: initial;
       }
     }
   }

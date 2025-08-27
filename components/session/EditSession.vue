@@ -1,24 +1,35 @@
 <template>
   <Teleport to="body">
     <Transition name="modal-fade">
-      <div v-if="modelValue" class="modal-overlay" @click="onOverlayClick">
-        <div class="modal-container" @click.stop>
+      <div
+        v-if="modelValue"
+        class="modal-overlay"
+        @click="onOverlayClick"
+      >
+        <div
+          class="modal-container"
+          @click.stop
+        >
           <div class="modal o-visible">
             <div class="modal-header">
               <div class="header-content">
                 <h2 class="modal-title">{{ modalTitle }}</h2>
               </div>
-              <button class="close-button" @click="close" aria-label="Close">
-                <CloseCircleIcon />
+              <button
+                class="close-button"
+                aria-label="Close"
+                @click="close"
+              >
+                <IconsCloseCircleIcon />
               </button>
             </div>
 
             <div class="modal-body">
               <div class="form-section">
-                <FormInput
+                <UiFormInput
                   id="session-name"
-                  label="Session Name"
                   v-model="form.data.session_name"
+                  label="Session Name"
                   placeholder="Enter session name"
                   required
                   :error="form.errors.session_name"
@@ -30,69 +41,95 @@
                     justify-content: space-between;
                   "
                 >
-                  <FormInput
-                    style="width: 47%"
+                  <UiFormInput
                     id="start-date"
-                    label="Start Date"
                     v-model="form.data.start_date"
-                    type="date"
+                    style="width: 47%"
+                    label="Start Date"
+                    type="datetime-local"
                     required
                     :error="form.errors.start_date"
                   />
 
-                  <FormInput
-                    style="width: 47%"
+                  <UiFormInput
                     id="end-date"
-                    label="End Date"
                     v-model="form.data.end_date"
-                    type="date"
+                    style="width: 47%"
+                    label="End Date"
+                    type="datetime-local"
                     required
                     :error="form.errors.end_date"
                   />
                 </div>
 
-                <FormInput
+                <UiFormInput
                   id="enrollment-deadline"
-                  label="Enrollment Deadline"
                   v-model="form.data.enrollment_deadline"
-                  type="date"
+                  label="Enrollment Deadline"
+                  type="datetime-local"
                   required
                   :error="form.errors.enrollment_deadline"
+                  :min="
+                    form.data.start_date
+                      ? form.data.start_date
+                      : undefined
+                  "
+                  :max="
+                    form.data.end_date
+                      ? form.data.end_date
+                      : undefined
+                  "
                 />
               </div>
             </div>
 
-            <div v-if="props.mode === 'edit'" class="modal-footer">
-              <Button variant="secondary" @click="close"> Cancel </Button>
-              <Button
+            <div
+              v-if="props.mode === 'edit'"
+              class="modal-footer"
+            >
+              <UiButton
+                variant="secondary"
+                @click="close"
+              >
+                Cancel
+              </UiButton>
+              <UiButton
                 variant="primary"
                 :disabled="isLoading || !canSubmit"
                 :loading="isLoading"
                 @click="handleSubmit"
               >
                 {{ submitButtonText }}
-              </Button>
+              </UiButton>
             </div>
             <div
-              style="display: flex; width: 100%; justify-content: space-between"
               v-if="props.mode === 'add'"
+              style="
+                display: flex;
+                width: 100%;
+                justify-content: space-between;
+              "
               class="modal-footer"
             >
               <div
-                style="cursor: pointer; color: #254383; font-weight: 600"
+                style="
+                  cursor: pointer;
+                  color: #254383;
+                  font-weight: 600;
+                "
                 @click="handleSubmit"
               >
                 Skip & create
               </div>
-              <Button
+              <UiButton
                 style="width: 30%"
                 variant="primary"
                 :disabled="isLoading || !canSubmit"
                 :loading="isLoading"
                 @click="handleAddStudentClick"
               >
-                Add Student <RightArrow />
-              </Button>
+                Add Student <IconsRightArrow />
+              </UiButton>
             </div>
           </div>
         </div>
@@ -102,12 +139,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from "vue";
-import type { Session } from "~/pages/admin/sessions/[id].vue";
-import CloseCircleIcon from "../icons/CloseCircleIcon.vue";
-import RightArrow from "../icons/RightArrow.vue";
-import Button from "../ui/Button.vue";
-import FormInput from "../ui/FormInput.vue";
+import {
+  areIntervalsOverlapping,
+  format,
+  isAfter,
+  isBefore,
+  isValid,
+  isWithinInterval,
+} from 'date-fns';
+import { isArray, values } from 'lodash-es';
+import { computed, reactive, ref, watch } from 'vue';
+import type { Session } from '~/pages/admin/sessions/[id].vue';
 
 interface SessionForm {
   session_name: string;
@@ -127,21 +169,31 @@ interface Props {
   modelValue: boolean;
   loading?: boolean;
   persistent?: boolean;
-  mode?: "add" | "edit";
+  mode?: 'add' | 'edit';
   session?: Session | null;
+  ignoredDateRanges?: {
+    session_id: string | number;
+    start_date: string | Date | number;
+    end_date: string | Date | number;
+  }[];
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  ignoredDateRanges: () => [],
+});
 
 const emit = defineEmits<{
-  (e: "update:modelValue", value: boolean): void;
-  (e: "sessionUpdate", session: Partial<Session>): void;
-  (e: "add-student"): void;
-  (e: "submit-session-form", session: Partial<Session>): void;
+  (e: 'update:modelValue', value: boolean): void;
+  (
+    e: 'sessionUpdate' | 'submit-session-form',
+    session: Partial<Session>,
+  ): void;
+  (e: 'add-student'): void;
 }>();
+
 const handleAddStudentClick = () => {
-  emit("add-student");
-  emit("submit-session-form", { ...form.data });
+  emit('add-student');
+  emit('submit-session-form', { ...form.data });
 };
 
 const isLoading = ref(false);
@@ -152,81 +204,145 @@ const form = reactive<{
   errors: Errors;
 }>({
   data: {
-    session_name: "",
-    start_date: "",
-    end_date: "",
-    enrollment_deadline: "",
+    session_name: '',
+    start_date: '',
+    end_date: '',
+    enrollment_deadline: '',
   },
   errors: {},
 });
 
 // Computed properties
 const modalTitle = computed(() => {
-  return props.mode === "edit" ? "Edit Session" : "Add Session";
+  return props.mode === 'edit' ? 'Edit Session' : 'Add Session';
 });
 
 const submitButtonText = computed(() => {
-  return props.mode === "edit" ? "Save Changes" : "Create Session";
+  return props.mode === 'edit' ? 'Save Changes' : 'Create Session';
 });
 
 const canSubmit = computed(() => {
   return (
-    form.data.session_name &&
-    form.data.start_date &&
-    form.data.end_date &&
-    form.data.enrollment_deadline &&
-    !validateDates()
+    isArray(props.ignoredDateRanges || []) && !validateFormData()
   );
 });
 
 // Validation
-const validateDates = () => {
-  const startDate = new Date(form.data.start_date);
-  const endDate = new Date(form.data.end_date);
-  const enrollmentDeadline = new Date(form.data.enrollment_deadline);
+const validateFormData = () => {
+  let ignoredDateRanges = props.ignoredDateRanges || [];
+  ignoredDateRanges =
+    props.session && props.mode === 'edit'
+      ? ignoredDateRanges.filter(
+          (session) =>
+            String(session.session_id) !==
+            String(props.session?.session_id),
+        )
+      : ignoredDateRanges;
 
-  // Clear previous errors
-  form.errors = {};
-
-  let hasErrors = false;
-
-  // Check if end date is after start date
-  if (endDate <= startDate) {
-    form.errors.end_date = "End date must be after start date";
-    hasErrors = true;
+  if (!form.data.session_name) {
+    form.errors.session_name = `Session name is required`;
+  } else {
+    form.errors.session_name = undefined;
   }
 
-  // Check if enrollment deadline is after end date
-  if (enrollmentDeadline > endDate) {
-    form.errors.enrollment_deadline =
-      "Enrollment deadline must be before or equal to end date";
-    hasErrors = true;
-  }
+  let startDate: Date | undefined = undefined;
+  if (!form.data.start_date) {
+    form.errors.start_date = `Session start date is required`;
+  } else {
+    startDate = new Date(form.data.start_date);
+    startDate = isValid(startDate) ? startDate : undefined;
 
-  return hasErrors;
-};
-
-// Watch for date changes to validate
-watch(
-  () => [
-    form.data.start_date,
-    form.data.end_date,
-    form.data.enrollment_deadline,
-  ],
-  () => {
-    if (
-      form.data.start_date &&
-      form.data.end_date &&
-      form.data.enrollment_deadline
-    ) {
-      validateDates();
+    if (!startDate) {
+      form.errors.start_date = `Session start date is not a valid date`;
+    } else {
+      form.errors.start_date = undefined;
     }
   }
-);
+
+  let endDate: Date | undefined = undefined;
+  if (!form.data.end_date) {
+    form.errors.end_date = `Session end date is required`;
+  } else {
+    endDate = new Date(form.data.end_date);
+    endDate = isValid(endDate) ? endDate : undefined;
+
+    if (!endDate) {
+      form.errors.end_date = `Session end date is not a valid date`;
+    } else {
+      if (startDate && !isAfter(endDate, startDate)) {
+        form.errors.end_date = `Session end date must be after the start date`;
+      } else if (
+        ignoredDateRanges.some(
+          (range) =>
+            !!startDate &&
+            !!endDate &&
+            areIntervalsOverlapping(
+              {
+                start: range.start_date,
+                end: range.end_date,
+              },
+              {
+                start: startDate,
+                end: endDate,
+              },
+              {
+                inclusive: true,
+              },
+            ),
+        )
+      ) {
+        form.errors.start_date = `Session overlaps with an existing session start/end date range`;
+        form.errors.end_date = `Session overlaps with an existing session start/end date range`;
+      } else {
+        form.errors.end_date = undefined;
+
+        if (startDate) {
+          form.errors.start_date = undefined;
+        }
+      }
+    }
+  }
+
+  let enrollmentDeadline: Date | undefined = undefined;
+  if (!form.data.enrollment_deadline) {
+    form.errors.enrollment_deadline = `Session end date is required`;
+  } else {
+    enrollmentDeadline = new Date(form.data.enrollment_deadline);
+    enrollmentDeadline = isValid(enrollmentDeadline)
+      ? enrollmentDeadline
+      : undefined;
+
+    if (!enrollmentDeadline) {
+      form.errors.enrollment_deadline = `Session enrollment deadline is not a valid date`;
+    } else {
+      if (
+        startDate &&
+        endDate &&
+        !isWithinInterval(enrollmentDeadline, {
+          start: startDate,
+          end: endDate,
+        })
+      ) {
+        form.errors.enrollment_deadline = `Session enrollment deadline must be after the start date and before the end date`;
+      } else if (
+        startDate &&
+        !isAfter(enrollmentDeadline, startDate)
+      ) {
+        form.errors.enrollment_deadline = `Session enrollment deadline must be after the start date`;
+      } else if (endDate && !isBefore(enrollmentDeadline, endDate)) {
+        form.errors.enrollment_deadline = `Session enrollment deadline must be before the end date`;
+      } else {
+        form.errors.enrollment_deadline = undefined;
+      }
+    }
+  }
+
+  return values(form.errors).some((val) => !!val);
+};
 
 // Submit handler
 const handleSubmit = async () => {
-  if (validateDates()) {
+  if (!canSubmit.value) {
     return;
   }
 
@@ -240,11 +356,11 @@ const handleSubmit = async () => {
       enrollment_deadline: form.data.enrollment_deadline,
     };
 
-    if (props.mode === "edit" && props.session) {
+    if (props.mode === 'edit' && props.session) {
       updatedSession.session_id = props.session.session_id;
     }
 
-    emit("sessionUpdate", updatedSession);
+    emit('sessionUpdate', updatedSession);
   } finally {
     isLoading.value = false;
   }
@@ -252,16 +368,16 @@ const handleSubmit = async () => {
 
 const resetForm = () => {
   form.data = {
-    session_name: "",
-    start_date: "",
-    end_date: "",
-    enrollment_deadline: "",
+    session_name: '',
+    start_date: '',
+    end_date: '',
+    enrollment_deadline: '',
   };
   form.errors = {};
 };
 
 const close = () => {
-  emit("update:modelValue", false);
+  emit('update:modelValue', false);
 };
 
 const onOverlayClick = () => {
@@ -270,48 +386,61 @@ const onOverlayClick = () => {
   }
 };
 
-// Helper function to format date for input
-const formatDateForInput = (dateString: string) => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  return date.toISOString().split("T")[0];
+const autoFillFormInputsForEdit = () => {
+  form.data.session_name =
+    form.data.session_name || props.session?.session_name || '';
+
+  const startDateStr =
+    form.data.start_date || props.session?.start_date || '';
+  if (startDateStr) {
+    form.data.start_date = format(
+      new Date(startDateStr),
+      `yyyy-MM-dd HH:mm:ss.SSS`,
+    );
+  }
+
+  const endDateStr =
+    form.data.end_date || props.session?.end_date || '';
+  if (endDateStr) {
+    form.data.end_date = format(
+      new Date(endDateStr),
+      `yyyy-MM-dd HH:mm:ss.SSS`,
+    );
+  }
+
+  const enrollmentDeadlineStr =
+    form.data.enrollment_deadline ||
+    props.session?.enrollment_deadline ||
+    '';
+
+  if (enrollmentDeadlineStr) {
+    form.data.enrollment_deadline = format(
+      new Date(enrollmentDeadlineStr),
+      `yyyy-MM-dd HH:mm:ss.SSS`,
+    );
+  }
 };
 
 // Initialize form with session data when editing
-const initializeForm = () => {
-  if (props.mode === "edit" && props.session) {
-    form.data.session_name = props.session.session_name || "hgj";
-    form.data.start_date = formatDateForInput(props.session.start_date);
-    form.data.end_date = formatDateForInput(props.session.end_date);
-    form.data.enrollment_deadline = formatDateForInput(
-      props.session.enrollment_deadline
-    );
-  } else {
-    resetForm();
-  }
-};
-
-// Initialize on mount and when props change
-onMounted(initializeForm);
-
 watch(
-  () => props.modelValue,
-  (value) => {
-    if (value) {
-      initializeForm();
-    } else {
-      resetForm();
-    }
-  }
-);
+  [() => props.mode, () => props.modelValue, () => props.session],
+  ([mode, _]) => {
+    switch (mode) {
+      case 'add': {
+        resetForm();
+        break;
+      }
 
-watch(
-  () => props.session,
-  () => {
-    if (props.modelValue) {
-      initializeForm();
+      case 'edit': {
+        autoFillFormInputsForEdit();
+        break;
+      }
     }
-  }
+  },
+  {
+    immediate: true,
+    deep: true,
+  },
 );
 </script>
 

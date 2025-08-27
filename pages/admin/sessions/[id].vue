@@ -6,7 +6,7 @@
           class="back-icon"
           @click="back"
         >
-          <ArrowLeftIcon />
+          <IconsArrowLeftIcon />
         </button>
         <h2 class="heading-txt">Session Details</h2>
       </div>
@@ -32,7 +32,7 @@
             <div class="stat-label">Duration</div>
             <div class="inlineborder profile-count pill p-grey">
               <div>
-                <span><SessionIcon /></span>
+                <span><IconsSessionIcon /></span>
                 {{ formatDate(sessions?.start_date || '') }} -
                 {{ formatDate(sessions?.end_date || '') }}
               </div>
@@ -62,7 +62,7 @@
               "
               class="profile-count pill p-grey"
             >
-              <span><SessionIcon /></span>
+              <span><IconsSessionIcon /></span>
               {{ formatDate(sessions?.enrollment_deadline || '') }}
             </div>
           </div>
@@ -142,7 +142,7 @@
           <div class="web">
             <div class="search-and-actions">
               <div class="search-container">
-                <FormInput
+                <UiFormInput
                   id="program-search"
                   v-model="searchQuery"
                   label=""
@@ -158,7 +158,7 @@
                       <IconsSearchIcon />
                     </div>
                   </template>
-                </FormInput>
+                </UiFormInput>
               </div>
             </div>
           </div>
@@ -166,20 +166,20 @@
             v-if="activeTab === 'students'"
             style="margin-left: 10px; margin-right: 10px"
           >
-            <Button
+            <UiButton
               variant="primary"
               size="sm"
               @click="handleAddStudent"
             >
               <template #icon>
-                <PlusIcon />
+                <IconsPlusIcon />
               </template>
               Add Student
-            </Button>
+            </UiButton>
           </div>
           <div class="mobile-table"></div>
 
-          <FilterIcon class="avatar" />
+          <IconsFilterIcon class="avatar" />
         </div>
       </div>
 
@@ -250,7 +250,7 @@
                       v-else
                       class="action-button edit-button"
                     >
-                      <DeleteIcon
+                      <IconsDeleteIcon
                         @click="
                           handleDeleteStudent(cell.row.original)
                         "
@@ -388,7 +388,7 @@
       </div>
       <div class="mobile-table">
         <div v-if="activeTab === 'students'">
-          <MobileStudent
+          <SessionMobileStudent
             v-for="row in table.getRowModel().rows"
             :key="row.id"
             v-bind="row.original"
@@ -396,7 +396,7 @@
           />
         </div>
         <div v-if="activeTab === 'courses'">
-          <MobileCourses
+          <SessionMobileCourses
             v-for="row in table.getRowModel().rows"
             :key="row.id"
             v-bind="row.original"
@@ -467,7 +467,7 @@
         </div>
       </div>
     </div>
-    <AddStudentModal
+    <SessionAddStudentModal
       v-model="showAddStudent"
       :available-students="students"
       :session-id="sessionId"
@@ -475,13 +475,15 @@
       @click="handleInviteStudent"
       @submit-session-form="handleAddStudentFinal"
     />
-    <EditSession
+
+    <SessionEditSession
       v-model="showEditModal"
       mode="edit"
       :session="sessions"
+      :ignored-date-ranges="ignoredSessionDateRangeList"
       @sessionUpdate="handleEditSession"
     />
-    <Dialog
+    <UiDialog
       v-model="showDeleteConfirm"
       title="Remove Student?"
       :message="`Are you sure you want to remove (${selectedStudent?.firstName} ${selectedStudent?.lastName}) from this session (${sessions?.session_name} session)`"
@@ -491,7 +493,7 @@
       @confirm="confirmDeleteStudent"
     />
 
-    <Dialog
+    <UiDialog
       v-model="showCourseStatusModal"
       :title="
         courseStatusAction === 'open'
@@ -521,18 +523,6 @@ import {
   useVueTable,
   type ColumnSort,
 } from '@tanstack/vue-table';
-import ArrowLeftIcon from '~/components/icons/ArrowLeftIcon.vue';
-import DeleteIcon from '~/components/icons/DeleteIcon.vue';
-import FilterIcon from '~/components/icons/FilterIcon.vue';
-import PlusIcon from '~/components/icons/PlusIcon.vue';
-import SessionIcon from '~/components/icons/sessionIcon.vue';
-import AddStudentModal from '~/components/session/AddStudentModal.vue';
-import EditSession from '~/components/session/EditSession.vue';
-import MobileCourses from '~/components/session/MobileCourses.vue';
-import MobileStudent from '~/components/session/MobileStudent.vue';
-import Button from '~/components/ui/Button.vue';
-import Dialog from '~/components/ui/Dialog.vue';
-import FormInput from '~/components/ui/FormInput.vue';
 import {
   capitalizeFirst,
   formatDate,
@@ -584,6 +574,7 @@ export interface Session {
   session_courses: SessionCourse[];
   session_students: SessionStudent[];
 }
+
 export interface Student {
   id: number;
   studentId: number;
@@ -599,11 +590,13 @@ export interface Student {
   regNumber?: string;
   type?: string;
 }
+
 export interface Course {
   courseId: number;
   title?: string;
   status: 'OPEN' | 'CLOSED';
 }
+
 const toast = useToast();
 const showAddStudent = ref(false);
 const showInviteStudent = ref(false);
@@ -715,6 +708,7 @@ const resetModalState = () => {
   originalCourseStatus.value = null;
   pendingToggleEvent.value = null;
 };
+
 watch(showCourseStatusModal, (newValue, oldValue) => {
   if (!newValue && oldValue && selectedCourse.value) {
     handleModalClose();
@@ -1077,6 +1071,29 @@ const endRecord = computed(() => {
   return possibleEnd > totalRecords.value
     ? totalRecords.value
     : possibleEnd;
+});
+
+const { call: fetchSessions, data: activeSessionList } =
+  useBackendService('/sessions', 'get');
+
+watch(
+  sessionId,
+  (sessionId) => {
+    if (sessionId) {
+      fetchSessions({ status: 'not_closed' });
+    }
+  },
+  {
+    immediate: true,
+  },
+);
+
+const ignoredSessionDateRangeList = computed(() => {
+  return (activeSessionList.value ?? []).map((session) => ({
+    session_id: session.sessionId,
+    start_date: session.startDate,
+    end_date: session.endDate,
+  }));
 });
 </script>
 

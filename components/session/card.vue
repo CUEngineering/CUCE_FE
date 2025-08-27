@@ -1,9 +1,9 @@
 <template>
   <div
     style="cursor: pointer"
-    @click="$emit('view-session', session)"
     class="registrar-card"
     :class="cardClass"
+    @click="$emit('view', session)"
   >
     <div class="registrar-header">
       <div class="registrar-info">
@@ -18,24 +18,41 @@
           </div>
         </div>
       </div>
-      <div v-if="session.sessionStatus !== 'CLOSED'" class="registrar-actions">
+      <div
+        v-if="session.sessionStatus !== 'CLOSED'"
+        class="registrar-actions"
+      >
         <div class="dropdown">
           <button
-            @click.stop="toggleDropdown"
             class="action-button"
             aria-haspopup="true"
             :aria-expanded="dropdownOpen"
+            @click.stop="toggleDropdown"
           >
-            <DotsVerticalIcon />
+            <IconsDotsVerticalIcon />
           </button>
           <transition name="dropdown">
-            <div v-if="dropdownOpen" class="dropdown-menu" @click.stop>
+            <div
+              v-if="dropdownOpen"
+              class="dropdown-menu"
+              @click.stop
+            >
               <button
                 class="dropdown-item"
-                @click="$emit('edit-session', session)"
+                @click="$emit('view', session)"
               >
                 <span class="dropdown-icon">
-                  <EditIcon />
+                  <IconsEyeIcon />
+                </span>
+                View Session
+              </button>
+
+              <button
+                class="dropdown-item"
+                @click="$emit('edit', session)"
+              >
+                <span class="dropdown-icon">
+                  <IconsEditIcon />
                 </span>
                 Edit Session
               </button>
@@ -45,7 +62,7 @@
                 @click="$emit('adjust-enrollment', session)"
               >
                 <span class="dropdown-icon">
-                  <AlarmIcon />
+                  <IconsAlarmIcon />
                 </span>
                 Adjust Enrollment
               </button>
@@ -53,10 +70,10 @@
               <button
                 v-if="session.sessionStatus !== 'ACTIVE'"
                 class="dropdown-item"
-                @click="$emit('start-session', session)"
+                @click="$emit('start', session)"
               >
                 <span class="dropdown-icon">
-                  <PlayIcon />
+                  <IconsPlayIcon />
                 </span>
                 Start Session
               </button>
@@ -65,10 +82,10 @@
                 v-if="session.sessionStatus !== 'ACTIVE'"
                 style="color: red"
                 class="dropdown-item"
-                @click="$emit('delete-session', session)"
+                @click="$emit('delete', session)"
               >
                 <span class="dropdown-icon">
-                  <DeleteIcon />
+                  <IconsDeleteIcon />
                 </span>
                 Delete Session
               </button>
@@ -76,10 +93,10 @@
               <button
                 v-if="session.sessionStatus === 'ACTIVE'"
                 class="dropdown-item"
-                @click="$emit('close-session', session)"
+                @click="$emit('close', session)"
               >
                 <span class="dropdown-icon">
-                  <CloseCircleIcon />
+                  <IconsCloseCircleIcon />
                 </span>
                 Close Session
               </button>
@@ -89,13 +106,19 @@
       </div>
     </div>
 
-    <div class="registrar-stats" :class="boxClass">
+    <div
+      class="registrar-stats"
+      :class="boxClass"
+    >
       <div class="stat-group">
         <div class="stat-divider"></div>
-        <div class="stat-item">
+        <div
+          class="stat-item"
+          :title="formatDateToDateAndTime(session.enrollmentDeadline)"
+        >
           <div class="stat-label">Enrollment Deadline</div>
           <div class="stat-value">
-            {{ formatDate(session.enrollmentDeadline) }}
+            {{ formatDateToDateAndTime(session.enrollmentDeadline) }}
           </div>
         </div>
       </div>
@@ -103,7 +126,9 @@
         <div class="stat-divider"></div>
         <div class="stat-item">
           <div class="stat-label">Courses</div>
-          <div class="stat-value">{{ session.numberOfOpenCourses }}</div>
+          <div class="stat-value">
+            {{ session.numberOfOpenCourses }}
+          </div>
         </div>
       </div>
       <div class="stat-group">
@@ -126,24 +151,27 @@
     >
       <p style="font-size: small">Duration</p>
       <div>
-        <span><SessionIcon /></span>
-        {{ formatDate(session.startDate) }} -
-        {{ formatDate(session.endDate) }}
+        <span><IconsSessionIcon /></span>
+        {{ formatDateToDateAndTime(session.startDate) }} -
+        {{ formatDateToDateAndTime(session.endDate) }}
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
-import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
-import { formatDate, getStatusClass, getStatusText } from "~/helper/formatData";
-import AlarmIcon from "../icons/AlarmIcon.vue";
-import CloseCircleIcon from "../icons/CloseCircleIcon.vue";
-import DeleteIcon from "../icons/DeleteIcon.vue";
-import EditIcon from "../icons/EditIcon.vue";
-import PlayIcon from "../icons/PlayIcon.vue";
-import SessionIcon from "../icons/sessionIcon.vue";
+import {
+  computed,
+  inject,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+} from 'vue';
+import {
+  formatDateToDateAndTime,
+  getStatusClass,
+  getStatusText,
+} from '~/helper/formatData';
 
 interface Session {
   sessionId: number;
@@ -162,19 +190,22 @@ interface Props {
 
 const props = defineProps<Props>();
 defineEmits([
-  "edit-session",
-  "adjust-enrollment",
-  "start-session",
-  "delete-session",
-  "close-session",
-  "view-session",
+  'edit',
+  'adjust-enrollment',
+  'start',
+  'delete',
+  'close',
+  'view',
 ]);
 
 // Create a unique ID for this card instance
-const cardId = Symbol("registrar-card");
+const cardId = Symbol('registrar-card');
 
 // Global registry of open dropdowns
-const openDropdownId = inject<Ref<Symbol | null>>("openDropdownId", ref(null));
+const openDropdownId = inject<Ref<symbol | null>>(
+  'openDropdownId',
+  ref(null),
+);
 const dropdownOpen = computed({
   get: () => openDropdownId.value === cardId,
   set: (value) => {
@@ -194,6 +225,10 @@ const toggleDropdown = (event: MouseEvent) => {
 
 // Close dropdown when clicking outside
 const closeDropdown = (event: MouseEvent) => {
+  if (!event) {
+    //
+  }
+
   if (dropdownOpen.value) {
     dropdownOpen.value = false;
   }
@@ -201,28 +236,28 @@ const closeDropdown = (event: MouseEvent) => {
 
 // Add and remove event listeners
 onMounted(() => {
-  document.addEventListener("click", closeDropdown);
+  document.addEventListener('click', closeDropdown);
 });
 
 onBeforeUnmount(() => {
-  document.removeEventListener("click", closeDropdown);
+  document.removeEventListener('click', closeDropdown);
 });
 
 // Card class based on status
 const cardClass = computed(() => {
   const status = props.session.sessionStatus.toLowerCase();
   return {
-    "card-suspended": status === "suspended",
-    "card-deactivated": status === "closed",
-    "card-active": status === "active",
+    'card-suspended': status === 'suspended',
+    'card-deactivated': status === 'closed',
+    'card-active': status === 'active',
   };
 });
 const boxClass = computed(() => {
   const status = props.session.sessionStatus.toLowerCase();
   return {
-    "blue-box": status === "pending",
-    "grey-box": status === "closed",
-    "green-box": status === "active",
+    'blue-box': status === 'pending',
+    'grey-box': status === 'closed',
+    'green-box': status === 'active',
   };
 });
 </script>
@@ -517,7 +552,8 @@ const boxClass = computed(() => {
   min-width: 180px;
   background-color: $white;
   border-radius: 8px;
-  box-shadow: 0px 12px 16px -4px rgba(16, 24, 40, 0.08),
+  box-shadow:
+    0px 12px 16px -4px rgba(16, 24, 40, 0.08),
     0px 4px 6px -2px rgba(16, 24, 40, 0.03);
   border: 1px solid $gray-200;
   overflow: hidden;
@@ -598,7 +634,9 @@ const boxClass = computed(() => {
 /* Dropdown transition styles */
 .dropdown-enter-active,
 .dropdown-leave-active {
-  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+  transition:
+    opacity 0.2s ease-in-out,
+    transform 0.2s ease-in-out;
 }
 
 .dropdown-enter-from,

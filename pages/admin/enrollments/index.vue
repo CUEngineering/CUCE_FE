@@ -148,7 +148,8 @@
                       <template
                         v-if="
                           row.original.status === 'pending' &&
-                          row.original.isActiveSession
+                          row.original.isActiveSession &&
+                          activeTab === 'toMe'
                         "
                       >
                         <button
@@ -392,7 +393,6 @@ import { computed, h, reactive, ref } from 'vue';
 import MobileEnrollment from '~/components/enrollment/MobileEnrollment.vue';
 import ActionCancelIcon from '~/components/icons/ActionCancelIcon.vue';
 import ActionEditIcon from '~/components/icons/ActionEditIcon.vue';
-import FilterIcon from '~/components/icons/FilterIcon.vue';
 import StatusBadge from '~/components/icons/StatusBadge.vue';
 import EmptyState from '~/components/ui/EmptyState.vue';
 import FormInput from '~/components/ui/FormInput.vue';

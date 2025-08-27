@@ -93,9 +93,9 @@ export const useStudentStore = defineStore(
       ),
     );
 
+    const selectedEnrollmentSessionId = ref('');
     const enrollmentsResp = markRaw(
       useAsyncData(
-        getCacheKeyFor(`/enrollments`),
         async function () {
           if (!authStore.user?.student_id) {
             return [];
@@ -106,8 +106,11 @@ export const useStudentStore = defineStore(
             data: EnrollmentListType[];
           }>({
             url: `/enrollments`,
-            data: {
+            params: {
               student_id: authStore.user.student_id,
+              session_id: selectedEnrollmentSessionId.value
+                ? Number(selectedEnrollmentSessionId.value)
+                : undefined,
             },
             validateStatus(status) {
               return status < 400;
@@ -118,7 +121,7 @@ export const useStudentStore = defineStore(
           return enrollments;
         },
         {
-          watch: [() => authStore.token],
+          watch: [() => authStore.token, selectedEnrollmentSessionId],
           deep: false,
           lazy: false,
           immediate: false,
@@ -163,6 +166,7 @@ export const useStudentStore = defineStore(
       enrollmentsResp,
       getEnrollmentAsCourseListData:
         getEnrollmentAsCourseListDataInStore,
+      selectedEnrollmentSessionId,
     };
   },
   {

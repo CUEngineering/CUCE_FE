@@ -9,10 +9,10 @@
           <h2 class="page-title heading-txt">Sessions</h2>
         </div>
         <div class="search-container search-and-actions">
-          <FormInput
+          <UiFormInput
             id="registrar-search"
-            label=""
             v-model="searchQuery"
+            label=""
             placeholder="Search a Session"
             size="sm"
           >
@@ -21,23 +21,27 @@
                 <IconsSearchIcon />
               </div>
             </template>
-          </FormInput>
-          <Button @click="add" variant="secondary" size="sm">
+          </UiFormInput>
+          <UiButton
+            variant="secondary"
+            size="sm"
+            @click="addNewSession"
+          >
             <template #icon>
-              <PlusIcon />
+              <IconsPlusIcon />
             </template>
             New Session
-          </Button>
+          </UiButton>
         </div>
       </div>
       <Loader v-if="loading" />
       <div
+        v-if="!loading"
         class="registrars-list dashlet"
         :class="{ 'is-empty': filteredSessions.length === 0 }"
-        v-if="!loading"
       >
         <!-- Empty state for registrars -->
-        <EmptyState
+        <UiEmptyState
           v-if="filteredSessions.length === 0"
           class="empty-state"
           title="No Sessions"
@@ -51,26 +55,30 @@
             />
           </template>
           <template #action>
-            <Button @click="add" variant="outline" size="sm">
+            <UiButton
+              variant="outline"
+              size="sm"
+              @click="addNewSession"
+            >
               <template #icon>
-                <PlusIcon />
+                <IconsPlusIcon />
               </template>
               New Session
-            </Button>
+            </UiButton>
           </template>
-        </EmptyState>
+        </UiEmptyState>
 
-        <Card
-          v-else
+        <SessionCard
           v-for="(session, index) in filteredSessions"
+          v-else
           :key="index"
           :session="session"
-          @edit-session="handleEditSession"
+          @edit="handleEditSession"
           @adjust-enrollment="handleAdjustEnrollment"
-          @start-session="handleStartSession"
-          @delete-session="handleDeleteSession"
-          @close-session="handleCloseSession"
-          @view-session="handleViewSession"
+          @start="handleStartSession"
+          @delete="handleDeleteSession"
+          @close="handleCloseSession"
+          @view="handleViewSession"
         />
       </div>
       <div
@@ -95,7 +103,7 @@
             {{
               filteredSessions.length > 0
                 ? `${filteredSessions.length}`
-                : "No past sessions"
+                : 'No past sessions'
             }}
           </div>
         </div>
@@ -105,8 +113,8 @@
               <th
                 v-for="header in table.getHeaderGroups()[0].headers"
                 :key="header.id"
-                @click="header.column.getToggleSortingHandler()"
                 class="table-header"
+                @click="header.column.getToggleSortingHandler()"
               >
                 <div class="header-content">
                   {{ header.column.columnDef.header }}
@@ -114,7 +122,11 @@
                     v-if="header.column.getIsSorted()"
                     class="sort-indicator"
                   >
-                    {{ header.column.getIsSorted() === "desc" ? "▼" : "▲" }}
+                    {{
+                      header.column.getIsSorted() === 'desc'
+                        ? '▼'
+                        : '▲'
+                    }}
                   </span>
                 </div>
               </th>
@@ -132,14 +144,19 @@
                 class="table-cell"
               >
                 <template
-                  v-if="typeof cell.column.columnDef.cell === 'function'"
+                  v-if="
+                    typeof cell.column.columnDef.cell === 'function'
+                  "
                 >
-                  <div v-if="cell.column.id === 'actions'" class="action-cell">
+                  <div
+                    v-if="cell.column.id === 'actions'"
+                    class="action-cell"
+                  >
                     <button class="action-button delete-button">
-                      <ActionCancelIcon />
+                      <IconsActionCancelIcon />
                     </button>
                     <button class="action-button edit-button">
-                      <ActionEditIcon />
+                      <IconsActionEditIcon />
                     </button>
                   </div>
                   <div
@@ -153,12 +170,22 @@
                     "
                     class="profile-count pill p-grey"
                   >
-                    <span><SessionIcon /></span>
-                    {{ formatDate(cell.row.original.startDate) }}-
-                    {{ formatDate(cell.row.original.endDate) }}
+                    <span><IconsSessionIcon /></span>
+                    {{
+                      formatDateToDateAndTime(
+                        cell.row.original.startDate,
+                      )
+                    }}-
+                    {{
+                      formatDateToDateAndTime(
+                        cell.row.original.endDate,
+                      )
+                    }}
                   </div>
                   <div
-                    v-else-if="cell.column.id === 'numberOfOpenCourses'"
+                    v-else-if="
+                      cell.column.id === 'numberOfOpenCourses'
+                    "
                     style="text-align: center; margin-left: 10px"
                     class="profile-count pill p-grey custompill"
                   >
@@ -172,12 +199,18 @@
                     {{ cell.row.original.numberOfStudents }}
                   </div>
                   <div
-                    v-else-if="cell.column.id === 'enrollmentDeadline'"
+                    v-else-if="
+                      cell.column.id === 'enrollmentDeadline'
+                    "
                     style="text-align: center; margin-left: 10px"
                     class="profile-count pill p-grey"
                   >
-                    <span><SessionIcon /></span>
-                    {{ formatDate(cell.row.original.enrollmentDeadline) }}
+                    <span><IconsSessionIcon /></span>
+                    {{
+                      formatDateToDateAndTime(
+                        cell.row.original.enrollmentDeadline,
+                      )
+                    }}
                   </div>
 
                   <div v-else>
@@ -188,11 +221,20 @@
             </tr>
           </tbody>
         </table>
-        <div class="mobile-table" style="padding: 10px">
-          <Card
+        <div
+          class="mobile-table"
+          style="padding: 10px"
+        >
+          <SessionCard
             v-for="row in table.getRowModel().rows"
             :key="row.id"
             :session="row.original"
+            @edit="handleEditSession"
+            @adjust-enrollment="handleAdjustEnrollment"
+            @start="handleStartSession"
+            @delete="handleDeleteSession"
+            @close="handleCloseSession"
+            @view="handleViewSession"
           />
         </div>
 
@@ -200,9 +242,9 @@
         <div class="pagination">
           <div class="pagination-controls">
             <button
-              @click="table.previousPage()"
               :disabled="!table.getCanPreviousPage()"
               class="pagination-button"
+              @click="table.previousPage()"
             >
               <svg
                 width="16"
@@ -225,19 +267,21 @@
               <button
                 v-for="page in calculatePageRange()"
                 :key="page"
-                @click="goToPage(page - 1)"
                 class="page-button"
                 :class="{
-                  active: table.getState().pagination.pageIndex === page - 1,
+                  active:
+                    table.getState().pagination.pageIndex ===
+                    page - 1,
                 }"
+                @click="goToPage(page - 1)"
               >
                 {{ page }}
               </button>
             </div>
             <button
-              @click="table.nextPage()"
               :disabled="!table.getCanNextPage()"
               class="pagination-button"
+              @click="table.nextPage()"
             >
               Next
               <svg
@@ -259,7 +303,7 @@
           </div>
         </div>
 
-        <Dialog
+        <UiDialog
           v-model="showStartConfirm"
           title="Start Session?"
           :message="`Are you sure you want to start ${selectedSession?.sessionName} Session? Once closed, it can no longer be opened.`"
@@ -268,7 +312,7 @@
           confirm-button-text="Start"
           @confirm="confirmStart"
         />
-        <Dialog
+        <UiDialog
           v-model="showSuspendConfirm"
           title="Close Session?"
           :message="`Are you sure you want to close ${selectedSession?.sessionName} Session? Once closed, it can no longer be opened.`"
@@ -277,7 +321,7 @@
           confirm-button-text="Close"
           @confirm="confirmClose"
         />
-        <Dialog
+        <UiDialog
           v-model="showDeleteConfirm"
           title="Delete Session?"
           :message="`Are you sure you want to delete ${selectedSession?.sessionName} Session? Once closed, it can no longer be opened.`"
@@ -288,23 +332,26 @@
         />
       </div>
     </div>
-    <AddStudentModal
+    <SessionAddStudentModal
       v-model="showAddStudent"
-      @click="handleAddStudentFromModal"
       mode="main"
+      @click="handleAddStudentFromModal"
       @submit-session-form="handleAddStudentFinal"
     />
 
-    <EditSession
-      v-model="showAddModal"
-      mode="add"
-      @sessionUpdate="handleAddSession"
+    <SessionEditSession
+      v-if="showSessionMode && showEditSessionCard"
+      v-model="showEditSessionCard"
+      :mode="showSessionMode"
+      :session="sessionEditData"
+      :ignored-date-ranges="ignoredSessionDateRangeList"
+      @sessionUpdate="handleSessionUpdate"
       @add-student="handleAddStudentFromModal"
       @submit-session-form="handleAddStudentSubmit"
     />
 
     <!-- Toast Container -->
-    <ToastContainer />
+    <UiToastContainer />
   </div>
 </template>
 
@@ -317,25 +364,13 @@ import {
   getSortedRowModel,
   useVueTable,
   type ColumnSort,
-} from "@tanstack/vue-table";
-import { ref } from "vue";
-import PlusIcon from "~/components/icons/PlusIcon.vue";
-import SessionIcon from "~/components/icons/sessionIcon.vue";
-import Loader from "~/components/Loader.vue";
-import AddStudentModal from "~/components/session/AddStudentModal.vue";
-import Card from "~/components/session/card.vue";
-import EditSession from "~/components/session/EditSession.vue";
-import Button from "~/components/ui/Button.vue";
-import Dialog from "~/components/ui/Dialog.vue";
-import EmptyState from "~/components/ui/EmptyState.vue";
-import FormInput from "~/components/ui/FormInput.vue";
-import ToastContainer from "~/components/ui/ToastContainer.vue";
-import { useToast } from "~/composables/useToast";
-import { formatDate } from "~/helper/formatData";
-import type { SessionCourse, SessionStudent } from "./[id].vue";
+} from '@tanstack/vue-table';
+import { useToast } from '~/composables/useToast';
+import { formatDateToDateAndTime } from '~/helper/formatData';
+import type { SessionCourse, SessionStudent } from './[id].vue';
 
 definePageMeta({
-  layout: "dashboard",
+  layout: 'dashboard',
 });
 
 interface Session {
@@ -361,33 +396,61 @@ interface CamelCAse {
   session_students: SessionStudent[];
 }
 const toast = useToast();
-const showAddModal = ref(false);
+
+const selectedSession = ref<Session | undefined>(undefined);
+const showSessionMode = ref<'add' | 'edit' | undefined>(undefined);
+const sessionEditData = computed(() =>
+  selectedSession.value && showSessionMode.value === 'edit'
+    ? {
+        session_id: Number(selectedSession.value.sessionId),
+        session_name: selectedSession.value.sessionName,
+        start_date: selectedSession.value.startDate,
+        end_date: selectedSession.value.endDate,
+        enrollment_deadline: selectedSession.value.enrollmentDeadline,
+        session_status: selectedSession.value.sessionStatus,
+        created_at: '',
+        updated_at: '',
+        session_courses: [],
+        session_students: [],
+      }
+    : null,
+);
+const showEditSessionCard = computed({
+  get() {
+    return !!showSessionMode.value;
+  },
+  set(val: boolean) {
+    if (!val) {
+      showSessionMode.value = undefined;
+    }
+  },
+});
+
 const showAddStudent = ref(false);
-let newSessionFormData = ref(null);
+const newSessionFormData = ref(null);
 
 const handleAddStudentFromModal = () => {
-  showAddModal.value = false;
+  showEditSessionCard.value = false;
   showAddStudent.value = true;
 };
 
-const { call: create } = useBackendService(`/sessions`, "post");
+const { call: create } = useBackendService(`/sessions`, 'post');
 const { call: createWstudents } = useBackendService(
   `/sessions/with-students`,
-  "post"
+  'post',
 );
 
-const add = () => {
-  showAddModal.value = true;
+const addNewSession = () => {
+  showSessionMode.value = 'add';
 };
+
 const loading = ref(false);
 const { call: fetchSessions, data: currentData } = useBackendService(
-  "/sessions",
-  "get"
+  '/sessions',
+  'get',
 );
-const { call: fetchClosedSessions, data: closedData } = useBackendService(
-  "/sessions",
-  "get"
-);
+const { call: fetchClosedSessions, data: closedData } =
+  useBackendService('/sessions', 'get');
 
 const sessions = ref<Session[]>([]);
 const closedSessions = ref<Session[]>([]);
@@ -395,19 +458,27 @@ const filteredSessions = computed(() => {
   if (!searchQuery.value.trim()) return sessions.value;
   const query = searchQuery.value.toLowerCase();
   return sessions.value.filter((registrar) =>
-    registrar.sessionName.toLowerCase().includes(query)
+    registrar.sessionName.toLowerCase().includes(query),
   );
 });
 
-const registrarDataCache = useState("sessionDataCah", () => null);
-const closedDataCche = useState("closedSessionCah", () => null);
+const ignoredSessionDateRangeList = computed(() => {
+  return sessions.value.map((session) => ({
+    session_id: session.sessionId,
+    start_date: session.startDate,
+    end_date: session.endDate,
+  }));
+});
+
+const registrarDataCache = useState('sessionDataCah', () => null);
+const closedDataCche = useState('closedSessionCah', () => null);
 
 const fetchData = async () => {
-  await fetchSessions({ status: "not_closed" });
+  await fetchSessions({ status: 'not_closed' });
   registrarDataCache.value = currentData.value;
   sessions.value = currentData.value || [];
 
-  await fetchClosedSessions({ status: "closed" });
+  await fetchClosedSessions({ status: 'closed' });
   closedDataCche.value = closedData.value;
   closedSessions.value = closedData.value || [];
 };
@@ -419,7 +490,7 @@ onMounted(async () => {
       await fetchData();
       loading.value = false;
     } catch (err) {
-      console.error("Failed to fetch dashboard stats", err);
+      console.error('Failed to fetch dashboard stats', err);
     }
   }
 
@@ -435,30 +506,30 @@ const tableState = reactive({
     pageSize: 10,
   },
   sorting: [] as ColumnSort[],
-  globalFilter: "",
+  globalFilter: '',
 });
 
 const columnHelper = createColumnHelper<Session>();
 
 const columns = [
-  columnHelper.accessor("sessionName", {
-    header: "Session Name",
+  columnHelper.accessor('sessionName', {
+    header: 'Session Name',
     cell: (props) => props.getValue(),
   }),
-  columnHelper.accessor("startDate", {
-    header: "Duration",
+  columnHelper.accessor('startDate', {
+    header: 'Duration',
     cell: (props) => props.getValue(),
   }),
-  columnHelper.accessor("numberOfStudents", {
-    header: "Enrolled Students",
+  columnHelper.accessor('numberOfStudents', {
+    header: 'Enrolled Students',
     cell: (props) => props.getValue(),
   }),
-  columnHelper.accessor("numberOfOpenCourses", {
-    header: "Open Courses",
+  columnHelper.accessor('numberOfOpenCourses', {
+    header: 'Open Courses',
     cell: (props) => props.getValue(),
   }),
-  columnHelper.accessor("enrollmentDeadline", {
-    header: "Enrollment Deadline",
+  columnHelper.accessor('enrollmentDeadline', {
+    header: 'Enrollment Deadline',
     cell: (props) => props.getValue(),
   }),
 ];
@@ -479,12 +550,16 @@ const table = useVueTable({
   },
   onSortingChange: (updater) => {
     const newValue =
-      typeof updater === "function" ? updater(tableState.sorting) : updater;
+      typeof updater === 'function'
+        ? updater(tableState.sorting)
+        : updater;
     tableState.sorting = newValue;
   },
   onPaginationChange: (updater) => {
     const newValue =
-      typeof updater === "function" ? updater(tableState.pagination) : updater;
+      typeof updater === 'function'
+        ? updater(tableState.pagination)
+        : updater;
     tableState.pagination = newValue;
   },
   getCoreRowModel: getCoreRowModel(),
@@ -501,7 +576,10 @@ const calculatePageRange = () => {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }
 
-  let startPage = Math.max(currentPage - Math.floor(maxVisiblePages / 2), 1);
+  let startPage = Math.max(
+    currentPage - Math.floor(maxVisiblePages / 2),
+    1,
+  );
   let endPage = startPage + maxVisiblePages - 1;
 
   if (endPage > totalPages) {
@@ -511,7 +589,7 @@ const calculatePageRange = () => {
 
   return Array.from(
     { length: endPage - startPage + 1 },
-    (_, i) => startPage + i
+    (_, i) => startPage + i,
   );
 };
 const goToPage = (pageIndex: number) => {
@@ -521,10 +599,20 @@ const goToPage = (pageIndex: number) => {
 const handleViewSession = (session: Session) => {
   return navigateTo(`/admin/sessions/${session.sessionId}`);
 };
+
+const handleEditSession = (session: Session) => {
+  selectedSession.value = session;
+  showSessionMode.value = 'edit';
+};
+
 const handleAddStudentSubmit = async (formData: any) => {
-  newSessionFormData = { ...formData, session_status: "UPCOMING" };
+  newSessionFormData.value = {
+    ...formData,
+    session_status: 'UPCOMING',
+  };
   await fetchData();
 };
+
 const handleAddStudentFinal = async (formData: any) => {
   const payload = {
     data: newSessionFormData,
@@ -532,36 +620,58 @@ const handleAddStudentFinal = async (formData: any) => {
   };
   await createWstudents(payload);
   showAddStudent.value = false;
-  showAddModal.value = false;
+  showEditSessionCard.value = false;
   toast.success(`Adding session completed with students`);
   await fetchData();
-  showAddModal.value = false;
-};
-const handleAddSession = async (session: Partial<CamelCAse>) => {
-  await create({
-    session_name: session.session_name,
-    start_date: session.start_date,
-    end_date: session.end_date,
-    enrollment_deadline: session.enrollment_deadline,
-    session_status: "UPCOMING",
-  });
-  toast.success(`Adding session completed`);
-  await fetchData();
-  showAddModal.value = false;
+  showEditSessionCard.value = false;
 };
 
-const handleEditSession = (session: Session) => {
-  return navigateTo(`/admin/sessions/${session.sessionId}`);
+const handleSessionUpdate = async (session: Partial<CamelCAse>) => {
+  switch (showSessionMode.value) {
+    case 'add': {
+      await create({
+        session_name: session.session_name,
+        start_date: session.start_date,
+        end_date: session.end_date,
+        enrollment_deadline: session.enrollment_deadline,
+        session_status: 'UPCOMING',
+      });
+
+      await fetchData();
+      toast.success(`Adding session completed`);
+      break;
+    }
+
+    case 'edit': {
+      const { call: updateSessionData } = useBackendService(
+        `/sessions/${selectedSession.value?.sessionId}`,
+        'patch',
+      );
+
+      await updateSessionData({
+        session_name: session.session_name,
+        start_date: session.start_date,
+        end_date: session.end_date,
+        enrollment_deadline: session.enrollment_deadline,
+      });
+      await fetchData();
+
+      toast.success('Session updated successfully');
+      break;
+    }
+  }
+
+  showEditSessionCard.value = false;
 };
+
 const showStartConfirm = ref(false);
 const showSuspendConfirm = ref(false);
 const showDeleteConfirm = ref(false);
 const isActionLoading = ref(false);
-const selectedSession = ref<Session | null>(null);
 
 const handleAdjustEnrollment = (session: Session) => {
   selectedSession.value = session;
-  showSuspendConfirm.value = true;
+  showSessionMode.value = 'edit';
 };
 
 const handleStartSession = (session: Session) => {
@@ -582,51 +692,57 @@ const handleCloseSession = (session: Session) => {
 const confirmStart = async () => {
   const { call: confirmDeactivate } = useBackendService(
     `/sessions/${selectedSession.value?.sessionId}`,
-    "patch"
+    'patch',
   );
 
   if (!selectedSession.value) return;
 
   isActionLoading.value = true;
   try {
-    await confirmDeactivate({ session_status: "ACTIVE" });
+    await confirmDeactivate({ session_status: 'ACTIVE' });
 
-    toast.success(`${selectedSession.value.sessionName} has now started`);
+    toast.success(
+      `${selectedSession.value.sessionName} has now started`,
+    );
     await fetchData();
   } catch (error) {
     // Error case
-    toast.error("Failed to process");
+    toast.error('Failed to process');
   } finally {
     isActionLoading.value = false;
     showStartConfirm.value = false;
   }
 };
+
 const confirmClose = async () => {
   const { call: confirmDeactivate } = useBackendService(
     `/sessions/${selectedSession.value?.sessionId}`,
-    "patch"
+    'patch',
   );
 
   if (!selectedSession.value) return;
 
   isActionLoading.value = true;
   try {
-    await confirmDeactivate({ session_status: "CLOSED" });
+    await confirmDeactivate({ session_status: 'CLOSED' });
 
-    toast.success(`${selectedSession.value.sessionName} is now closed`);
+    toast.success(
+      `${selectedSession.value.sessionName} is now closed`,
+    );
     await fetchData();
   } catch (error) {
     // Error case
-    toast.error("Failed to process");
+    toast.error('Failed to process');
   } finally {
     isActionLoading.value = false;
     showSuspendConfirm.value = false;
   }
 };
+
 const confirmDelete = async () => {
   const { call: confirmDeactivate } = useBackendService(
     `/sessions/${selectedSession.value?.sessionId}`,
-    "delete"
+    'delete',
   );
 
   if (!selectedSession.value) return;
@@ -635,11 +751,13 @@ const confirmDelete = async () => {
   try {
     await confirmDeactivate();
 
-    toast.success(`${selectedSession.value.sessionName} is now deleted`);
+    toast.success(
+      `${selectedSession.value.sessionName} is now deleted`,
+    );
     await fetchData();
   } catch (error) {
     // Error case
-    toast.error("Course has active students, cannot delete");
+    toast.error('Course has active students, cannot delete');
   } finally {
     isActionLoading.value = false;
     showDeleteConfirm.value = false;
