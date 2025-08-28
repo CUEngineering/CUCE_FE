@@ -2,6 +2,7 @@ import { isArray, orderBy } from 'lodash-es';
 import { useBackendRequest } from '~/composables/useBackendService';
 import type { StudentCourseListType } from '~/types/course';
 import type { EnrollmentListType } from '~/types/enrollment';
+import type { StudentWithRegistrar } from '~/types/student';
 
 export const useStudentStore = defineStore(
   'student',
@@ -160,6 +161,80 @@ export const useStudentStore = defineStore(
       return getEnrollmentAsCourseListData(enrollment, list);
     };
 
+    const selectedStudentSessionId = ref('all');
+    const selectedStudentAssignedTo = ref<
+      'all' | 'me' | 'others' | 'none'
+    >('all');
+    const studentsResp = markRaw(
+      useAsyncData(
+        async function () {
+          if (
+            !(
+              authStore.role &&
+              ['ADMIN', 'REGISTRAR'].includes(authStore.role)
+            )
+          ) {
+            return [];
+          }
+
+          const resp = await useBackendRequest<{
+            status: 'success';
+            data: StudentWithRegistrar[];
+          }>({
+            url: `/students`,
+            params: {
+              assigned_to: selectedStudentAssignedTo.value || 'all',
+              session_id: selectedStudentSessionId.value
+                ? selectedStudentSessionId.value === 'all'
+                  ? undefined
+                  : String(selectedStudentSessionId.value)
+                : undefined,
+            },
+            validateStatus(status) {
+              return status < 400;
+            },
+          });
+
+          const students = resp.data?.data ?? [];
+          return students;
+        },
+        {
+          watch: [
+            () => authStore.token,
+            selectedStudentSessionId,
+            selectedStudentAssignedTo,
+          ],
+          deep: false,
+          lazy: false,
+          immediate: false,
+          default() {
+            return [] as StudentWithRegistrar[];
+          },
+          transform(list) {
+            return orderBy(
+              list,
+              [
+                (s) => (s.can_claim ? 1 : 0),
+                (s) => new Date(s.updated_at).getTime(),
+                (s) => new Date(s.created_at).getTime(),
+              ],
+              ['desc', 'desc', 'desc'],
+            );
+          },
+          getCachedData(key) {
+            const students =
+              getCacheFromState<StudentWithRegistrar[]>(key);
+
+            if (isArray(students)) {
+              return students;
+            }
+
+            return undefined;
+          },
+        },
+      ),
+    );
+
     return {
       coursesInCurrentSessionResp,
       coursesInProgramResp,
@@ -167,6 +242,9 @@ export const useStudentStore = defineStore(
       getEnrollmentAsCourseListData:
         getEnrollmentAsCourseListDataInStore,
       selectedEnrollmentSessionId,
+      selectedStudentSessionId,
+      selectedStudentAssignedTo,
+      studentsResp,
     };
   },
   {

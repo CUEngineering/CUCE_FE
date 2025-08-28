@@ -1,7 +1,7 @@
 <template>
   <div
     class="enrollments-page dashlet-wrapper"
-    :class="{ empty: !enrollments.length }"
+    :class="{ empty: !students.length }"
   >
     <div class="filter">
       <!-- Tabs for All students, un assigned, assigned to others -->
@@ -15,22 +15,22 @@
         </button>
         <button
           class="button"
-          :class="{ active: activeTab === 'unassigned' }"
-          @click="activeTab = 'unassigned'"
+          :class="{ active: activeTab === 'none' }"
+          @click="activeTab = 'none'"
         >
           Un-Assigned
         </button>
         <button
           class="button"
-          :class="{ active: activeTab === 'toMe' }"
-          @click="activeTab = 'toMe'"
+          :class="{ active: activeTab === 'me' }"
+          @click="activeTab = 'me'"
         >
           Assigned To Me
         </button>
         <button
           class="button"
-          :class="{ active: activeTab === 'toOthers' }"
-          @click="activeTab = 'toOthers'"
+          :class="{ active: activeTab === 'others' }"
+          @click="activeTab = 'others'"
         >
           Assigned To Others
         </button>
@@ -52,7 +52,7 @@
         <h2 class="heading-txt">Students</h2>
       </div>
       <div
-        v-if="enrollments.length > 0"
+        v-if="students.length > 0"
         class="search-and-actions"
       >
         <div class="search-container">
@@ -76,7 +76,7 @@
 
     <!-- Empty state for when no enrollments exist -->
     <EmptyState
-      v-if="!loading && !enrollments.length"
+      v-if="!loading && !students.length"
       class="dashlet"
       title="No Students yet"
       description="Students will appear here once they are added to the system."
@@ -104,7 +104,7 @@
 
     <!-- enrollments table when enrollments exist -->
     <div
-      v-if="!loading && enrollments.length"
+      v-if="!loading && students.length"
       class="enrollments-content dashlet program-tabs"
     >
       <div class="tabs-heading">
@@ -260,18 +260,18 @@
                       <div class="email">
                         {{ cell.row.original.email }}
                         <div
-                          v-if="cell.row.original.invite?.status"
+                          v-if="cell.row.original.invitation?.status"
                           :class="[
                             'status-badge',
                             getStatusClass(
-                              cell.row.original.invite.status,
+                              cell.row.original.invitation.status,
                             ),
                           ]"
                           style="width: fit-content"
                         >
                           {{
                             capitalizeFirst(
-                              cell.row.original.invite.status,
+                              cell.row.original.invitation.status,
                             )
                           }}
                         </div>
@@ -297,16 +297,9 @@
                         )
                       }}
                     </div>
-                    <div
-                      v-else-if="
-                        cell.column.id === 'enrollments_registrar_id'
-                      "
-                    >
+                    <div v-else-if="cell.column.id === 'registrar'">
                       <template
-                        v-if="
-                          cell.row.original.enrollments[0]?.registrars
-                            ?.email
-                        "
+                        v-if="cell.row.original.registrar?.email"
                       >
                         <div
                           class="student-info status-badge profile-count pill p-grey"
@@ -314,24 +307,22 @@
                         >
                           <img
                             :src="
-                              cell.row.original.enrollments[0]
-                                .registrars.profile_picture
+                              cell.row.original.registrar
+                                ?.profile_picture
                             "
                             :alt="
-                              cell.row.original.enrollments[0]
-                                .registrars.first_name
+                              cell.row.original.registrar.first_name
                             "
                             class="avatar"
                           />
                           <div class="student-details">
                             <div class="student-name">
                               {{
-                                cell.row.original.enrollments[0]
-                                  .registrars.first_name
+                                cell.row.original.registrar
+                                  ?.first_name
                               }}
                               {{
-                                cell.row.original.enrollments[0]
-                                  .registrars.last_name
+                                cell.row.original.registrar?.last_name
                               }}
                             </div>
                           </div>
@@ -357,7 +348,7 @@
           <StudentMobile
             v-for="row in table.getRowModel().rows"
             :key="row.id"
-            :selected-course="row.original"
+            :student="row.original"
           />
         </div>
         <div class="pagination">
@@ -505,45 +496,8 @@ import Dialog from '~/components/ui/Dialog.vue';
 import EmptyState from '~/components/ui/EmptyState.vue';
 import FormInput from '~/components/ui/FormInput.vue';
 import { capitalizeFirst, getStatusClass } from '~/helper/formatData';
+import type { StudentWithRegistrar } from '~/types/student';
 
-interface Student {
-  student_id: number;
-  reg_number: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  profile_picture: string;
-  program_id: number;
-  enrollments: Enrollment[];
-  program: Program;
-  invite?: {
-    status: 'ACCEPTED' | 'PENDING';
-    expires_at: string | Date;
-    created_at: string | Date;
-    updated_at: string | Date;
-  };
-}
-
-interface Enrollment {
-  sessions: any | null;
-  registrar_id: number;
-  enrollment_id: number;
-  registrars: Registrar;
-}
-
-interface Registrar {
-  registrar_id: number;
-  first_name: string;
-  last_name: string;
-  email: string;
-  profile_picture: string;
-}
-
-interface Program {
-  program_name: string;
-  program_type: string;
-  total_credits: number;
-}
 const toast = useToast();
 const loading = ref(false);
 const showInviteModal = ref(false);
@@ -552,41 +506,85 @@ const showInviteFailureDialog = ref(false);
 const isInviteSending = ref(false);
 const showDeactivateConfirm = ref(false);
 const showSuspendConfirm = ref(false);
-const selectedStudent = ref<Student | null>(null);
+const selectedStudent = ref<StudentWithRegistrar | null>(null);
 
-const activeTab = ref<'all' | 'unassigned' | 'toMe' | 'toOthers'>(
-  'all',
-);
-const sessionFilter = useSessionsFilter();
-const sessionFilterList = computed(() =>
-  (sessionFilter.data.value ?? []).map((s) => ({
-    value: String(s.session_id),
-    label: s.session_name,
-  })),
-);
-const selectedSessionId = ref<string | undefined>();
+const studentStore = useStudentStore();
+studentStore.studentsResp.execute({ dedupe: 'cancel' });
 
-watch(sessionFilter.data, (list) => {
-  const selectedSession = orderBy(
-    list ?? [],
-    [
-      (s) => (s.session_status === 'ACTIVE' ? 1 : 0),
-      (s) => new Date(s.created_at).getTime(),
-    ],
-    ['desc', 'asc'],
-  )[0];
-
-  if (selectedSession) {
-    selectedSessionId.value = String(selectedSession.session_id);
-  }
+const activeTab = computed({
+  get() {
+    return studentStore.selectedStudentAssignedTo;
+  },
+  set(v) {
+    studentStore.selectedStudentAssignedTo = v;
+  },
 });
 
-const showSuspendDialog = (registrar: Student) => {
+const sessionFilter = useSessionsFilter();
+const sessionFilterList = computed(() => {
+  return [
+    {
+      value: 'all',
+      label: 'All',
+    },
+    ...(sessionFilter.data.value ?? []).map((s) => ({
+      value: String(s.session_id),
+      label: s.session_name,
+    })),
+  ];
+});
+
+const selectedSessionId = computed({
+  get() {
+    return studentStore.selectedStudentSessionId;
+  },
+  set(v: string) {
+    studentStore.selectedStudentSessionId = v;
+  },
+});
+
+watch([selectedSessionId, activeTab], () => {
+  loading.value = true;
+});
+
+// watch(sessionFilter.data, (list) => {
+//   const selectedSession = orderBy(
+//     list ?? [],
+//     [
+//       (s) => (s.session_status === 'ACTIVE' ? 1 : 0),
+//       (s) => new Date(s.created_at).getTime(),
+//     ],
+//     ['desc', 'asc'],
+//   )[0];
+
+//   if (selectedSession) {
+//     selectedSessionId.value = String(selectedSession.session_id);
+//   }
+// });
+
+const students = computed(
+  () => studentStore.studentsResp.data.value || [],
+);
+
+// If any is loading then update loading
+watch(
+  studentStore.studentsResp.status,
+  (status) => {
+    if (['success', 'error'].includes(status)) {
+      loading.value = false;
+    }
+  },
+  {
+    immediate: true,
+  },
+);
+
+const showSuspendDialog = (registrar: StudentWithRegistrar) => {
   selectedStudent.value = registrar;
   showSuspendConfirm.value = true;
 };
 
-const showDeleteDialog = (registrar: Student) => {
+const showDeleteDialog = (registrar: StudentWithRegistrar) => {
   selectedStudent.value = registrar;
   showDeactivateConfirm.value = true;
 };
@@ -614,7 +612,9 @@ const confirmDeactivate = async () => {
       `${selectedStudent.value.first_name} has been Deleted`,
     );
 
-    await fetchData();
+    await studentStore.studentsResp.refresh({
+      dedupe: 'cancel',
+    });
   } catch (error) {
     // Error case
     toast.error('Failed to delete student');
@@ -623,6 +623,7 @@ const confirmDeactivate = async () => {
     showDeactivateConfirm.value = false;
   }
 };
+
 const confirmSuspend = async () => {
   const {
     call: confirmSuspend,
@@ -645,7 +646,9 @@ const confirmSuspend = async () => {
       `${selectedStudent.value.first_name} has been suspended`,
     );
 
-    await fetchData();
+    await studentStore.studentsResp.refresh({
+      dedupe: 'cancel',
+    });
   } catch (error) {
     // Error case
     toast.error('Failed to suspend student');
@@ -658,13 +661,17 @@ const confirmSuspend = async () => {
 const handleInviteSuccess = async () => {
   showInviteModal.value = false;
   showInviteSuccessDialog.value = true;
-  await fetchData();
+  await studentStore.studentsResp.refresh({
+    dedupe: 'cancel',
+  });
 };
 
 const handleInviteFailure = async () => {
   showInviteModal.value = false;
   showInviteFailureDialog.value = true;
-  await fetchData();
+  await studentStore.studentsResp.refresh({
+    dedupe: 'cancel',
+  });
 };
 
 const openDropdownId = inject<Ref<number | null>>(
@@ -678,31 +685,7 @@ const toggleDropdown = (studentId: number) => {
     openDropdownId.value === studentId ? null : studentId;
 };
 
-const { call, data } = useBackendService('/students', 'get');
-const enrollments = ref<Student[]>([]);
-const enrollmentsDataCache = useState('studentscachT', () => null);
-const fetchData = async () => {
-  await call();
-  enrollmentsDataCache.value = data.value;
-  enrollments.value = data.value || [];
-};
-onMounted(async () => {
-  if (!enrollmentsDataCache.value) {
-    try {
-      loading.value = true;
-      await fetchData();
-      loading.value = false;
-    } catch (err) {
-      console.error('Failed to fetch dashboard stats', err);
-    }
-  }
-
-  if (enrollmentsDataCache.value) {
-    enrollments.value = enrollmentsDataCache.value || [];
-  }
-});
-
-const columnHelper = createColumnHelper<Student>();
+const columnHelper = createColumnHelper<StudentWithRegistrar>();
 
 const columns = computed(() => {
   const cols: any[] = [
@@ -722,7 +705,7 @@ const columns = computed(() => {
       header: 'Programme Type',
       cell: (props) => props.getValue(),
     }),
-    columnHelper.accessor('enrollments.registrar_id', {
+    columnHelper.accessor('registrar', {
       header: 'Assigned Registrar',
       cell: (props) => props.getValue(),
     }),
@@ -757,7 +740,7 @@ const searchQuery = computed({
 
 const table = useVueTable({
   get data() {
-    return enrollments.value;
+    return students.value;
   },
   get columns() {
     return columns.value;
@@ -817,18 +800,19 @@ const showEditModal = ref(false);
 const showDeleteModal = ref(false);
 const showInfoModal = ref(false);
 const isActionLoading = ref(false);
-const selectedEnrollment = ref<Student | null>(null);
 
-const handleSuspend = async (rowData: Student) => {
-  selectedEnrollment.value = rowData;
+const handleSuspend = async (rowData: StudentWithRegistrar) => {
+  selectedStudent.value = rowData;
   showEditModal.value = true;
 };
 
-const handleDelete = async (rowData: Student) => {
-  selectedEnrollment.value = rowData;
+const handleDelete = async (rowData: StudentWithRegistrar) => {
+  selectedStudent.value = rowData;
   showDeleteModal.value = true;
 };
-const handleInfo = async (rowData: Student) => {
+
+const handleInfo = async (rowData: StudentWithRegistrar) => {
+  selectedStudent.value = rowData;
   showInfoModal.value = true;
 };
 
@@ -840,7 +824,7 @@ definePageMeta({
   layout: 'dashboard',
 });
 
-const totalRecords = computed(() => enrollments.value.length);
+const totalRecords = computed(() => students.value.length);
 
 const startRecord = computed(() => {
   return (
@@ -849,6 +833,7 @@ const startRecord = computed(() => {
     1
   );
 });
+
 const endRecord = computed(() => {
   const possibleEnd =
     (table.getState().pagination.pageIndex + 1) *
