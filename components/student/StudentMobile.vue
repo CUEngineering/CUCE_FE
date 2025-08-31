@@ -3,7 +3,10 @@
     <div class="registrar-header">
       <div class="registrar-avatar">
         <img
-          :src="student.profile_picture"
+          :src="
+            student.profile_picture ??
+            `https://lccvdfvlczhicqnrelsv.supabase.co/storage/v1/object/public/cuce/static/default.png`
+          "
           alt="Registrar avatar"
         />
       </div>
@@ -38,14 +41,40 @@
               class="dropdown-menu"
               @click.stop
             >
-              <button class="dropdown-item">
+              <button
+                class="dropdown-item"
+                @click.stop="showStudent(student)"
+              >
+                <span class="dropdown-icon">
+                  <IconsEyeIcon />
+                </span>
+                View Student
+              </button>
+
+              <button
+                class="dropdown-item"
+                @click.stop="showClaimDialog(student)"
+              >
+                <span class="dropdown-icon">
+                  <IconsAcademicCapIcon />
+                </span>
+                Claim Student
+              </button>
+
+              <button
+                class="dropdown-item"
+                @click.stop="showSuspendDialog(student)"
+              >
                 <span class="dropdown-icon">
                   <IconsCloseCircleIcon />
                 </span>
                 Suspend Account
               </button>
 
-              <button class="dropdown-item">
+              <button
+                class="dropdown-item"
+                @click.stop="showDeleteDialog(student)"
+              >
                 <span class="dropdown-icon">
                   <IconsDeleteIcon />
                 </span>
@@ -69,8 +98,11 @@
                 class="student-info status-badge profile-count pill p-grey"
               >
                 <img
-                  :src="student.registrar?.profile_picture"
-                  :alt="student.registrar?.first_name"
+                  :src="
+                    student.registrar?.profile_picture ??
+                    `https://lccvdfvlczhicqnrelsv.supabase.co/storage/v1/object/public/cuce/static/default.png`
+                  "
+                  :alt="`${student.registrar?.first_name}`"
                   class="avatar"
                 />
                 <div class="student-details">
@@ -120,9 +152,7 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const emit = defineEmits<{
-  (e: 'viewDetails'): void;
-}>();
+const studentStore = useStudentStore();
 
 // Create a unique ID for this card instance
 const cardId = Symbol('registrar-card');
@@ -156,10 +186,6 @@ const closeDropdown = (/* event: MouseEvent */) => {
   }
 };
 
-const viewDetails = () => {
-  emit('viewDetails');
-};
-
 // Add and remove event listeners
 onMounted(() => {
   document.addEventListener('click', closeDropdown);
@@ -181,6 +207,30 @@ const statusClass = computed(() => {
       return '';
   }
 });
+
+const showStudent = async (student: StudentWithRegistrar) => {
+  await navigateTo({
+    name: 'admin-students-studentId',
+    params: {
+      studentId: student.student_id,
+    },
+  });
+};
+
+const showClaimDialog = async (student: StudentWithRegistrar) => {
+  studentStore.selectedStudentId = student.student_id;
+  studentStore.isShowingClaimModal = true;
+};
+
+const showSuspendDialog = async (student: StudentWithRegistrar) => {
+  studentStore.selectedStudentId = student.student_id;
+  studentStore.isShowingSuspendModal = true;
+};
+
+const showDeleteDialog = async (student: StudentWithRegistrar) => {
+  studentStore.selectedStudentId = student.student_id;
+  studentStore.isShowingDeleteModal = true;
+};
 </script>
 
 <style lang="scss" scoped>

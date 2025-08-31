@@ -54,4 +54,5 @@ export type StudentWithRegistrar = Pick<
     | 'is_suspended'
   >;
   can_claim: boolean;
+  program_course_count: number;
 };

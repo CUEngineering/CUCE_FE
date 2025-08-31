@@ -89,11 +89,41 @@ export const useAuthStore = defineStore(
       console.trace('Called Logout');
     }
 
+    const viewerData = computed(() => {
+      switch (state.role) {
+        case 'ADMIN': {
+          return {
+            role: state.role,
+            id: String(state.user?.admin_id ?? '0'),
+          };
+        }
+
+        case 'REGISTRAR': {
+          return {
+            role: state.role,
+            id: String(state.user?.registrar_id ?? '0'),
+          };
+        }
+
+        case 'STUDENT': {
+          return {
+            role: state.role,
+            id: String(state.user?.student_id ?? '0'),
+          };
+        }
+
+        default: {
+          return undefined;
+        }
+      }
+    });
+
     return {
       ...toRefs(state),
       clearAllCaches,
       setAuth,
       logout,
+      viewerData,
     };
   },
   {

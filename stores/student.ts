@@ -2,6 +2,7 @@ import { isArray, orderBy } from 'lodash-es';
 import { useBackendRequest } from '~/composables/useBackendService';
 import type { StudentCourseListType } from '~/types/course';
 import type { EnrollmentListType } from '~/types/enrollment';
+import type { StudentSessionType } from '~/types/session';
 import type { StudentWithRegistrar } from '~/types/student';
 
 export const useStudentStore = defineStore(
@@ -235,6 +236,236 @@ export const useStudentStore = defineStore(
       ),
     );
 
+    const selectedStudentId = ref<string | number | undefined>(
+      undefined,
+    );
+    const studentResp = markRaw(
+      useAsyncData(
+        async function () {
+          if (
+            !(
+              selectedStudentId.value &&
+              authStore.role &&
+              ['ADMIN', 'REGISTRAR'].includes(authStore.role)
+            )
+          ) {
+            return undefined;
+          }
+
+          const resp = await useBackendRequest<{
+            status: 'success';
+            data: StudentWithRegistrar;
+          }>({
+            url: `/students/${selectedStudentId.value}`,
+            validateStatus(status) {
+              return status < 400;
+            },
+          });
+
+          const student = resp.data?.data ?? undefined;
+          return student;
+        },
+        {
+          watch: [() => authStore.token, selectedStudentId],
+          deep: false,
+          lazy: false,
+          immediate: false,
+          getCachedData(key) {
+            console.log('cache key is =====> ', key);
+            const student =
+              getCacheFromState<StudentWithRegistrar>(key);
+
+            if (student) {
+              return student;
+            }
+
+            return undefined;
+          },
+        },
+      ),
+    );
+
+    const studentSessionsResp = markRaw(
+      useAsyncData(
+        async function () {
+          if (
+            !(
+              selectedStudentId.value &&
+              authStore.role &&
+              ['ADMIN', 'REGISTRAR'].includes(authStore.role)
+            )
+          ) {
+            return [];
+          }
+
+          const resp = await useBackendRequest<{
+            status: 'success';
+            data: StudentSessionType[];
+          }>({
+            url: `/students/${selectedStudentId.value}/sessions`,
+            validateStatus(status) {
+              return status < 400;
+            },
+          });
+
+          const sessions = resp.data?.data ?? [];
+          return sessions;
+        },
+        {
+          watch: [() => authStore.token, selectedStudentId],
+          deep: false,
+          lazy: false,
+          immediate: false,
+          default() {
+            return [] as StudentSessionType[];
+          },
+          transform(list) {
+            return orderBy(
+              list,
+              [
+                (s) => (s.session_status === 'ACTIVE' ? 1 : 0),
+                (s) => new Date(s.start_date).getTime(),
+              ],
+              ['desc', 'asc'],
+            );
+          },
+          getCachedData(key) {
+            const sessions =
+              getCacheFromState<StudentSessionType[]>(key);
+
+            if (isArray(sessions)) {
+              return sessions;
+            }
+
+            return undefined;
+          },
+        },
+      ),
+    );
+
+    const studentSessionCoursesResp = markRaw(
+      useAsyncData(
+        async function () {
+          if (
+            !(
+              !isNaN(Number(selectedStudentSessionId.value)) &&
+              selectedStudentId.value &&
+              authStore.role &&
+              ['ADMIN', 'REGISTRAR'].includes(authStore.role)
+            )
+          ) {
+            return [];
+          }
+
+          const resp = await useBackendRequest<{
+            status: 'success';
+            data: StudentCourseListType[];
+          }>({
+            url: `/students/${selectedStudentId.value}/session/${selectedStudentSessionId.value}/courses`,
+            validateStatus(status) {
+              return status < 400;
+            },
+          });
+
+          const sessions = resp.data?.data ?? [];
+          return sessions;
+        },
+        {
+          watch: [() => authStore.token, selectedStudentId],
+          deep: false,
+          lazy: false,
+          immediate: false,
+          default() {
+            return [] as StudentCourseListType[];
+          },
+          transform(list) {
+            return orderBy(
+              list,
+              [
+                (c) => c.course_title,
+                (c) => c.course_code,
+                (s) => new Date(s.created_at).getTime(),
+              ],
+              ['asc', 'asc', 'desc'],
+            );
+          },
+          getCachedData(key) {
+            const courses =
+              getCacheFromState<StudentCourseListType[]>(key);
+
+            if (isArray(courses)) {
+              return courses;
+            }
+
+            return undefined;
+          },
+        },
+      ),
+    );
+
+    const studentProgramCoursesResp = markRaw(
+      useAsyncData(
+        async function () {
+          if (
+            !(
+              selectedStudentId.value &&
+              authStore.role &&
+              ['ADMIN', 'REGISTRAR'].includes(authStore.role)
+            )
+          ) {
+            return [];
+          }
+
+          const resp = await useBackendRequest<{
+            status: 'success';
+            data: StudentCourseListType[];
+          }>({
+            url: `/students/${selectedStudentId.value}/program/courses`,
+            validateStatus(status) {
+              return status < 400;
+            },
+          });
+
+          const sessions = resp.data?.data ?? [];
+          return sessions;
+        },
+        {
+          watch: [() => authStore.token, selectedStudentId],
+          deep: false,
+          lazy: false,
+          immediate: false,
+          default() {
+            return [] as StudentCourseListType[];
+          },
+          transform(list) {
+            return orderBy(
+              list,
+              [
+                (c) => c.course_title,
+                (c) => c.course_code,
+                (s) => new Date(s.created_at).getTime(),
+              ],
+              ['asc', 'asc', 'desc'],
+            );
+          },
+          getCachedData(key) {
+            const courses =
+              getCacheFromState<StudentCourseListType[]>(key);
+
+            if (isArray(courses)) {
+              return courses;
+            }
+
+            return undefined;
+          },
+        },
+      ),
+    );
+
+    const isShowingSuspendModal = ref(false);
+    const isShowingClaimModal = ref(false);
+    const isShowingDeleteModal = ref(false);
+
     return {
       coursesInCurrentSessionResp,
       coursesInProgramResp,
@@ -245,6 +476,14 @@ export const useStudentStore = defineStore(
       selectedStudentSessionId,
       selectedStudentAssignedTo,
       studentsResp,
+      selectedStudentId,
+      studentResp,
+      studentSessionsResp,
+      studentSessionCoursesResp,
+      studentProgramCoursesResp,
+      isShowingSuspendModal,
+      isShowingClaimModal,
+      isShowingDeleteModal,
     };
   },
   {
@@ -253,6 +492,9 @@ export const useStudentStore = defineStore(
         'coursesInCurrentSessionResp',
         'coursesInProgramResp',
         'enrollmentsResp',
+        'isShowingSuspendModal',
+        'isShowingClaimModal',
+        'isShowingDeleteModal',
       ],
     },
   },
