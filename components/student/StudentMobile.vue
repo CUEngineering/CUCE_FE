@@ -52,6 +52,7 @@
               </button>
 
               <button
+                v-if="student.can_claim"
                 class="dropdown-item"
                 @click.stop="showClaimDialog(student)"
               >

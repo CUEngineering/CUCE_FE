@@ -54,21 +54,23 @@
       <div class="tabs-heading">
         <!-- Tabs for students/courses -->
         <div style="display: flex">
-          <!-- <div class="program-tab-title">
-            <button
-              class="tab-button"
-              :class="{ active: activeTab === 'unassigned' }"
-              @click="activeTab = 'unassigned'"
-            >
-              Unassigned
-            </button>
-            <button
-              class="tab-button"
-              :class="{ active: activeTab === 'toMe' }"
-              @click="activeTab = 'toMe'"
-            >
-              Assigned to Me
-            </button>
+          <div class="program-tab-title">
+            <template v-if="false">
+              <button
+                class="tab-button"
+                :class="{ active: activeTab === 'unassigned' }"
+                @click="activeTab = 'unassigned'"
+              >
+                Unassigned
+              </button>
+              <button
+                class="tab-button"
+                :class="{ active: activeTab === 'toMe' }"
+                @click="activeTab = 'toMe'"
+              >
+                Assigned to Me
+              </button>
+            </template>
           </div>
           <div
             style="margin: auto; margin-left: 20px"
@@ -76,7 +78,7 @@
           >
             ({{ startRecord }} - {{ endRecord }}) of
             {{ totalRecords }}
-          </div> -->
+          </div>
         </div>
 
         <div class="web header-actions">
@@ -386,9 +388,7 @@ import { computed, h, reactive, ref } from 'vue';
 import MobileEnrollment from '~/components/enrollment/MobileEnrollment.vue';
 import ActionCancelIcon from '~/components/icons/ActionCancelIcon.vue';
 import ActionEditIcon from '~/components/icons/ActionEditIcon.vue';
-import FilterIcon from '~/components/icons/FilterIcon.vue';
 import StatusBadge from '~/components/icons/StatusBadge.vue';
-import EmptyState from '~/components/ui/EmptyState.vue';
 import FormInput from '~/components/ui/FormInput.vue';
 import { capitalizeFirst, getStatusClass } from '~/helper/formatData';
 import type { EnrollmentListType } from '~/types/enrollment';
@@ -424,48 +424,50 @@ watch(sessionFilter.data, (list) => {
   }
 });
 
+const activeTab = ref('toMe');
 const { call, data } = useBackendService('/enrollments', 'get');
 const enrollments = ref<Enrollment[]>([]);
 const enrollmentsDataCache = useState('enrollmentsREG', () => null);
 const fetchData = async () => {
-  await call({ session_id: selectedSessionId.value || undefined });
+  await call({
+    session_id: selectedSessionId.value || undefined,
+    assigned_to: 'me',
+  });
   enrollmentsDataCache.value = data.value;
   enrollments.value = data.value || [];
 };
-onMounted(async () => {
-  if (!enrollmentsDataCache.value) {
-    try {
-      loading.value = true;
-      await fetchData();
-      loading.value = false;
-    } catch (err) {
-      console.error('Failed to fetch dashboard stats', err);
-    }
-  }
 
-  if (enrollmentsDataCache.value) {
-    enrollments.value = enrollmentsDataCache.value || [];
-  }
-});
+watch(
+  activeTab,
+  async (newTab, prevTab) => {
+    if (prevTab && newTab !== prevTab) {
+      enrollmentsDataCache.value = null;
+    }
+
+    if (!enrollmentsDataCache.value) {
+      try {
+        loading.value = true;
+        await fetchData();
+        loading.value = false;
+      } catch (err) {
+        console.error('Failed to fetch registrar enrollments', err);
+      }
+    }
+
+    if (enrollmentsDataCache.value) {
+      enrollments.value = enrollmentsDataCache.value || [];
+    }
+  },
+  {
+    immediate: true,
+  },
+);
 
 watch(selectedSessionId, fetchData);
 
 const filteredEnrollments = computed(() => {
-  let list: Enrollment[] = [];
-  if (activeTab.value === 'unass') {
-    list = enrollments.value;
-  } else if (activeTab.value === 'toOthers') {
-    list = enrollments.value.filter(
-      (e) => e.assignedStatus === 'toOthers',
-    );
-  } else {
-    list = enrollments.value.filter(
-      (e) => e.assignedStatus === activeTab.value,
-    );
-  }
-
   return orderBy(
-    list,
+    enrollments.value,
     [
       (e) => (e.status === 'pending' ? 0 : 1),
       (e) =>
@@ -474,8 +476,6 @@ const filteredEnrollments = computed(() => {
     ['asc', 'asc'],
   );
 });
-
-const activeTab = ref('unassigned');
 
 const columnHelper = createColumnHelper<Enrollment>();
 
@@ -699,6 +699,7 @@ const handleDeleteAction = async ({
     showDeleteModal.value = false;
     selectedEnrollment.value = null;
   } catch (error) {
+    console.dir(error);
     toast.error('Failed to reject enrollment');
   } finally {
     isActionLoading.value = false;
@@ -722,6 +723,7 @@ const handleEditAction = async () => {
     showEditModal.value = false;
     selectedEnrollment.value = null;
   } catch (error) {
+    console.dir(error);
     toast.error('Failed to reject enrollment');
   } finally {
     isActionLoading.value = false;

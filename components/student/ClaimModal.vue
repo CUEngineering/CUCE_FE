@@ -1,5 +1,18 @@
 <template>
-  <Teleport to="body">
+  <UiDialog
+    v-if="authStore.role === 'REGISTRAR'"
+    v-model="isShowing"
+    title="Claim Student?"
+    message="Do you want to be the registrar of this student for this current session?"
+    variant="warning"
+    :loading="isLoading"
+    confirm-button-text="Yes / Claim"
+    @confirm="handleSubmit"
+  />
+  <Teleport
+    v-else-if="authStore.role === 'ADMIN'"
+    to="body"
+  >
     <Transition name="modal-fade">
       <div
         v-if="modelValue"
@@ -27,23 +40,22 @@
 
             <div class="modal-body">
               <div class="form-section">
-                <template v-if="authStore.role === 'ADMIN'">
-                  <UiFormSelect
-                    id="registrars"
-                    v-model="selectedRegistrarId"
-                    label="Registrar"
-                    placeholder="Select registrar"
-                    type="string"
-                    :options="registrarsList"
-                    required
-                    :error="undefined"
-                  />
-                </template>
+                <UiFormSelect
+                  id="registrars"
+                  v-model="selectedRegistrarId"
+                  label="Registrar"
+                  placeholder="Select registrar"
+                  type="string"
+                  :options="registrarsList"
+                  required
+                  :error="undefined"
+                />
               </div>
             </div>
 
             <div class="modal-footer">
               <UiButton
+                :disabled="isLoading"
                 variant="secondary"
                 @click="close"
               >
@@ -96,15 +108,31 @@ const close = () => {
   emit('close');
 };
 
-const isLoading = computed({
+const isShowing = computed({
   get() {
-    return props.loading;
+    return props.modelValue;
   },
   set(val: boolean) {
+    if (!val) {
+      close();
+    }
+  },
+});
+
+const localisLoading = ref(false);
+const isLoading = computed({
+  get() {
+    return localisLoading.value
+      ? localisLoading.value
+      : props.loading;
+  },
+  set(val: boolean) {
+    localisLoading.value = val;
     emit('update:loading', val);
   },
 });
 
+const studentStore = useStudentStore();
 const authStore = useAuthStore();
 const toast = useToast();
 
@@ -304,6 +332,11 @@ const handleSubmit = async () => {
     });
 
     if (resp.status === 204) {
+      await Promise.all([
+        studentStore.studentResp.refresh({ dedupe: true }),
+        studentStore.studentsResp.refresh({ dedupe: true }),
+      ]);
+
       toast.success(
         `Student ${studentName.value} has been claimed successfully`,
       );

@@ -18,7 +18,7 @@
       class="loader"
     />
     <ul
-      v-else
+      v-else-if="courses.length"
       class="body"
     >
       <li
@@ -50,6 +50,42 @@
         </span>
       </li>
     </ul>
+    <UiEmptyState
+      v-else
+      class="empty"
+      title="No Session Courses"
+      description="Student is not enrolled for any course in this session"
+    >
+      <template #icon>
+        <img
+          src="~/assets/images/EmptyProgram.svg"
+          alt=""
+          class="empty-state-illustration"
+        />
+      </template>
+      <template
+        v-if="authStore.viewerData?.role !== 'STUDENT'"
+        #action
+      >
+        <UiButton
+          variant="outline"
+          size="sm"
+          @click="
+            navigateTo({
+              name:
+                authStore.viewerData?.role === 'ADMIN'
+                  ? 'admin-enrollments'
+                  : 'registrar-enrollments',
+            })
+          "
+        >
+          <template #icon>
+            <IconsEyeIcon />
+          </template>
+          Manage Enrollments
+        </UiButton>
+      </template>
+    </UiEmptyState>
   </div>
 </template>
 

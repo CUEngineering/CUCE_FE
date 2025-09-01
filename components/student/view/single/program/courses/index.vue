@@ -8,7 +8,7 @@
       class="loader"
     />
     <ul
-      v-else
+      v-else-if="courses.length"
       class="body"
     >
       <li
@@ -31,6 +31,45 @@
         </span>
       </li>
     </ul>
+    <UiEmptyState
+      v-else
+      class="empty"
+      title="No Program Courses"
+      description="Student program doesnt have any course yet."
+    >
+      <template #icon>
+        <img
+          src="~/assets/images/EmptyProgram.svg"
+          alt=""
+          class="empty-state-illustration"
+        />
+      </template>
+      <template
+        v-if="
+          authStore.viewerData?.role === 'ADMIN' &&
+          studentStore.studentResp.data.value?.program_id
+        "
+        #action
+      >
+        <UiButton
+          variant="outline"
+          size="sm"
+          @click="
+            navigateTo({
+              name: 'admin-programs-id',
+              params: {
+                id: studentStore.studentResp.data.value.program_id,
+              },
+            })
+          "
+        >
+          <template #icon>
+            <IconsEyeIcon />
+          </template>
+          Manage Program Courses
+        </UiButton>
+      </template>
+    </UiEmptyState>
   </div>
 </template>
 
@@ -43,6 +82,7 @@ const props = defineProps<{
   };
 }>();
 
+const authStore = useAuthStore();
 const studentStore = useStudentStore();
 const studentId = computed(() => props.studentId);
 

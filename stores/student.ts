@@ -1,7 +1,6 @@
 import { isArray, orderBy } from 'lodash-es';
 import { useBackendRequest } from '~/composables/useBackendService';
 import type { StudentCourseListType } from '~/types/course';
-import type { EnrollmentListType } from '~/types/enrollment';
 import type { StudentSessionType } from '~/types/session';
 import type { StudentWithRegistrar } from '~/types/student';
 
@@ -9,12 +8,17 @@ export const useStudentStore = defineStore(
   'student',
   () => {
     const authStore = useAuthStore();
-    const coursesInCurrentSessionUrl = `/courses/eligible/${authStore.user?.student_id}`;
+    const coursesInCurrentSessionUrl = computed(() =>
+      authStore.role === 'STUDENT' && authStore.user?.student_id
+        ? `/courses/eligible/${authStore.user?.student_id}`
+        : undefined,
+    );
+
     const coursesInCurrentSessionResp = markRaw(
       useAsyncData(
-        getCacheKeyFor(coursesInCurrentSessionUrl),
+        getCacheKeyFor(`courses-in-current-session`),
         async function () {
-          if (!authStore.user?.student_id) {
+          if (!coursesInCurrentSessionUrl.value) {
             return [];
           }
 
@@ -22,7 +26,7 @@ export const useStudentStore = defineStore(
             status: 'success';
             data: StudentCourseListType[];
           }>({
-            url: coursesInCurrentSessionUrl,
+            url: coursesInCurrentSessionUrl.value,
             validateStatus(status) {
               return status < 400;
             },
@@ -52,12 +56,16 @@ export const useStudentStore = defineStore(
       ),
     );
 
-    const coursesInProgramUrl = `/courses/program/${authStore.user?.student_id}`;
+    const coursesInProgramUrl = computed(() =>
+      authStore.role === 'STUDENT' && authStore.user?.student_id
+        ? `/courses/program/${authStore.user?.student_id}`
+        : undefined,
+    );
     const coursesInProgramResp = markRaw(
       useAsyncData(
-        getCacheKeyFor(coursesInProgramUrl),
+        getCacheKeyFor(`courses-in-program`),
         async function () {
-          if (!authStore.user?.student_id) {
+          if (!coursesInProgramUrl.value) {
             return [];
           }
 
@@ -65,7 +73,7 @@ export const useStudentStore = defineStore(
             status: 'success';
             data: StudentCourseListType[];
           }>({
-            url: coursesInProgramUrl,
+            url: coursesInProgramUrl.value,
             validateStatus(status) {
               return status < 400;
             },
@@ -94,73 +102,6 @@ export const useStudentStore = defineStore(
         },
       ),
     );
-
-    const selectedEnrollmentSessionId = ref('');
-    const enrollmentsResp = markRaw(
-      useAsyncData(
-        async function () {
-          if (!authStore.user?.student_id) {
-            return [];
-          }
-
-          const resp = await useBackendRequest<{
-            status: 'success';
-            data: EnrollmentListType[];
-          }>({
-            url: `/enrollments`,
-            params: {
-              student_id: authStore.user.student_id,
-              session_id: selectedEnrollmentSessionId.value
-                ? Number(selectedEnrollmentSessionId.value)
-                : undefined,
-            },
-            validateStatus(status) {
-              return status < 400;
-            },
-          });
-
-          const enrollments = resp.data?.data ?? [];
-          return enrollments;
-        },
-        {
-          watch: [() => authStore.token, selectedEnrollmentSessionId],
-          deep: false,
-          lazy: false,
-          immediate: false,
-          default() {
-            return [] as EnrollmentListType[];
-          },
-          transform(list) {
-            return orderBy(
-              list,
-              [
-                (e) => new Date(e.updatedAt).getTime(),
-                (e) => new Date(e.createdAt).getTime(),
-              ],
-              ['desc', 'desc'],
-            );
-          },
-          getCachedData(key) {
-            const enrollments =
-              getCacheFromState<EnrollmentListType[]>(key);
-
-            if (isArray(enrollments)) {
-              return enrollments;
-            }
-
-            return undefined;
-          },
-        },
-      ),
-    );
-
-    const getEnrollmentAsCourseListDataInStore = (
-      enrollment: EnrollmentListType,
-      enrollments?: EnrollmentListType[],
-    ) => {
-      const list = enrollments ?? enrollmentsResp.data.value ?? [];
-      return getEnrollmentAsCourseListData(enrollment, list);
-    };
 
     const selectedStudentSessionId = ref('all');
     const selectedStudentAssignedTo = ref<
@@ -239,8 +180,28 @@ export const useStudentStore = defineStore(
     const selectedStudentId = ref<string | number | undefined>(
       undefined,
     );
+
+    watch(
+      [
+        () =>
+          authStore.role === 'STUDENT'
+            ? authStore.user?.student_id
+            : undefined,
+        selectedStudentId,
+      ],
+      ([currentStudentId]) => {
+        if (currentStudentId && !selectedStudentId.value) {
+          selectedStudentId.value = currentStudentId;
+        }
+      },
+      {
+        immediate: true,
+      },
+    );
+
     const studentResp = markRaw(
       useAsyncData(
+        getCacheKeyFor('single-student'),
         async function () {
           if (
             !(
@@ -271,7 +232,6 @@ export const useStudentStore = defineStore(
           lazy: false,
           immediate: false,
           getCachedData(key) {
-            console.log('cache key is =====> ', key);
             const student =
               getCacheFromState<StudentWithRegistrar>(key);
 
@@ -345,13 +305,16 @@ export const useStudentStore = defineStore(
 
     const studentSessionCoursesResp = markRaw(
       useAsyncData(
+        getCacheKeyFor('student-session-courses'),
         async function () {
           if (
             !(
               !isNaN(Number(selectedStudentSessionId.value)) &&
               selectedStudentId.value &&
               authStore.role &&
-              ['ADMIN', 'REGISTRAR'].includes(authStore.role)
+              ['ADMIN', 'REGISTRAR', 'STUDENT'].includes(
+                authStore.role,
+              )
             )
           ) {
             return [];
@@ -367,11 +330,16 @@ export const useStudentStore = defineStore(
             },
           });
 
-          const sessions = resp.data?.data ?? [];
-          return sessions;
+          const courses = resp.data?.data ?? [];
+          console.log('courses here is ====> ', courses);
+          return courses;
         },
         {
-          watch: [() => authStore.token, selectedStudentId],
+          watch: [
+            () => authStore.token,
+            selectedStudentId,
+            selectedStudentSessionId,
+          ],
           deep: false,
           lazy: false,
           immediate: false,
@@ -393,6 +361,8 @@ export const useStudentStore = defineStore(
             const courses =
               getCacheFromState<StudentCourseListType[]>(key);
 
+            console.log('Courses from cache is ====> ', courses);
+
             if (isArray(courses)) {
               return courses;
             }
@@ -410,7 +380,9 @@ export const useStudentStore = defineStore(
             !(
               selectedStudentId.value &&
               authStore.role &&
-              ['ADMIN', 'REGISTRAR'].includes(authStore.role)
+              ['ADMIN', 'REGISTRAR', 'STUDENT'].includes(
+                authStore.role,
+              )
             )
           ) {
             return [];
@@ -469,10 +441,6 @@ export const useStudentStore = defineStore(
     return {
       coursesInCurrentSessionResp,
       coursesInProgramResp,
-      enrollmentsResp,
-      getEnrollmentAsCourseListData:
-        getEnrollmentAsCourseListDataInStore,
-      selectedEnrollmentSessionId,
       selectedStudentSessionId,
       selectedStudentAssignedTo,
       studentsResp,
@@ -491,10 +459,10 @@ export const useStudentStore = defineStore(
       omit: [
         'coursesInCurrentSessionResp',
         'coursesInProgramResp',
-        'enrollmentsResp',
         'isShowingSuspendModal',
         'isShowingClaimModal',
         'isShowingDeleteModal',
+        'selectedStudentId',
       ],
     },
   },

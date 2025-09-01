@@ -394,7 +394,6 @@ import MobileEnrollment from '~/components/enrollment/MobileEnrollment.vue';
 import ActionCancelIcon from '~/components/icons/ActionCancelIcon.vue';
 import ActionEditIcon from '~/components/icons/ActionEditIcon.vue';
 import StatusBadge from '~/components/icons/StatusBadge.vue';
-import EmptyState from '~/components/ui/EmptyState.vue';
 import FormInput from '~/components/ui/FormInput.vue';
 import { capitalizeFirst, getStatusClass } from '~/helper/formatData';
 import type { EnrollmentListType } from '~/types/enrollment';
@@ -430,47 +429,67 @@ watch(sessionFilter.data, (list) => {
   }
 });
 
+const activeTab = ref<'unassigned' | 'toMe' | 'toOthers'>(
+  'unassigned',
+);
 const { call, data } = useBackendService('/enrollments', 'get');
 const enrollments = ref<Enrollment[]>([]);
 const enrollmentsDataCache = useState('enrollmentsAdmin', () => null);
 const fetchData = async () => {
-  await call({ session_id: selectedSessionId.value || undefined });
+  await call({
+    session_id: selectedSessionId.value || undefined,
+    assigned_to:
+      activeTab.value === 'unassigned'
+        ? 'none'
+        : activeTab.value === 'toMe'
+          ? 'me'
+          : activeTab.value === 'toOthers'
+            ? 'others'
+            : undefined,
+  });
   enrollmentsDataCache.value = data.value;
   enrollments.value = data.value || [];
 };
-onMounted(async () => {
-  if (!enrollmentsDataCache.value) {
-    try {
-      loading.value = true;
-      await fetchData();
-      loading.value = false;
-    } catch (err) {
-      console.error('Failed to fetch dashboard stats', err);
-    }
-  }
 
-  if (enrollmentsDataCache.value) {
-    enrollments.value = enrollmentsDataCache.value || [];
-  }
-});
+watch(
+  activeTab,
+  async (newTab, prevTab) => {
+    if (prevTab && newTab !== prevTab) {
+      enrollmentsDataCache.value = null;
+    }
+
+    if (!enrollmentsDataCache.value) {
+      try {
+        loading.value = true;
+        await fetchData();
+        loading.value = false;
+      } catch (err) {
+        console.error('Failed to fetch admin enrollments', err);
+      }
+    }
+
+    if (enrollmentsDataCache.value) {
+      enrollments.value = enrollmentsDataCache.value || [];
+    }
+  },
+  {
+    immediate: true,
+  },
+);
 
 watch(selectedSessionId, fetchData);
 
 const filteredEnrollments = computed(() => {
-  if (activeTab.value === 'unass') {
-    return enrollments.value;
-  } else if (activeTab.value === 'toOthers') {
-    return enrollments.value.filter(
-      (e) => e.assignedStatus === 'toOthers',
-    );
-  } else {
-    return enrollments.value.filter(
-      (e) => e.assignedStatus === activeTab.value,
-    );
-  }
+  return orderBy(
+    enrollments.value,
+    [
+      (e) => (e.status === 'pending' ? 0 : 1),
+      (e) =>
+        new Date(e.updatedAt as unknown as string | Date).getTime(),
+    ],
+    ['asc', 'asc'],
+  );
 });
-
-const activeTab = ref('unassigned');
 
 const columnHelper = createColumnHelper<Enrollment>();
 
@@ -694,6 +713,7 @@ const handleDeleteAction = async ({
     showDeleteModal.value = false;
     selectedEnrollment.value = null;
   } catch (error) {
+    console.dir(error);
     toast.error('Failed to reject enrollment');
   } finally {
     isActionLoading.value = false;
@@ -716,6 +736,7 @@ const handleEditAction = async () => {
     showEditModal.value = false;
     selectedEnrollment.value = null;
   } catch (error) {
+    console.dir(error);
     toast.error('Failed to reject enrollment');
   } finally {
     isActionLoading.value = false;

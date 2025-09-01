@@ -50,6 +50,17 @@
             </div>
             <div class="row actions">
               <UiButton
+                v-if="student.can_claim"
+                variant="primary"
+                size="sm"
+                @click="studentStore.isShowingClaimModal = true"
+              >
+                <template #icon>
+                  <IconsAcademicCapIcon />
+                </template>
+                Claim Student
+              </UiButton>
+              <UiButton
                 variant="outline"
                 size="sm"
                 @click="viewProgramCourses"
