@@ -371,15 +371,18 @@ import StatusBadge from '~/components/icons/StatusBadge.vue';
 import StudentMain from '~/components/student/studentMain.vue';
 import Button from '~/components/ui/Button.vue';
 import Dialog from '~/components/ui/Dialog.vue';
-import EmptyState from '~/components/ui/EmptyState.vue';
 import FormInput from '~/components/ui/FormInput.vue';
 import { capitalizeFirst, getStatusClass } from '~/helper/formatData';
 import type { EnrollmentListType } from '~/types/enrollment';
 
+definePageMeta({
+  layout: 'student',
+});
+
 // const toast = useToast();
 
 const authState = useAuthStore();
-const studentStore = useStudentStore();
+const enrollmentStore = useEnrollmentStore();
 const sessionFilter = useSessionsFilter();
 const sessionFilterList = computed(() =>
   (sessionFilter.data.value ?? []).map((s) => ({
@@ -387,12 +390,13 @@ const sessionFilterList = computed(() =>
     label: s.session_name,
   })),
 );
+
 const selectedSessionId = computed({
   get() {
-    return studentStore.selectedEnrollmentSessionId;
+    return enrollmentStore.selectedEnrollmentSessionId;
   },
   set(val: string) {
-    studentStore.selectedEnrollmentSessionId = val;
+    enrollmentStore.selectedEnrollmentSessionId = val;
   },
 });
 
@@ -413,17 +417,17 @@ watch(sessionFilter.data, (list) => {
 
 const loading = computed(
   () =>
-    !studentStore.enrollmentsResp.data.value.length &&
-    studentStore.enrollmentsResp.status.value === 'pending',
+    !enrollmentStore.enrollmentsResp.data.value.length &&
+    enrollmentStore.enrollmentsResp.status.value === 'pending',
 );
 
 const enrollments = computed(() => {
-  const list = studentStore.enrollmentsResp.data.value || [];
+  const list = enrollmentStore.enrollmentsResp.data.value || [];
   return list;
 });
 
 onMounted(() => {
-  studentStore.enrollmentsResp.refresh({ dedupe: 'cancel' });
+  enrollmentStore.enrollmentsResp.refresh({ dedupe: 'cancel' });
 });
 
 const columnHelper = createColumnHelper<EnrollmentListType>();
@@ -579,20 +583,20 @@ const calculatePageRange = () => {
 
 const canReEnroll = (enrollment: EnrollmentListType) => {
   const courseEnrollmentData =
-    studentStore.getEnrollmentAsCourseListData(enrollment);
+    enrollmentStore.getEnrollmentAsCourseListData(enrollment);
   return courseEnrollmentData.can_enroll;
 };
 
 const canRequest = (enrollment: EnrollmentListType) => {
   const courseEnrollmentData =
-    studentStore.getEnrollmentAsCourseListData(enrollment);
+    enrollmentStore.getEnrollmentAsCourseListData(enrollment);
   return courseEnrollmentData.can_request;
 };
 
 const selectedEnrollment = ref<EnrollmentListType | null>(null);
 const selectedEnrollmentAsCourseData = computed(() =>
   selectedEnrollment.value
-    ? studentStore.getEnrollmentAsCourseListData(
+    ? enrollmentStore.getEnrollmentAsCourseListData(
         selectedEnrollment.value,
       )
     : undefined,
@@ -635,10 +639,13 @@ const handleEnrollAction = async () => {
       session_id: Number(selectedEnrollment.value.sessionId),
       enrollment_status: 'PENDING',
     });
-    await studentStore.enrollmentsResp.refresh({ dedupe: 'cancel' });
+    await enrollmentStore.enrollmentsResp.refresh({
+      dedupe: 'cancel',
+    });
     showSuccessDialog.value = true;
     showRequestModal.value = false;
   } catch (error) {
+    console.dir(error);
     showFailureDialog.value = true;
   } finally {
     isActionLoading.value = false;
@@ -661,10 +668,13 @@ const handleRequestAction = async () => {
       enrollment_status: 'PENDING',
     });
 
-    await studentStore.enrollmentsResp.refresh({ dedupe: 'cancel' });
+    await enrollmentStore.enrollmentsResp.refresh({
+      dedupe: 'cancel',
+    });
     showSuccessDialog.value = true;
     showRequestModal.value = false;
   } catch (error) {
+    console.dir(error);
     showFailureDialog.value = true;
   } finally {
     isActionLoading.value = false;
@@ -674,10 +684,6 @@ const handleRequestAction = async () => {
 const goToPage = (pageIndex: number) => {
   table.setPageIndex(pageIndex);
 };
-
-definePageMeta({
-  layout: 'student',
-});
 </script>
 
 <style lang="scss" scoped>

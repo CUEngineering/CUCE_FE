@@ -222,6 +222,7 @@
                             </button>
 
                             <button
+                              v-if="row.original.can_claim"
                               class="dropdown-item"
                               @click.stop="
                                 showClaimDialog(row.original)

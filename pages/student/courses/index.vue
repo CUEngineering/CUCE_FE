@@ -1,5 +1,10 @@
 <template>
-  <ClientOnly>
+  <ClientOnly
+    v-if="
+      studentStore.coursesInCurrentSessionResp &&
+      studentStore.coursesInProgramResp
+    "
+  >
     <div
       class="programs-page dashlet-wrapper"
       :class="{ empty: !courses.length }"
@@ -427,6 +432,11 @@ import {
 import { useStudentStore } from '~/stores/student';
 import type { StudentCourseListType } from '~/types/course';
 
+// Define that this page uses the dashboard layout
+definePageMeta({
+  layout: 'student',
+});
+
 const authState = useAuthStore();
 const studentStore = useStudentStore();
 
@@ -434,20 +444,20 @@ const activeTab = ref<'program' | 'session'>('session');
 
 const isFetchingCoursesInSession = computed(
   () =>
-    studentStore.coursesInCurrentSessionResp.status.value ===
+    studentStore.coursesInCurrentSessionResp?.status.value ===
     'pending',
 );
 
 const coursesInSession = computed(
-  () => studentStore.coursesInCurrentSessionResp.data.value,
+  () => studentStore.coursesInCurrentSessionResp?.data.value ?? [],
 );
 
 const isFetchingCoursesInProgram = computed(
-  () => studentStore.coursesInProgramResp.status.value === 'pending',
+  () => studentStore.coursesInProgramResp?.status.value === 'pending',
 );
 
 const coursesInProgram = computed(
-  () => studentStore.coursesInProgramResp.data.value,
+  () => studentStore.coursesInProgramResp?.data.value ?? [],
 );
 
 // watch(activeTab, (tab) => {
@@ -524,15 +534,21 @@ const emptyCoursesMessage = computed(() => {
         !!err.cause.response?.data
       ) {
         const errData = err.cause.response.data as {
-          code?: 'NOT_IN_ACTIVE_SESSION';
+          code?: 'NOT_IN_ACTIVE_SESSION' | 'NO_ACTIVE_SESSION';
           message: string;
           statusCode: 400;
         };
 
         console.log('Error here ===== ', errData);
 
-        if (errData.code === 'NOT_IN_ACTIVE_SESSION') {
-          return `Ooops.. You have not been addded to this session. Contact your registrar for possible resolution...`;
+        switch (errData.code) {
+          case 'NO_ACTIVE_SESSION': {
+            return `Ooops.. There is no active session at the moment. Contact your registrar for possible resolution...`;
+          }
+
+          case 'NOT_IN_ACTIVE_SESSION': {
+            return `Ooops.. You have not been addded to this session. Contact your registrar for possible resolution...`;
+          }
         }
       }
 
@@ -593,7 +609,7 @@ const columns = computed(() => {
     columnHelper.display({
       id: 'actions',
       header: 'Action',
-      cell: (props) => {
+      cell: (/* props */) => {
         return h(
           'button',
           {
@@ -690,9 +706,11 @@ watch(
     });
 
     if (tab === 'program') {
-      studentStore.coursesInProgramResp.refresh({ dedupe: 'cancel' });
+      studentStore.coursesInProgramResp?.refresh({
+        dedupe: 'cancel',
+      });
     } else {
-      studentStore.coursesInCurrentSessionResp.refresh({
+      studentStore.coursesInCurrentSessionResp?.refresh({
         dedupe: 'cancel',
       });
     }
@@ -788,6 +806,7 @@ const handleEnrollAction = async () => {
     showEnrollModal.value = false;
     showRequestModal.value = false;
   } catch (error) {
+    console.dir(error);
     showFailureDialog.value = true;
   } finally {
     isActionLoading.value = false;
@@ -829,16 +848,12 @@ const handleRequestAction = async () => {
     showEnrollModal.value = false;
     showRequestModal.value = false;
   } catch (error) {
+    console.dir(error);
     showFailureDialog.value = true;
   } finally {
     isActionLoading.value = false;
   }
 };
-
-// Define that this page uses the dashboard layout
-definePageMeta({
-  layout: 'student',
-});
 </script>
 
 <style lang="scss" scoped>
