@@ -3,27 +3,27 @@
     <div class="registrar-header">
       <div class="registrar-avatar">
         <img
-          :src="selectedCourse.profile_picture"
+          :src="
+            student.profile_picture ??
+            `https://lccvdfvlczhicqnrelsv.supabase.co/storage/v1/object/public/cuce/static/default.png`
+          "
           alt="Registrar avatar"
         />
       </div>
       <div class="registrar-info">
         <div class="name-status-wrapper">
           <h3 class="registrar-name">
-            {{ selectedCourse.first_name }}{{ ' '
-            }}{{ selectedCourse.last_name }}
+            {{ student.first_name }}{{ ' ' }}{{ student.last_name }}
           </h3>
           <div
             class="status-badge"
             :class="statusClass"
           >
             <span class="status-dot"></span>
-            {{ capitalizeFirst(selectedCourse.program.program_type) }}
+            {{ capitalizeFirst(student.program.program_type) }}
           </div>
         </div>
-        <div class="">
-          @{{ capitalizeFirst(selectedCourse.reg_number) }}
-        </div>
+        <div class="">@{{ capitalizeFirst(student.reg_number) }}</div>
       </div>
       <div class="registrar-actions">
         <div class="dropdown">
@@ -41,14 +41,40 @@
               class="dropdown-menu"
               @click.stop
             >
-              <button class="dropdown-item">
+              <button
+                class="dropdown-item"
+                @click.stop="showStudent(student)"
+              >
+                <span class="dropdown-icon">
+                  <IconsEyeIcon />
+                </span>
+                View Student
+              </button>
+
+              <button
+                class="dropdown-item"
+                @click.stop="showClaimDialog(student)"
+              >
+                <span class="dropdown-icon">
+                  <IconsAcademicCapIcon />
+                </span>
+                Claim Student
+              </button>
+
+              <button
+                class="dropdown-item"
+                @click.stop="showSuspendDialog(student)"
+              >
                 <span class="dropdown-icon">
                   <IconsCloseCircleIcon />
                 </span>
                 Suspend Account
               </button>
 
-              <button class="dropdown-item">
+              <button
+                class="dropdown-item"
+                @click.stop="showDeleteDialog(student)"
+              >
                 <span class="dropdown-icon">
                   <IconsDeleteIcon />
                 </span>
@@ -66,34 +92,23 @@
         <div class="stat-item">
           <div class="stat-label">Registrar</div>
           <div class="stat-value">
-            <template
-              v-if="selectedCourse.enrollments[0]?.registrars?.email"
-            >
+            <template v-if="student.registrar?.email">
               <div
                 style="width: fit-content"
                 class="student-info status-badge profile-count pill p-grey"
               >
                 <img
                   :src="
-                    selectedCourse.enrollments[0].registrars
-                      .profile_picture
+                    student.registrar?.profile_picture ??
+                    `https://lccvdfvlczhicqnrelsv.supabase.co/storage/v1/object/public/cuce/static/default.png`
                   "
-                  :alt="
-                    selectedCourse.enrollments[0].registrars
-                      .first_name
-                  "
+                  :alt="`${student.registrar?.first_name}`"
                   class="avatar"
                 />
                 <div class="student-details">
                   <div class="student-name">
-                    {{
-                      selectedCourse.enrollments[0].registrars
-                        .first_name
-                    }}
-                    {{
-                      selectedCourse.enrollments[0].registrars
-                        .last_name
-                    }}
+                    {{ student.registrar?.first_name }}
+                    {{ student.registrar?.last_name }}
                   </div>
                 </div>
               </div>
@@ -111,7 +126,7 @@
         <div class="stat-item">
           <div class="stat-label">Programmes</div>
           <div class="stat-value">
-            {{ selectedCourse.program.program_name }}
+            {{ student.program.program_name }}
           </div>
         </div>
       </div>
@@ -129,48 +144,15 @@ import {
 } from 'vue';
 import DotsVerticalIcon from '~/components/icons/DotsVerticalIcon.vue';
 import { capitalizeFirst } from '~/helper/formatData';
+import type { StudentWithRegistrar } from '~/types/student';
 
-interface Student {
-  student_id: number;
-  reg_number: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  profile_picture: string;
-  program_id: number;
-  enrollments: Enrollment[];
-  program: Program;
-}
-
-interface Enrollment {
-  sessions: any | null;
-  registrar_id: number;
-  enrollment_id: number;
-  registrars: Registrar;
-}
-
-interface Registrar {
-  registrar_id: number;
-  first_name: string;
-  last_name: string;
-  email: string;
-  profile_picture: string;
-}
-
-interface Program {
-  program_name: string;
-  program_type: string;
-  total_credits: number;
-}
 interface Props {
-  selectedCourse: Student;
+  student: StudentWithRegistrar;
 }
 
 const props = defineProps<Props>();
 
-const emit = defineEmits<{
-  (e: 'viewDetails'): void;
-}>();
+const studentStore = useStudentStore();
 
 // Create a unique ID for this card instance
 const cardId = Symbol('registrar-card');
@@ -204,10 +186,6 @@ const closeDropdown = (/* event: MouseEvent */) => {
   }
 };
 
-const viewDetails = () => {
-  emit('viewDetails');
-};
-
 // Add and remove event listeners
 onMounted(() => {
   document.addEventListener('click', closeDropdown);
@@ -219,7 +197,7 @@ onBeforeUnmount(() => {
 
 // Status classes
 const statusClass = computed(() => {
-  switch (props.selectedCourse.program.program_type.toLowerCase()) {
+  switch (props.student.program.program_type.toLowerCase()) {
     case 'undergraduate':
     case 'doctorate':
       return 'status-active';
@@ -229,6 +207,30 @@ const statusClass = computed(() => {
       return '';
   }
 });
+
+const showStudent = async (student: StudentWithRegistrar) => {
+  await navigateTo({
+    name: 'admin-students-studentId',
+    params: {
+      studentId: student.student_id,
+    },
+  });
+};
+
+const showClaimDialog = async (student: StudentWithRegistrar) => {
+  studentStore.selectedStudentId = student.student_id;
+  studentStore.isShowingClaimModal = true;
+};
+
+const showSuspendDialog = async (student: StudentWithRegistrar) => {
+  studentStore.selectedStudentId = student.student_id;
+  studentStore.isShowingSuspendModal = true;
+};
+
+const showDeleteDialog = async (student: StudentWithRegistrar) => {
+  studentStore.selectedStudentId = student.student_id;
+  studentStore.isShowingDeleteModal = true;
+};
 </script>
 
 <style lang="scss" scoped>

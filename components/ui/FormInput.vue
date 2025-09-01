@@ -19,6 +19,8 @@
         :placeholder="placeholder"
         :required="required"
         :disabled="disabled"
+        :min="min"
+        :max="max"
         class="form-input"
         :class="[
           size,
@@ -52,12 +54,18 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({
+  inheritAttrs: true,
+});
+
 withDefaults(
   defineProps<{
     id: string;
     label: string;
     modelValue: string;
     type?: string;
+    min?: string;
+    max?: string;
     placeholder?: string;
     required?: boolean;
     size?: 'sm' | 'md';

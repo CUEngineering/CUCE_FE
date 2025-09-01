@@ -14,8 +14,11 @@ export interface CourseType {
 export interface StudentCourseListType extends CourseType {
   in_active_session: boolean;
   is_enrolled: boolean;
+  is_student_in_session: boolean;
+  is_student_in_active_session: boolean;
   can_enroll: boolean;
   can_request: boolean;
+  enrollment_deadline?: string | Date;
   student_course_enrollements: Pick<
     EnrollmentType,
     | 'session_id'

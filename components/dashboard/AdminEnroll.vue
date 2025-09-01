@@ -1,10 +1,12 @@
 <template>
-  <div style="height: fit-content" class="registrars-page">
-    <AdminEnrollSub />
+  <div
+    style="height: fit-content"
+    class="registrars-page"
+  >
+    <DashboardAdminEnrollSub />
     <div class="pending-invites dashlet-wrapper">
       <div class="invites-list dashlet">
         <p
-          @click="handleNextSession"
           style="
             text-align: center;
             padding: 20px;
@@ -14,16 +16,19 @@
             color: #2a50ad;
             cursor: pointer;
           "
+          @click="handleNextSession"
         >
-          <PlayIcon /><span style="padding-left: 5px">Next Session</span>
+          <IconsPlayIcon /><span style="padding-left: 5px"
+            >Next Session</span
+          >
         </p>
-        <SessionCard
+        <DashboardSessionCard
           v-if="session"
           :session="session"
           @edit-session="handleEditSession"
           @close-session="handleCloseSession"
         />
-        <Dialog
+        <UiDialog
           v-model="showSuspendConfirm"
           title="Close Session?"
           :message="`Are you sure you want to close ${session?.sessionName} Session? Once closed, it can no longer be opened.`"
@@ -38,18 +43,14 @@
 </template>
 
 <script setup lang="ts">
-import { provide, ref } from "vue";
-import PlayIcon from "../icons/PlayIcon.vue";
-import Dialog from "../ui/Dialog.vue";
-import AdminEnrollSub from "./AdminEnrollSub.vue";
-import SessionCard from "./sessionCard.vue";
+import { provide, ref } from 'vue';
 
 definePageMeta({
-  layout: "dashboard",
+  layout: 'dashboard',
 });
 
-const openDropdownId = ref<Symbol | null>(null);
-provide("openDropdownId", openDropdownId);
+const openDropdownId = ref<symbol | null>(null);
+provide('openDropdownId', openDropdownId);
 interface Session {
   sessionId: number;
   sessionName: string;
@@ -66,25 +67,31 @@ const sessionIndex = ref(0);
 const session = computed(() => sessions.value[sessionIndex.value]); // Current session
 const showSuspendConfirm = ref(false);
 const { call: fetchSessions, data: currentData } = useBackendService(
-  "/sessions",
-  "get"
+  '/sessions',
+  'get',
 );
-const registrarDataCache = useState("sessionDataCa", () => null);
-const closedDataCche = useState("closedSessionCa", () => null);
+const registrarDataCache = useState('sessionDataCa', () => null);
+const closedDataCche = useState('closedSessionCa', () => null);
 
 const fetchData = async () => {
-  await fetchSessions({ status: "not_closed" });
+  await fetchSessions({ status: 'not_closed' });
   registrarDataCache.value = currentData.value;
   sessions.value = currentData.value || [];
   sessionIndex.value = 0;
 };
+
 const handleNextSession = () => {
   if (sessions.value.length === 0) return;
-  sessionIndex.value = (sessionIndex.value + 1) % sessions.value.length;
+  sessionIndex.value =
+    (sessionIndex.value + 1) % sessions.value.length;
 };
+
+const sessionToClose = ref<Session | undefined>();
 const handleCloseSession = (session: Session) => {
+  sessionToClose.value = session;
   showSuspendConfirm.value = true;
 };
+
 const handleEditSession = (session: Session) => {
   return navigateTo(`/admin/sessions/${session.sessionId}`);
 };
@@ -93,26 +100,27 @@ const isActionLoading = ref(false);
 
 const confirmClose = async () => {
   const { call: confirmDeactivate } = useBackendService(
-    `/sessions/${session.value?.sessionId}`,
-    ""
+    `/sessions/${sessionToClose.value?.sessionId || session.value?.sessionId}`,
+    '',
   );
 
   if (!session.value) return;
 
   isActionLoading.value = true;
   try {
-    await confirmDeactivate({ session_status: "CLOSED" });
+    await confirmDeactivate({ session_status: 'CLOSED' });
 
     toast.success(`${session.value.sessionName} is now closed`);
     await fetchData();
   } catch (error) {
     // Error case
-    toast.error("Failed to process");
+    toast.error('Failed to process');
   } finally {
     isActionLoading.value = false;
     showSuspendConfirm.value = false;
   }
 };
+
 onMounted(async () => {
   if (!closedDataCche.value && !registrarDataCache.value) {
     try {
@@ -120,7 +128,7 @@ onMounted(async () => {
       await fetchData();
       loading.value = false;
     } catch (err) {
-      console.error("Failed to fetch dashboard stats", err);
+      console.error('Failed to fetch dashboard stats', err);
     }
   }
 

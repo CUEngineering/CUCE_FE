@@ -29,6 +29,8 @@ export interface EnrollmentListType {
   courseDescription: string;
   sessionId: string | number;
   isActiveSession: boolean;
+  enrollmentDeadline: string | Date;
+  isStudentInSession: boolean;
   courseId: string | number;
   courseStatus: string;
   program: string;
