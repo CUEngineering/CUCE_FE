@@ -1,11 +1,56 @@
 <template>
   <div
-    class="component entry student-list dashlet-wrapper"
+    class="component entry student-by-session-list dashlet-wrapper"
     :class="{ empty: !students.length }"
   >
+    <div class="filter">
+      <!-- Tabs for All students, un assigned, assigned to others -->
+      <div class="tabs-filter">
+        <button
+          class="button"
+          :class="{ active: activeTab === 'all' }"
+          @click="activeTab = 'all'"
+        >
+          All
+        </button>
+        <button
+          class="button"
+          :class="{ active: activeTab === 'none' }"
+          @click="activeTab = 'none'"
+        >
+          Un-Assigned
+        </button>
+        <button
+          class="button"
+          :class="{ active: activeTab === 'me' }"
+          @click="activeTab = 'me'"
+        >
+          Assigned To Me
+        </button>
+        <button
+          v-if="authStore.viewerData?.role === 'ADMIN'"
+          class="button"
+          :class="{ active: activeTab === 'others' }"
+          @click="activeTab = 'others'"
+        >
+          Assigned To Others
+        </button>
+      </div>
+      <div class="session-filter">
+        <UiFormSelect
+          id="session-filter"
+          v-model="selectedSessionId"
+          label=""
+          placeholder="Select Session"
+          type="string"
+          :options="sessionFilterList"
+          required
+        />
+      </div>
+    </div>
     <div class="page-header dashlet">
       <div class="title-and-filter">
-        <h2 class="heading-txt">All Students</h2>
+        <h2 class="heading-txt">Students</h2>
       </div>
       <div
         v-if="students.length > 0"
@@ -429,6 +474,7 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table';
+import { orderBy } from 'lodash-es';
 import { computed, reactive, ref } from 'vue';
 import { capitalizeFirst, getStatusClass } from '~/helper/formatData';
 import type { StudentWithRegistrar } from '~/types/student';
@@ -437,7 +483,7 @@ const selectedStudent = ref<StudentWithRegistrar | null>(null);
 
 const authStore = useAuthStore();
 const studentStore = useStudentStore();
-studentStore.allStudentsResp.execute({ dedupe: 'cancel' });
+studentStore.sessionStudentsResp.execute({ dedupe: 'cancel' });
 
 watch(selectedStudent, (student) => {
   if (student) {
@@ -445,12 +491,63 @@ watch(selectedStudent, (student) => {
   }
 });
 
+const activeTab = computed({
+  get() {
+    return studentStore.selectedStudentAssignedTo;
+  },
+  set(v) {
+    if (
+      String(v) !== String(studentStore.selectedStudentAssignedTo)
+    ) {
+      studentStore.sessionStudentsResp.clear();
+    }
+
+    studentStore.selectedStudentAssignedTo = v;
+  },
+});
+
+const sessionFilter = useSessionsFilter();
+const sessionFilterList = computed(() => {
+  return (sessionFilter.data.value ?? []).map((s) => ({
+    value: String(s.session_id),
+    label: s.session_name,
+  }));
+});
+
+const selectedSessionId = computed({
+  get() {
+    return studentStore.selectedStudentSessionId;
+  },
+  set(v: string) {
+    if (String(v) !== String(studentStore.selectedStudentSessionId)) {
+      studentStore.sessionStudentsResp.clear();
+    }
+
+    studentStore.selectedStudentSessionId = v;
+  },
+});
+
+watch(sessionFilter.data, (list) => {
+  const selectedSession = orderBy(
+    list ?? [],
+    [
+      (s) => (s.session_status === 'ACTIVE' ? 1 : 0),
+      (s) => new Date(s.created_at).getTime(),
+    ],
+    ['desc', 'asc'],
+  )[0];
+
+  if (selectedSession) {
+    selectedSessionId.value = String(selectedSession.session_id);
+  }
+});
+
 const students = computed(
-  () => studentStore.allStudentsResp.data.value || [],
+  () => studentStore.sessionStudentsResp.data.value || [],
 );
 
 const loading = computed(() => {
-  const loadingStatus = studentStore.allStudentsResp.status.value;
+  const loadingStatus = studentStore.sessionStudentsResp.status.value;
   if (loadingStatus === 'pending' && !students.value.length) {
     return true;
   }
@@ -760,11 +857,66 @@ const endRecord = computed(() => {
   color: #777;
 }
 
-.component.entry.student-list {
+.component.entry.student-by-session-list {
   max-width: 100%;
 
   &.empty {
     height: 100%;
+  }
+
+  > .filter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $spacing-4;
+    border-bottom: 1px solid $gray-200;
+    background-color: white;
+    gap: $spacing-4;
+
+    > .tabs-filter {
+      display: flex;
+      gap: $spacing-2;
+      padding: $spacing-1;
+      background-color: $gray-100;
+      border-radius: 8px;
+      border: 1px solid $gray-200;
+
+      > .button {
+        padding: $spacing-2 $spacing-8;
+        background: none;
+        border: none;
+        border-radius: 8px;
+        border-bottom: 2px solid transparent;
+        color: $gray-600;
+        font-weight: 400;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: $font-family;
+        font-size: $text-xs;
+
+        &:hover {
+          color: $gray-900;
+        }
+
+        &.active {
+          color: $primary-color-600;
+          background-color: $white;
+          font-weight: 600;
+        }
+      }
+    }
+
+    > .session-filter {
+      display: inline-flex;
+      margin-left: auto;
+      align-items: center;
+
+      :deep() {
+        .form-field {
+          gap: initial;
+        }
+      }
+    }
   }
 
   .page-header {

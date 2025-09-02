@@ -6,18 +6,27 @@
     <div class="page-header dashlet">
       <div class="title-and-filter">
         <h2 class="heading-txt">Programs</h2>
-        <div v-if="programs.length > 0" class="programs-filter">
-          <select v-model="filterType" class="filter-select">
+        <div
+          v-if="programs.length > 0"
+          class="programs-filter"
+        >
+          <select
+            v-model="filterType"
+            class="filter-select"
+          >
             <option value="all">All ({{ programs.length }})</option>
           </select>
         </div>
       </div>
-      <div v-if="programs.length > 0" class="search-and-actions">
+      <div
+        v-if="programs.length > 0"
+        class="search-and-actions"
+      >
         <div class="search-container">
           <FormInput
             id="program-search"
-            label=""
             v-model="searchQuery"
+            label=""
             placeholder="Find a program"
             size="sm"
           >
@@ -29,7 +38,11 @@
           </FormInput>
         </div>
 
-        <Button @click="openAddProgramModal" variant="primary" size="sm">
+        <Button
+          variant="primary"
+          size="sm"
+          @click="openAddProgramModal"
+        >
           <template #icon>
             <PlusIcon />
           </template>
@@ -54,7 +67,10 @@
         />
       </template>
       <template #action>
-        <Button @click="openAddProgramModal" variant="secondary">
+        <Button
+          variant="secondary"
+          @click="openAddProgramModal"
+        >
           <template #icon>
             <PlusIcon />
           </template>
@@ -64,20 +80,28 @@
     </EmptyState>
 
     <!-- Programs table when programs exist -->
-    <div v-if="programs.length && !loading" class="programs-content dashlet">
+    <div
+      v-if="programs.length && !loading"
+      class="programs-content dashlet"
+    >
       <table class="web-table programs-table table-container">
         <thead>
           <tr>
             <th
               v-for="header in table.getHeaderGroups()[0].headers"
               :key="header.id"
-              @click="header.column.getToggleSortingHandler()"
               class="table-header"
+              @click="header.column.getToggleSortingHandler()"
             >
               <div class="header-content">
                 {{ header.column.columnDef.header }}
-                <span v-if="header.column.getIsSorted()" class="sort-indicator">
-                  {{ header.column.getIsSorted() === "desc" ? "▼" : "▲" }}
+                <span
+                  v-if="header.column.getIsSorted()"
+                  class="sort-indicator"
+                >
+                  {{
+                    header.column.getIsSorted() === 'desc' ? '▼' : '▲'
+                  }}
                 </span>
               </div>
             </th>
@@ -87,16 +111,23 @@
           <tr
             v-for="row in table.getRowModel().rows"
             :key="row.id"
-            @click="viewProgramDetails(row.original.id)"
             class="table-row"
+            @click="viewProgramDetails(row.original.id)"
           >
             <td
               v-for="cell in row.getVisibleCells()"
               :key="cell.id"
               class="table-cell"
             >
-              <template v-if="typeof cell.column.columnDef.cell === 'function'">
-                <div v-if="cell.column.id === 'actions'" class="action-cell">
+              <template
+                v-if="
+                  typeof cell.column.columnDef.cell === 'function'
+                "
+              >
+                <div
+                  v-if="cell.column.id === 'actions'"
+                  class="action-cell"
+                >
                   <button class="action-button">
                     <DotsVerticalIcon />
                   </button>
@@ -129,14 +160,18 @@
                   <span
                     class="pill pill-md"
                     :class="
-                      row.original.type.toLowerCase() === 'undergraduate'
+                      row.original.type.toLowerCase() ===
+                      'undergraduate'
                         ? 'p-green'
-                        : row.original.type.toLowerCase() === 'doctorate'
-                        ? 'p-yellow'
-                        : 'p-blue'
+                        : row.original.type.toLowerCase() ===
+                            'doctorate'
+                          ? 'p-yellow'
+                          : 'p-blue'
                     "
                   >
-                    {{ capitalizeFirst(row.original.type.toLowerCase()) }}
+                    {{
+                      capitalizeFirst(row.original.type.toLowerCase())
+                    }}
                   </span>
                 </div>
                 <div v-else>
@@ -152,7 +187,7 @@
         <MobileMain
           v-for="row in table.getRowModel().rows"
           :key="row.id"
-          :selectedCourse="row.original"
+          :selected-course="row.original"
           @viewDetails="viewProgramDetails(row.original.id as any)"
         />
       </div>
@@ -161,9 +196,9 @@
       <div class="pagination">
         <div class="pagination-controls">
           <button
-            @click="table.previousPage()"
             :disabled="!table.getCanPreviousPage()"
             class="pagination-button"
+            @click="table.previousPage()"
           >
             <svg
               width="16"
@@ -186,19 +221,20 @@
             <button
               v-for="page in calculatePageRange()"
               :key="page"
-              @click="goToPage(page - 1)"
               class="page-button"
               :class="{
-                active: table.getState().pagination.pageIndex === page - 1,
+                active:
+                  table.getState().pagination.pageIndex === page - 1,
               }"
+              @click="goToPage(page - 1)"
             >
               {{ page }}
             </button>
           </div>
           <button
-            @click="table.nextPage()"
             :disabled="!table.getCanNextPage()"
             class="pagination-button"
+            @click="table.nextPage()"
           >
             Next
             <svg
@@ -234,7 +270,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ColumnSort } from "@tanstack/vue-table";
+import type { ColumnSort } from '@tanstack/vue-table';
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -242,18 +278,18 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useVueTable,
-} from "@tanstack/vue-table";
-import { computed, h, reactive, ref } from "vue";
-import AddProgramModal from "~/components/AddProgramModal.vue";
-import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
-import PlusIcon from "~/components/icons/PlusIcon.vue";
-import MobileMain from "~/components/program/MobileMain.vue";
-import Button from "~/components/ui/Button.vue";
-import EmptyState from "~/components/ui/EmptyState.vue";
-import FormInput from "~/components/ui/FormInput.vue";
-import ToastContainer from "~/components/ui/ToastContainer.vue";
-import { capitalizeFirst, formatPrograms } from "~/helper/formatData";
-import type { ProgramOutput } from "~/types/program";
+} from '@tanstack/vue-table';
+import { computed, h, reactive, ref } from 'vue';
+import AddProgramModal from '~/components/AddProgramModal.vue';
+import DotsVerticalIcon from '~/components/icons/DotsVerticalIcon.vue';
+import PlusIcon from '~/components/icons/PlusIcon.vue';
+import MobileMain from '~/components/program/MobileMain.vue';
+import Button from '~/components/ui/Button.vue';
+import EmptyState from '~/components/ui/EmptyState.vue';
+import FormInput from '~/components/ui/FormInput.vue';
+import ToastContainer from '~/components/ui/ToastContainer.vue';
+import { capitalizeFirst, formatPrograms } from '~/helper/formatData';
+import type { ProgramOutput } from '~/types/program';
 
 interface Program {
   id: number;
@@ -266,11 +302,11 @@ interface Program {
 }
 const loading = ref(false);
 const programs = ref<Program[]>([]);
-const programsDataCache = useState("programsDataCache", () => null);
+const programsDataCache = useState('programsDataCache', () => null);
 
 const { call: fetchPrograms, data: programsData } = useBackendService(
-  "/programs",
-  "get"
+  '/programs',
+  'get',
 );
 
 const fetchData = async () => {
@@ -286,7 +322,7 @@ onMounted(async () => {
       await fetchData();
       loading.value = false;
     } catch (err) {
-      console.error("Failed to fetch dashboard stats", err);
+      console.error('Failed to fetch dashboard stats', err);
     }
   }
 
@@ -295,62 +331,62 @@ onMounted(async () => {
   }
 });
 
-const filterType = ref("all");
+const filterType = ref('all');
 
 const columnHelper = createColumnHelper<Program>();
 
 const columns = [
-  columnHelper.accessor("name", {
-    header: "Program Name",
+  columnHelper.accessor('name', {
+    header: 'Program Name',
     cell: (props) => props.getValue(),
   }),
-  columnHelper.accessor("enrolledStudents", {
-    header: "Enrolled Students",
+  columnHelper.accessor('enrolledStudents', {
+    header: 'Enrolled Students',
     cell: (props) => props.getValue(),
   }),
-  columnHelper.accessor("courses", {
-    header: "Courses associated",
+  columnHelper.accessor('courses', {
+    header: 'Courses associated',
     cell: (props) => {
       const coreCount = props.row.original.coreCount;
-      return `${props.getValue()} ${coreCount ? `+${coreCount} core` : ""}`;
+      return `${props.getValue()} ${coreCount ? `+${coreCount} core` : ''}`;
     },
   }),
-  columnHelper.accessor("type", {
-    header: "Type",
+  columnHelper.accessor('type', {
+    header: 'Type',
     cell: (props) => props.getValue(),
   }),
-  columnHelper.accessor("credits", {
-    header: "Credits",
+  columnHelper.accessor('credits', {
+    header: 'Credits',
     cell: (props) => props.getValue(),
   }),
   columnHelper.display({
-    id: "actions",
-    header: "Action",
+    id: 'actions',
+    header: 'Action',
     cell: (props) => {
       return h(
-        "button",
+        'button',
         {
           onClick: (e) => {
             e.stopPropagation();
             // Action logic here
           },
-          class: "action-button",
+          class: 'action-button',
         },
-        h(DotsVerticalIcon)
+        h(DotsVerticalIcon),
       );
     },
   }),
 ];
 
 // Table state
-const globalFilter = ref("");
+const globalFilter = ref('');
 const tableState = reactive({
   pagination: {
     pageIndex: 0,
     pageSize: 10,
   },
   sorting: [] as ColumnSort[],
-  globalFilter: "",
+  globalFilter: '',
 });
 
 // Keep searchQuery in sync with globalFilter
@@ -373,12 +409,16 @@ const table = useVueTable({
   },
   onSortingChange: (updater) => {
     const newValue =
-      typeof updater === "function" ? updater(tableState.sorting) : updater;
+      typeof updater === 'function'
+        ? updater(tableState.sorting)
+        : updater;
     tableState.sorting = newValue;
   },
   onPaginationChange: (updater) => {
     const newValue =
-      typeof updater === "function" ? updater(tableState.pagination) : updater;
+      typeof updater === 'function'
+        ? updater(tableState.pagination)
+        : updater;
     tableState.pagination = newValue;
   },
   getCoreRowModel: getCoreRowModel(),
@@ -397,7 +437,10 @@ const calculatePageRange = () => {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }
 
-  let startPage = Math.max(currentPage - Math.floor(maxVisiblePages / 2), 1);
+  let startPage = Math.max(
+    currentPage - Math.floor(maxVisiblePages / 2),
+    1,
+  );
   let endPage = startPage + maxVisiblePages - 1;
 
   if (endPage > totalPages) {
@@ -407,7 +450,7 @@ const calculatePageRange = () => {
 
   return Array.from(
     { length: endPage - startPage + 1 },
-    (_, i) => startPage + i
+    (_, i) => startPage + i,
   );
 };
 
@@ -433,7 +476,7 @@ const viewProgramDetails = (programId: number) => {
 
 // Define that this page uses the dashboard layout
 definePageMeta({
-  layout: "dashboard",
+  layout: 'dashboard',
   // middleware: ["auth"],
 });
 </script>

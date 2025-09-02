@@ -1,9 +1,18 @@
 <template>
-  <div class="sidebar" :class="{ 'sidebar-collapsed': isCollapsed }">
+  <div
+    class="sidebar"
+    :class="{ 'sidebar-collapsed': isCollapsed }"
+  >
     <!-- Logo -->
     <div class="logo-container">
-      <Logo type="full" v-if="!isCollapsed" />
-      <Logo type="compact" v-else />
+      <Logo
+        v-if="!isCollapsed"
+        type="full"
+      />
+      <Logo
+        v-else
+        type="compact"
+      />
     </div>
 
     <!-- Navigation Links -->
@@ -100,12 +109,30 @@
         </span>
         <span class="label">Students</span>
       </NuxtLink>
+
+      <NuxtLink
+        to="/admin/all/students"
+        class="nav-item"
+        :class="{
+          active:
+            currentPath === '/admin/all/students' ||
+            currentPath.startsWith('/admin/all/students/'),
+        }"
+      >
+        <span class="icon">
+          <IconsStudentHub />
+        </span>
+        <span class="label">All Students</span>
+      </NuxtLink>
     </nav>
 
     <!-- Bottom Section -->
     <div class="sidebar-bottom">
       <div class="help-section">
-        <NuxtLink to="/admin/help" class="nav-item">
+        <NuxtLink
+          to="/admin/help"
+          class="nav-item"
+        >
           <span class="icon">
             <IconsHelpIcon />
           </span>
@@ -114,7 +141,10 @@
       </div>
 
       <div class="settings-section">
-        <NuxtLink to="/admin/settings" class="nav-item">
+        <NuxtLink
+          to="/admin/settings"
+          class="nav-item"
+        >
           <span class="icon">
             <IconsSettingsIcon />
           </span>

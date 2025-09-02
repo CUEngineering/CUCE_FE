@@ -334,7 +334,8 @@ const handleSubmit = async () => {
     if (resp.status === 204) {
       await Promise.all([
         studentStore.studentResp.refresh({ dedupe: true }),
-        studentStore.studentsResp.refresh({ dedupe: true }),
+        studentStore.sessionStudentsResp.refresh({ dedupe: true }),
+        studentStore.allStudentsResp.refresh({ dedupe: true }),
       ]);
 
       toast.success(

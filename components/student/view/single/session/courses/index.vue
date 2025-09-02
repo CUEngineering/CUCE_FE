@@ -214,10 +214,6 @@ watch(
   },
 );
 
-onBeforeUnmount(() => {
-  studentStore.selectedStudentSessionId = 'all';
-});
-
 const sessionName = computed(
   () => sessionDetailResp.data.value?.session_name ?? 'Session',
 );

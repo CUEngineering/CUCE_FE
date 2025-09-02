@@ -48,7 +48,10 @@
                 </div>
               </div>
             </div>
-            <div class="row actions">
+            <div
+              v-if="student.can_claim || viewer.role === 'ADMIN'"
+              class="row actions"
+            >
               <UiButton
                 v-if="student.can_claim"
                 variant="primary"
@@ -60,36 +63,38 @@
                 </template>
                 Claim Student
               </UiButton>
-              <UiButton
-                variant="outline"
-                size="sm"
-                @click="viewProgramCourses"
-              >
-                <template #icon>
-                  <IconsEyeIcon />
-                </template>
-                View Program Courses
-              </UiButton>
-              <UiButton
-                variant="yellow"
-                size="sm"
-                @click="studentStore.isShowingSuspendModal = true"
-              >
-                <template #icon>
-                  <IconsCloseCircleIcon />
-                </template>
-                Suspend Account
-              </UiButton>
-              <UiButton
-                variant="danger"
-                size="sm"
-                @click="studentStore.isShowingDeleteModal = true"
-              >
-                <template #icon>
-                  <IconsTrashIcon />
-                </template>
-                Remove Account
-              </UiButton>
+              <template v-if="viewer.role === 'ADMIN'">
+                <UiButton
+                  variant="outline"
+                  size="sm"
+                  @click="viewProgramCourses"
+                >
+                  <template #icon>
+                    <IconsEyeIcon />
+                  </template>
+                  View Program Courses
+                </UiButton>
+                <UiButton
+                  variant="yellow"
+                  size="sm"
+                  @click="studentStore.isShowingSuspendModal = true"
+                >
+                  <template #icon>
+                    <IconsCloseCircleIcon />
+                  </template>
+                  Suspend Account
+                </UiButton>
+                <UiButton
+                  variant="danger"
+                  size="sm"
+                  @click="studentStore.isShowingDeleteModal = true"
+                >
+                  <template #icon>
+                    <IconsTrashIcon />
+                  </template>
+                  Remove Account
+                </UiButton>
+              </template>
             </div>
           </div>
         </div>
