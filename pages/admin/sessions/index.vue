@@ -444,29 +444,92 @@ const closedDataCche = useState("closedSessionCah", () => null);
 const fetchData = async () => {
   await fetchSessions({ status: "not_closed" });
   registrarDataCache.value = currentData.value;
-  sessions.value = currentData.value || [];
+  // sessions.value = currentData.value || [];
+
+  //Addie's Update Starts Here
+  const all = (currentData.value ?? []) as Session[];
+
+  // Split sessions
+  const active = all.find((s) => s.sessionStatus === "ACTIVE");
+  const upcoming = all
+    .filter((s) => s.sessionStatus === "UPCOMING")
+    .sort(
+      (a, b) =>
+        new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+    );
+
+  // Build final result
+  const selected: Session[] = [];
+  if (active) selected.push(active);
+  for (const s of upcoming) {
+    if (selected.length >= 2) break;
+    selected.push(s);
+  }
+
+  sessions.value = selected;
+  //Addie's Update Ends Here
 
   await fetchClosedSessions({ status: "closed" });
   closedDataCche.value = closedData.value;
   closedSessions.value = closedData.value || [];
 };
 
-onMounted(async () => {
-  if (!closedDataCche.value && !registrarDataCache.value) {
-    try {
-      loading.value = true;
-      await fetchData();
-      loading.value = false;
-    } catch (err) {
-      console.error("Failed to fetch dashboard stats", err);
-    }
-  }
+// onMounted(async () => {
+//   if (!closedDataCche.value && !registrarDataCache.value) {
+//     try {
+//       loading.value = true;
+//       await fetchData();
+//       loading.value = false;
+//     } catch (err) {
+//       console.error("Failed to fetch dashboard stats", err);
+//     }
+//   }
 
-  if (closedDataCche.value || registrarDataCache.value) {
-    sessions.value = registrarDataCache.value || [];
-    closedSessions.value = closedDataCche.value || [];
+//   if (closedDataCche.value || registrarDataCache.value) {
+//     sessions.value = registrarDataCache.value || [];
+//     closedSessions.value = closedDataCche.value || [];
+//   }
+// });
+
+//Addie's Update Starts Here
+onMounted(async () => {
+  try {
+    loading.value = true;
+
+    if (!closedDataCche.value && !registrarDataCache.value) {
+      await fetchData();
+    } else {
+      // Only hydrate closedSessions; do not reset sessions
+      closedSessions.value = closedDataCche.value || [];
+
+      // Still filter registrarDataCache before assigning to sessions
+      const all = (registrarDataCache.value ?? []) as Session[];
+      const active = all.find((s) => s.sessionStatus === "ACTIVE");
+      const upcoming = all
+        .filter((s) => s.sessionStatus === "UPCOMING")
+        .sort(
+          (a, b) =>
+            new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+        );
+
+      const selected: Session[] = [];
+      if (active) selected.push(active);
+      for (const s of upcoming) {
+        if (selected.length >= 2) break;
+        selected.push(s);
+      }
+
+      sessions.value = selected;
+    }
+
+    loading.value = false;
+  } catch (err) {
+    console.error("Failed to fetch dashboard stats", err);
+    loading.value = false;
   }
 });
+
+//Addie's Update Ends Here
 
 const tableState = reactive({
   pagination: {
@@ -576,7 +639,7 @@ const handleAddStudentSubmit = async (formData: any) => {
 
 const handleAddStudentFinal = async (formData: any) => {
   const payload = {
-    data: newSessionFormData,
+    data: newSessionFormData.value,
     studentIds: formData,
   };
   await createWstudents(payload);
@@ -782,10 +845,9 @@ const confirmDelete = async () => {
     }
 
     .registrars-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+      display: flex;
       gap: 1rem;
-      align-items: start;
+      align-items: stretch;
       overflow-y: auto;
       padding: 12px;
       border-radius: 16px;
