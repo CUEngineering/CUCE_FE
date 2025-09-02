@@ -6,7 +6,7 @@
     >
       <div class="page-header dashlet">
         <div class="title-section">
-          <h2 class="page-title heading-txt">Registrars</h2>
+          <h2 class="heading-txt">Registrars</h2>
           <div class="profile-count pill p-grey pill-sm">
             {{
               filteredRegistrars.length > 0

@@ -154,9 +154,8 @@ definePageMeta({
   }
 }
 .registrars-list {
-  display: grid;
-  // grid-template-columns: repeat(4, 1fr);
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  display: flex;
+  flex-direction: row;
   gap: 1rem;
   align-items: start;
   overflow-y: auto;
@@ -173,6 +172,10 @@ definePageMeta({
     justify-content: center;
     align-items: center;
     width: 100%;
+  }
+
+  @media (max-width: $breakpoint-md) {
+    flex-direction: column;
   }
 }
 </style>
