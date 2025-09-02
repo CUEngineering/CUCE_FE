@@ -1,5 +1,5 @@
 <template>
-  <StudentBySessionList />
+  <StudentList />
 </template>
 
 <script setup lang="ts">

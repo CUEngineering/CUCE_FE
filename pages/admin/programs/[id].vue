@@ -707,6 +707,7 @@ const fetchData = async () => {
     (course) => !programCourses.value.some((c) => c.id === course.id),
   );
 };
+
 onMounted(async () => {
   if (
     !coursesDataCache.value &&
@@ -793,6 +794,16 @@ const openRemoveCourseDialog = (course: Course) => {
   showRemoveCourseDialog.value = true;
 };
 
+const refetchProgramList = async () => {
+  const programsDataCache = useState('programsDataCache', () => null);
+
+  const { call: fetchPrograms, data: programsData } =
+    useBackendService('/programs', 'get');
+
+  await fetchPrograms();
+  programsDataCache.value = programsData.value;
+};
+
 const handleProgramUpdated = async (
   updatedProgram: ProgramOutput,
 ) => {
@@ -805,7 +816,7 @@ const handleProgramUpdated = async (
     };
   }
 
-  await fetchData();
+  await Promise.all([fetchData(), refetchProgramList()]);
   toast.success('Program updated successfully');
 };
 
@@ -821,7 +832,7 @@ const handleCoursesAdded = async (courses: Course[]) => {
     (c) => !courses.some((newCourse) => newCourse.id === c.id),
   );
 
-  await fetchData();
+  await Promise.all([fetchData(), refetchProgramList()]);
   toast.success(`${courses.length} courses added to program`);
 };
 
@@ -851,10 +862,9 @@ const confirmRemoveCourse = async () => {
       }
     }
 
+    await Promise.all([fetchData(), refetchProgramList()]);
     toast.success(`Course removed from program`);
-
     courseToRemove.value = null;
-    await fetchData();
   } catch (error) {
     console.error('Error removing course:', error);
     toast.error('Failed to remove course');
