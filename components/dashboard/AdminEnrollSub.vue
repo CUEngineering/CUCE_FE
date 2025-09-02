@@ -80,7 +80,7 @@
                   <template
                     v-if="typeof cell.column.columnDef.cell === 'function'"
                   >
-                    <div
+                    <!-- <div
                       v-if="cell.column.id === 'actions'"
                       class="action-cell"
                     >
@@ -103,10 +103,10 @@
                           <ActionEditIcon />
                         </button>
                       </template>
-                    </div>
+                    </div> -->
 
                     <div
-                      v-else-if="cell.column.id === 'status'"
+                      v-if="cell.column.id === 'status'"
                       class="status-badge"
                       :class="getStatusClass(cell.renderValue() as string)"
                     >
@@ -404,13 +404,13 @@ const columns = computed(() => {
     })
   );
 
-  cols.push(
-    columnHelper.display({
-      id: "actions",
-      header: "Action",
-      cell: () => {},
-    })
-  );
+  // cols.push(
+  //   columnHelper.display({
+  //     id: "actions",
+  //     header: "Action",
+  //     cell: () => {},
+  //   })
+  // );
 
   return cols;
 });
