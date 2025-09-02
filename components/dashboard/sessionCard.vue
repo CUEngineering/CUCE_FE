@@ -20,16 +20,16 @@
         </div>
         <div style="display: flex; align-items: center">
           <div style="margin-right: 5px; color: white">
-            {{ authStore.user?.reg_number }}{{ " " }}<Copy />
+            {{ authStore.user?.reg_number }}{{ " " }}<IconsCopy />
           </div>
-          <DotWhite />
+          <IconsDotWhite />
           <div style="margin-left: 5px; color: white">
             {{ authStore.user?.program.total_credits }}{{ " " }}Units
           </div>
         </div>
         <div class="student-details">
           <div style="color: white; font-weight: bold" class="student-name">
-            {{ authStore.user?.program.program_name }}{{ " " }}<Copy />
+            {{ authStore.user?.program.program_name }}{{ " " }}<IconsCopy />
           </div>
         </div>
 
@@ -37,7 +37,7 @@
           style="display: flex; align-items: center; color: white; margin: 20px"
         >
           <div style="margin-right: 5px">Edit Profile</div>
-          <EditIcon />
+          <IconsEditIcon />
         </div>
       </div>
     </div>
@@ -46,7 +46,7 @@
     <div class="registrar-header">
       <div class="registrar-info">
         <div class="name-status-wrapper">
-          <h3 class="registrar-name">Current Session <Question /></h3>
+          <h3 class="registrar-name">Current Session <IconsQuestion /></h3>
         </div>
       </div>
     </div>
@@ -78,7 +78,9 @@
           stroke-width="3"
           fill="none"
           :stroke-dasharray="295"
-          :stroke-dashoffset="295 - (progress * 295) / 100"
+          :stroke-dashoffset="
+            295 - (Number(sessionProgressInPercentage) * 295) / 100
+          "
           stroke-linecap="round"
           transform="rotate(-90 50 50)"
         />
@@ -161,24 +163,24 @@
             <div class="stat-label">Session Duration</div>
             <div class="stat-value">
               <div>
-                <span><SessionIcon /></span>
+                <span><IconsSessionIcon /></span>
                 {{ formatDate(session.startDate) }} -
                 {{ formatDate(session.endDate) }}
               </div>
             </div>
-            <hr style="width: 20vw" />
-            <div
-              style="
-                width: 20vw;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-              "
-            >
-              <div>
-                <span><ClockIcon /></span>
-                {{ daysLeft(session.endDate) }} left
-              </div>
+
+            <div class="session-duration-row">
+              <span><IconsClockIcon /></span>
+              <span>
+                {{
+                  formatDateDistanceFronNow({
+                    targetDate: session.endDate,
+                    daysSuffix: "days(s) left",
+                    pastDateStr: "Session is Closed",
+                    sameDayStr: "Session will close today",
+                  })
+                }}</span
+              >
             </div>
           </div>
         </div>
@@ -191,27 +193,29 @@
             <div class="stat-label">Enrollment Deadline</div>
             <div class="stat-value">
               <div>
-                <span><SessionIcon /></span>
+                <span><IconsSessionIcon /></span>
                 {{ formatDate(session.enrollmentDeadline) }}
               </div>
             </div>
-            <hr style="width: 20vw" />
-            <div
-              style="
-                width: 20vw;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-              "
-            >
-              <div>
-                <span><ClockIcon /></span>
-                {{ daysLeft(session.enrollmentDeadline) }} left
+
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div class="session-duration-row">
+                <span><IconsClockIcon /></span>
+                <span>
+                  {{
+                    formatDateDistanceFronNow({
+                      targetDate: session.enrollmentDeadline,
+                      daysSuffix: "days(s) left",
+                      pastDateStr: "Enrollment is Closed",
+                      sameDayStr: "Enrollment will close today",
+                    })
+                  }}</span
+                >
               </div>
               <p
                 v-if="role === 'ADMIN'"
-                @click="$emit('edit-session', session)"
                 style="color: #2a50ad; font-size: smaller"
+                @click="$emit('edit-session', session)"
               >
                 Extend Deadline
               </p>
@@ -229,14 +233,20 @@
         <div class="stat-divide"></div>
         <div class="stat-label">Session Duration</div>
         <div>
-          <span><SessionIcon /></span>
+          <span><IconsSessionIcon /></span>
           {{ formatDate(session.startDate) }} -
           {{ formatDate(session.endDate) }}
         </div>
         <hr style="width: 15vw; background-color: #2a50ad" />
-        <div>
-          <span><ClockIcon /></span>{{ " " }} Session starts in
-          {{ daysLeft(session.startDate) }}
+        <div v-if="isFuture(new Date(session.startDate))">
+          <span><IconsClockIcon /></span>{{ " " }} Session starts in
+          {{
+            formatDateDistanceFronNow({
+              targetDate: session.enrollmentDeadline,
+              daysSuffix: "days(s)",
+              sameDayStr: "Today",
+            })
+          }}
         </div>
       </div>
       <div
@@ -246,34 +256,47 @@
         <div class="stat-divide" style="background-color: #a05300"></div>
         <div class="stat-label">Enrollment Dealine</div>
         <div>
-          <span><SessionIcon /></span>
-          {{ formatDate(session.enrollmentDeadline) }}
+          <span><IconsSessionIcon /></span>
+          {{ formatDate(sessionEnrollmentDeadline) }}
         </div>
         <hr style="width: 15vw; background-color: #2a50ad" />
         <div>
-          <span><ClockIcon /></span>{{ " " }}
-          {{ daysLeft(session.startDate) }} left to enroll
+          <span><IconsClockIcon /></span>
+          {{ " " }}
+
+          <template v-if="isSameDay(sessionEnrollmentDeadline, now)">
+            Enrollment for this session ends today
+          </template>
+          <template v-else-if="isFuture(sessionEnrollmentDeadline)">
+            Enrollment for this session ends in
+            {{ differenceInDays(sessionEnrollmentDeadline, now) }}
+            day(s)
+          </template>
+          <template v-else> Enrollment for this session has closed </template>
         </div>
       </div>
     </div>
   </div>
   <p
     v-if="role === 'ADMIN'"
+    class="close-session-button"
     @click="$emit('close-session', session)"
-    style="text-align: center; color: red; padding: 20px; cursor: pointer"
   >
     Close Session
   </p>
 </template>
 
 <script setup lang="ts">
+import { useNow } from "@vueuse/core";
+import {
+  differenceInDays,
+  differenceInSeconds,
+  isAfter,
+  isFuture,
+  isSameDay,
+} from "date-fns";
 import { formatDate } from "~/helper/formatData";
-import ClockIcon from "../icons/ClockIcon.vue";
-import Copy from "../icons/Copy.vue";
-import DotWhite from "../icons/DotWhite.vue";
-import EditIcon from "../icons/EditIcon.vue";
-import Question from "../icons/Question.vue";
-import SessionIcon from "../icons/sessionIcon.vue";
+
 interface Session {
   sessionId: number;
   sessionName: string;
@@ -288,29 +311,66 @@ interface Session {
 interface Props {
   session: Session;
 }
+
 const auth = useAuthStore();
-const role = auth.role as "ADMIN" | "REGISTRAR" | "STUDENT";
+const role = auth.role;
+
 const props = defineProps<Props>();
 defineEmits(["edit-session", "close-session"]);
-const daysLeft = (date: string) => {
-  const today = new Date();
-  const targetDate = new Date(date);
-  const diffTime = targetDate.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays > 0 ? `${diffDays} day(s)` : "Expired";
-};
 
-const today = new Date() as any;
-const end = new Date(props.session.endDate) as any;
-const start = new Date(props.session.startDate) as any;
-const totalDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+const now = useNow();
+const sessionEnrollmentDeadline = computed(
+  () => new Date(props.session.enrollmentDeadline)
+);
+const sessionStartDate = computed(() => new Date(props.session.startDate));
+const sessionEndDate = computed(() => new Date(props.session.endDate));
 
-const daysPassed = Math.min(
-  totalDays,
-  Math.max(0, Math.ceil((today - start) / (1000 * 60 * 60 * 24)))
+const formatDateDistanceFronNow = computed(
+  () =>
+    (options: {
+      targetDate: string | Date | number;
+      daysSuffix: string;
+      pastDateStr?: string;
+      sameDayStr?: string;
+    }) => {
+      const targetDate = new Date(options.targetDate);
+      const today = now.value;
+
+      if (isAfter(today, targetDate)) {
+        return options.pastDateStr;
+      }
+
+      const diffInDays = differenceInDays(targetDate, today);
+      if (diffInDays) {
+        return `${diffInDays} ${options.daysSuffix}`;
+      }
+
+      return options.sameDayStr;
+    }
 );
 
-const progress = computed(() => Math.round((daysPassed / totalDays) * 100));
+const sessionProgressInPercentage = computed(() => {
+  if (isAfter(now.value, sessionEndDate.value)) {
+    return `100`;
+  }
+
+  if (!isAfter(now.value, sessionStartDate.value)) {
+    return `0`;
+  }
+
+  const noOfSecondsInSession = differenceInSeconds(
+    sessionEndDate.value,
+    sessionStartDate.value
+  );
+  const noOfSecondsPassed = differenceInSeconds(
+    now.value,
+    sessionStartDate.value
+  );
+
+  return parseFloat(
+    String((noOfSecondsPassed / noOfSecondsInSession) * 100)
+  ).toPrecision(2);
+});
 
 const progressColor = "#2a50ad";
 const { call, data } = useBackendService("/enrollments", "get");
@@ -331,6 +391,28 @@ if (role === "REGISTRAR") {
 /* ====================
    Card Base Styles
    ==================== */
+.close-session-button {
+  text-align: center;
+  color: red;
+  padding: 20px;
+  padding-bottom: 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+.session-duration-row {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  align-items: center;
+  padding-top: 8px;
+  margin-top: 8px;
+  border-top: 1px solid $gray-200;
+
+  span:last-child {
+    font-size: 14px;
+  }
+}
 .registrar-card {
   background-color: $white;
   border-radius: 12px;
@@ -507,13 +589,11 @@ if (role === "REGISTRAR") {
   align-items: center;
   gap: 10px;
   flex: 1;
-  min-width: 79px;
-  max-width: 120px;
 }
 
 .stat-divider {
   width: 5px;
-  height: 50px;
+  height: 100px;
   background-color: $primary-color-200;
   transition: background-color 0.2s ease;
   border-top-right-radius: 4px;
@@ -645,7 +725,8 @@ if (role === "REGISTRAR") {
   min-width: 180px;
   background-color: $white;
   border-radius: 8px;
-  box-shadow: 0px 12px 16px -4px rgba(16, 24, 40, 0.08),
+  box-shadow:
+    0px 12px 16px -4px rgba(16, 24, 40, 0.08),
     0px 4px 6px -2px rgba(16, 24, 40, 0.03);
   border: 1px solid $gray-200;
   overflow: hidden;
@@ -726,7 +807,9 @@ if (role === "REGISTRAR") {
 /* Dropdown transition styles */
 .dropdown-enter-active,
 .dropdown-leave-active {
-  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+  transition:
+    opacity 0.2s ease-in-out,
+    transform 0.2s ease-in-out;
 }
 
 .dropdown-enter-from,

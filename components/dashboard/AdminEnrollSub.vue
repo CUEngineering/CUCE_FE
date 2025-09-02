@@ -15,7 +15,7 @@
         ({{ startRecord }} - {{ endRecord }}) of {{ totalRecords }}
       </div>
       <div v-if="enrollments.length > 0" class="search-and-actions">
-        <Button @click="goToEnrollments" variant="outline" size="sm">
+        <Button variant="outline" size="sm" @click="goToEnrollments">
           View all
         </Button>
       </div>
@@ -50,8 +50,8 @@
                 <th
                   v-for="header in table.getHeaderGroups()[0].headers"
                   :key="header.id"
-                  @click="header.column.getToggleSortingHandler()"
                   class="table-header"
+                  @click="header.column.getToggleSortingHandler()"
                 >
                   <div class="header-content">
                     {{ header.column.columnDef.header }}
@@ -69,8 +69,8 @@
               <tr
                 v-for="row in table.getRowModel().rows"
                 :key="row.id"
-                @click="handleInfo(row.original)"
                 class="table-row"
+                @click="handleInfo(row.original)"
               >
                 <td
                   v-for="cell in row.getVisibleCells()"
@@ -84,18 +84,25 @@
                       v-if="cell.column.id === 'actions'"
                       class="action-cell"
                     >
-                      <button
-                        class="action-button delete-button"
-                        @click.stop="handleDelete(row.original)"
+                      <template
+                        v-if="
+                          row.original.status === 'pending' &&
+                          row.original.isActiveSession
+                        "
                       >
-                        <ActionCancelIcon />
-                      </button>
-                      <button
-                        class="action-button edit-button"
-                        @click.stop="handleEdit(row.original)"
-                      >
-                        <ActionEditIcon />
-                      </button>
+                        <button
+                          class="action-button delete-button"
+                          @click.stop="handleDelete(row.original)"
+                        >
+                          <ActionCancelIcon />
+                        </button>
+                        <button
+                          class="action-button edit-button"
+                          @click.stop="handleEdit(row.original)"
+                        >
+                          <ActionEditIcon />
+                        </button>
+                      </template>
                     </div>
 
                     <div
@@ -174,7 +181,7 @@
           <MobileEnrollment
             v-for="row in table.getRowModel().rows"
             :key="row.id"
-            :selectedEnrollment="row.original"
+            :selected-enrollment="row.original"
             @activate="
               () => {
                 selectedEnrollment = row.original;
@@ -193,9 +200,9 @@
         <div class="pagination">
           <div class="pagination-controls">
             <button
-              @click="table.previousPage()"
               :disabled="!table.getCanPreviousPage()"
               class="pagination-button"
+              @click="table.previousPage()"
             >
               <svg
                 width="16"
@@ -218,19 +225,19 @@
               <button
                 v-for="page in calculatePageRange()"
                 :key="page"
-                @click="goToPage(page - 1)"
                 class="page-button"
                 :class="{
                   active: table.getState().pagination.pageIndex === page - 1,
                 }"
+                @click="goToPage(page - 1)"
               >
                 {{ page }}
               </button>
             </div>
             <button
-              @click="table.nextPage()"
               :disabled="!table.getCanNextPage()"
               class="pagination-button"
+              @click="table.nextPage()"
             >
               Next
               <svg
@@ -254,38 +261,33 @@
       </div>
     </div>
 
-    <RejectDialog
+    <EnrollmentRejectDialog
       v-model="showDeleteModal"
       title="Confirm action!"
       :message="`Are you sure you want to reject this enrollment for <strong>${selectedEnrollment?.studentName}</strong> in ${selectedEnrollment?.courseCode}?`"
       variant="warning"
       :loading="isActionLoading"
       confirm-button-text="Yes, reject"
-      cancelButtonText="No, cancel"
+      cancel-button-text="No, cancel"
       @confirm="handleDeleteAction"
     />
-    <AcceptDialog
+    <EnrollmentAcceptDialog
       v-model="showEditModal"
       title="Course Enrollment"
       :message="`Are you sure you want to approve this enrollment for <strong>${selectedEnrollment?.studentName}</strong> in ${selectedEnrollment?.sessionName}?`"
       variant="warning"
       :loading="isActionLoading"
-      :rejectionCount="
-        getRejectionCount(
-          selectedEnrollment?.studentId || '',
-          selectedEnrollment?.sessionName || '',
-          selectedEnrollment?.courseCode || ''
-        )
-      "
+      :enrollments="selectedEnrollmentHistory"
       confirm-button-text="Yes, approve"
-      cancelButtonText="No"
+      cancel-button-text="No"
       @confirm="handleEditAction"
-      @viewDetails="handleInfo(selectedEnrollment as Enrollment)"
     />
-    <DetailsDialog
+    <EnrollmentDetailsDialog
+      v-if="selectedEnrollment"
       v-model="showInfoModal"
       :loading="isActionLoading"
-      :selectedEnrollment="selectedEnrollment"
+      :selected-enrollment="selectedEnrollment"
+      :enrollments="selectedEnrollmentHistory"
       @confirm="
         () => {
           selectedEnrollment = selectedEnrollment;
@@ -297,13 +299,6 @@
           selectedEnrollment = selectedEnrollment;
           showDeleteModal = true;
         }
-      "
-      :rejectionHistory="
-        getRejectionHistory(
-          selectedEnrollment?.studentId || '',
-          selectedEnrollment?.sessionName || '',
-          selectedEnrollment?.courseCode || ''
-        )
       "
     />
   </div>
@@ -320,34 +315,19 @@ import {
   useVueTable,
 } from "@tanstack/vue-table";
 import { computed, h, reactive, ref } from "vue";
-import AcceptDialog from "~/components/enrollment/AcceptDialog.vue";
-import DetailsDialog from "~/components/enrollment/DetailsDialog.vue";
 import MobileEnrollment from "~/components/enrollment/MobileEnrollment.vue";
-import RejectDialog from "~/components/enrollment/RejectDialog.vue";
 import ActionCancelIcon from "~/components/icons/ActionCancelIcon.vue";
 import ActionEditIcon from "~/components/icons/ActionEditIcon.vue";
 import StatusBadge from "~/components/icons/StatusBadge.vue";
 import EmptyState from "~/components/ui/EmptyState.vue";
 import { capitalizeFirst, getStatusClass } from "~/helper/formatData";
 import Button from "../ui/Button.vue";
+import type { EnrollmentListType } from "~/types/enrollment";
 
-interface Enrollment {
-  enrollmentId?: number;
-  studentName: string;
-  studentId: string;
-  studentImage: string;
-  courseCode: string;
-  courseStatus: string;
-  program: string;
-  status: "approved" | "pending" | "rejected";
-  assignedRegistrar?: string;
-  assignedRegistrarImage?: string;
-  assignedStatus: "unassigned" | "toOthers" | "toMe";
-  sessionName: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-  reason?: string;
+interface Enrollment extends EnrollmentListType {
+  unknwon: unknown;
 }
+
 const toast = useToast();
 const loading = ref(false);
 const router = useRouter();
@@ -384,56 +364,6 @@ onMounted(async () => {
     enrollments.value = enrollmentsDataCache.value || [];
   }
 });
-
-interface RejectionHistory {
-  enrollmentId?: number;
-  reason?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-const getRejectionHistory = (
-  studentId: string,
-  sessionName: string,
-  courseCode: string
-): RejectionHistory[] => {
-  return table
-    .getRowModel()
-    .rows.filter((row) => {
-      const original = row.original;
-      return (
-        original.studentId === studentId &&
-        original.sessionName === sessionName &&
-        original.courseCode === courseCode &&
-        original.status?.toLowerCase() === "rejected"
-      );
-    })
-    .map((row) => {
-      const original = row.original;
-      return {
-        enrollmentId: original.enrollmentId,
-        reason: original.reason,
-        createdAt: original.createdAt,
-        updatedAt: original.updatedAt,
-      };
-    });
-};
-
-const getRejectionCount = (
-  studentId: string,
-  sessionName: string,
-  courseCode: string
-): number => {
-  return table.getRowModel().rows.filter((row) => {
-    const original = row.original;
-    return (
-      original.studentId === studentId &&
-      original.sessionName === sessionName &&
-      original.courseCode === courseCode &&
-      original.status?.toLowerCase() === "rejected"
-    );
-  }).length;
-};
 
 const columnHelper = createColumnHelper<Enrollment>();
 
@@ -550,6 +480,18 @@ const showDeleteModal = ref(false);
 const showInfoModal = ref(false);
 const isActionLoading = ref(false);
 const selectedEnrollment = ref<Enrollment | null>(null);
+
+const selectedEnrollmentCourse = computed(() =>
+  selectedEnrollment.value
+    ? getEnrollmentAsCourseListData(selectedEnrollment.value, enrollments.value)
+    : undefined
+);
+
+const selectedEnrollmentHistory = computed(() =>
+  selectedEnrollmentCourse.value
+    ? selectedEnrollmentCourse.value.student_course_enrollements
+    : []
+);
 
 const handleEdit = async (rowData: Enrollment) => {
   if (rowData.status !== "pending") {
@@ -817,6 +759,17 @@ const endRecord = computed(() => {
 
     &.dashlet {
       padding: 0;
+      flex-grow: 1;
+
+      > div {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+
+        .web-table {
+          flex-grow: 1;
+        }
+      }
     }
   }
 

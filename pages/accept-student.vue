@@ -10,23 +10,34 @@
         <!-- Main Content -->
         <div class="main-content">
           <!-- Welcome Text -->
-          <div v-if="step === 1" class="welcome-text">
+          <div
+            v-if="step === 1"
+            class="welcome-text"
+          >
             <h1>Get Started</h1>
             <p>Get Started, please enter your details.</p>
           </div>
-          <div v-else-if="step === 2" class="welcome-text">
+          <div
+            v-else-if="step === 2"
+            class="welcome-text"
+          >
             <h1>Create Your Account</h1>
-            <p>Please enter your details below to create your account.</p>
+            <p>
+              Please enter your details below to create your account.
+            </p>
           </div>
 
           <form @submit.prevent="handleSubmit">
             <!-- Step 1 -->
-            <div v-if="step === 1" class="form-step">
+            <div
+              v-if="step === 1"
+              class="form-step"
+            >
               <!-- <h2>Step 1: Account Setup</h2> -->
               <FormInput
                 id="email"
-                label="Email"
                 v-model="form.email"
+                label="Email"
                 type="email"
                 placeholder="Enter email"
                 required
@@ -36,9 +47,9 @@
 
               <FormInput
                 id="password"
-                label="Password"
                 v-model="form.password"
-                :type="showPassword ? 'text' : 'password'"
+                label="Password"
+                :type="showPassword1 ? 'text' : 'password'"
                 placeholder="Enter password"
                 required
                 :error="passwordError"
@@ -47,37 +58,55 @@
                   <button
                     type="button"
                     class="toggle-password"
-                    @click="showPassword = !showPassword"
+                    @click="showPassword1 = !showPassword1"
                   >
-                    <EyeIcon v-if="showPassword" />
-                    <EyeOffIcon v-else />
+                    <IconsEyeIcon v-if="showPassword1" />
+                    <IconsEyeOffIcon v-else />
                   </button>
                 </template>
               </FormInput>
 
               <FormInput
                 id="confirm-password"
-                label="Confirm Password"
                 v-model="form.confirmPassword"
-                :type="showPassword ? 'text' : 'password'"
+                label="Confirm Password"
+                :type="showPassword2 ? 'text' : 'password'"
                 placeholder="Confirm password"
                 required
                 :error="passwordError"
-              />
+              >
+                <template #button>
+                  <button
+                    type="button"
+                    class="toggle-password"
+                    @click="showPassword2 = !showPassword2"
+                  >
+                    <IconsEyeIcon v-if="showPassword2" />
+                    <IconsEyeOffIcon v-else />
+                  </button>
+                </template>
+              </FormInput>
 
-              <Button type="button" variant="primary" @click="nextStep">
+              <Button
+                type="button"
+                variant="primary"
+                @click="nextStep"
+              >
                 Next
               </Button>
             </div>
 
             <!-- Step 2 -->
             <!-- Step 2 -->
-            <div v-else-if="step === 2" class="form-step">
+            <div
+              v-else-if="step === 2"
+              class="form-step"
+            >
               <!-- Student Number -->
               <FormInput
                 id="student-number"
-                label="Student Number"
                 v-model="form.studentNumber"
+                label="Student Number"
                 type="text"
                 placeholder="Enter student number"
                 required
@@ -89,8 +118,8 @@
               <div class="name-row">
                 <FormInput
                   id="firstname"
-                  label="First Name"
                   v-model="form.firstName"
+                  label="First Name"
                   type="text"
                   placeholder="Enter first name"
                   required
@@ -99,8 +128,8 @@
 
                 <FormInput
                   id="lastname"
-                  label="Last Name"
                   v-model="form.lastName"
+                  label="Last Name"
                   type="text"
                   placeholder="Enter last name"
                   required
@@ -110,8 +139,13 @@
 
               <!-- Upload and Buttons -->
               <div class="form-group">
-                <label for="profile">Upload Profile picture (Optional)</label>
-                <div class="upload-container" @click="triggerFileDialog">
+                <label for="profile"
+                  >Upload Profile picture (Optional)</label
+                >
+                <div
+                  class="upload-container"
+                  @click="triggerFileDialog"
+                >
                   <img
                     v-if="previewUrl"
                     :src="previewUrl"
@@ -123,16 +157,20 @@
 
                   <!-- Show upload UI if no image -->
                   <template v-else>
-                    <div class="upload-icon"><UploadIcon /></div>
+                    <div class="upload-icon">
+                      <IconsUploadIcon />
+                    </div>
                     <h2 class="upload-title">Upload File</h2>
-                    <p class="upload-subtitle">Maximum size upload: 50MB</p>
+                    <p class="upload-subtitle">
+                      Maximum size upload: 50MB
+                    </p>
                   </template>
                   <input
-                    type="file"
                     id="profile"
-                    class="hidden-input"
-                    accept="*/*"
                     ref="fileInput"
+                    type="file"
+                    class="hidden-input"
+                    accept="image/*"
                     @change="handleFileUpload"
                   />
                 </div>
@@ -142,13 +180,20 @@
                 <!-- <Button type="button" variant="secondary" @click="prevStep"
                   >Back</Button
                 > -->
-                <Button type="submit" variant="primary" :loading="isLoading">
-                  {{ isLoading ? "Submitting..." : "Sign up" }}
+                <Button
+                  type="submit"
+                  variant="primary"
+                  :loading="isLoading"
+                >
+                  {{ isLoading ? 'Submitting...' : 'Sign up' }}
                 </Button>
               </div>
             </div>
 
-            <div v-if="formError" class="error-message">
+            <div
+              v-if="formError"
+              class="error-message"
+            >
               {{ formError }}
             </div>
           </form>
@@ -172,31 +217,26 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import EyeIcon from "~/components/icons/EyeIcon.vue";
-import EyeOffIcon from "~/components/icons/EyeOffIcon.vue";
-import UploadIcon from "~/components/icons/UploadIcon.vue";
-import Logo from "~/components/Logo.vue";
-import Button from "~/components/ui/Button.vue";
-import Carousel from "~/components/ui/Carousel.vue";
-import FormInput from "~/components/ui/FormInput.vue";
-import { useBackendService } from "~/composables/useBackendService";
-import { decodeEmail } from "~/helper/formatData";
+import { onMounted, ref } from 'vue';
+import Logo from '~/components/Logo.vue';
+import Button from '~/components/ui/Button.vue';
+import Carousel from '~/components/ui/Carousel.vue';
+import FormInput from '~/components/ui/FormInput.vue';
+import { useBackendService } from '~/composables/useBackendService';
+import { decodeEmail } from '~/helper/formatData';
 
 // State
 const step = ref(1);
-const showPassword = ref(false);
-const formError = ref("");
-const emailError = ref("");
-const passwordError = ref("");
-const firstName = ref("");
-const lastName = ref("");
-const studentNumberError = ref("");
-
-const toast = useToast();
+const showPassword1 = ref(false);
+const showPassword2 = ref(false);
+const formError = ref('');
+const emailError = ref('');
+const passwordError = ref('');
+const firstName = ref('');
+const lastName = ref('');
+const studentNumberError = ref('');
 
 const authStore = useAuthStore();
-const router = useRouter();
 const route = useRoute();
 const token = route.query.token as string;
 const emailParam = route.query.email as string;
@@ -206,50 +246,53 @@ const reg = decodeEmail(regParam);
 
 const form = ref({
   email: email,
-  password: "",
-  confirmPassword: "",
-  firstName: "",
-  lastName: "",
+  password: '',
+  confirmPassword: '',
+  firstName: '',
+  lastName: '',
   studentNumber: reg,
   profilePicture: null as File | null,
 });
 
-onMounted(() => {
-  authStore.logout();
-});
-
 const { call, isLoading, data } = useBackendService(
-  "/students/accept-invite",
-  "post"
+  '/students/accept-invite',
+  'post',
 );
 const validateEmail = (value: string) => {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return regex.test(value);
 };
 
-const nextStep = () => {
-  formError.value = "";
+const validateAuthForm = async (): Promise<boolean> => {
+  formError.value = '';
   if (
     !form.value.email ||
     !form.value.password ||
     !form.value.confirmPassword
   ) {
-    formError.value = "Please fill out all fields.";
-    emailError.value = "Email is required";
-    return;
+    formError.value = 'Please fill out all fields.';
+    emailError.value = 'Email is required';
+    return false;
   }
   if (form.value.password !== form.value.confirmPassword) {
-    passwordError.value = "Passwords do not match.";
-    return;
+    passwordError.value = 'Passwords do not match.';
+    return false;
   }
   if (!validateEmail(form.value.email)) {
-    formError.value = "Invalid email format.";
-    emailError.value = "Enter a valid email address.";
+    formError.value = 'Invalid email format.';
+    emailError.value = 'Enter a valid email address.';
 
-    return;
+    return false;
   }
 
-  step.value = 2;
+  return true;
+};
+
+const nextStep = async () => {
+  const isValid = await validateAuthForm();
+  if (isValid) {
+    step.value = 2;
+  }
 };
 
 const prevStep = () => {
@@ -273,44 +316,54 @@ const handleFileUpload = (e: Event) => {
 };
 
 const handleSubmit = async () => {
-  formError.value = "";
+  formError.value = '';
 
   if (
     !form.value.firstName ||
     !form.value.lastName ||
     !form.value.studentNumber
   ) {
-    formError.value = "Please fill out all personal details.";
-    firstName.value = "First name is required";
-    lastName.value = "Last name is required";
+    formError.value = 'Please fill out all personal details.';
+    firstName.value = 'First name is required';
+    lastName.value = 'Last name is required';
     return;
   }
 
   const payload = new FormData();
-  payload.append("reg_number", form.value.studentNumber);
-  payload.append("email", form.value.email);
-  payload.append("password", form.value.password);
-  payload.append("first_name", form.value.firstName);
-  payload.append("last_name", form.value.lastName);
-  payload.append("token", token);
+  payload.append('reg_number', form.value.studentNumber);
+  payload.append('email', form.value.email);
+  payload.append('password', form.value.password);
+  payload.append('first_name', form.value.firstName);
+  payload.append('last_name', form.value.lastName);
+  payload.append('token', token);
 
   if (form.value.profilePicture) {
-    payload.append("profile_picture", form.value.profilePicture);
+    payload.append('profile_picture', form.value.profilePicture);
   }
 
   try {
-    await call(payload, { headers: { "Content-Type": "multipart/form-data" } });
-    toast.success("Registrar accepted successfully!");
-    authStore.setAuth(
+    await call(payload, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+
+    await authStore.setAuth(
       data.value.session.access_token,
       data.value.role,
-      data.value.user
+      data.value.user,
     );
-    router.push("/student/dashboard");
-  } catch (err: any) {
-    formError.value = "Failed to submit form.";
+
+    await navigateTo({
+      name: 'student-dashboard',
+    });
+  } catch (err) {
+    console.dir(err);
+    formError.value = 'Failed to submit form.';
   }
 };
+
+onMounted(async () => {
+  await authStore.logout();
+});
 </script>
 
 <style lang="scss" scoped>
@@ -385,7 +438,7 @@ const handleSubmit = async () => {
     gap: 0.5rem;
     font-family: $font-family;
     font-size: $text-sm;
-    input[type="checkbox"] {
+    input[type='checkbox'] {
       width: auto;
     }
   }
@@ -450,7 +503,8 @@ const handleSubmit = async () => {
   position: absolute;
   inset: 0;
   opacity: 0.95;
-  background: url("@/assets/images/BG_Image.png") center/cover no-repeat;
+  background: url('@/assets/images/BG_Image.png') center/cover
+    no-repeat;
   mix-blend-mode: normal;
   pointer-events: none;
   filter: contrast(1.1) blur(20px);
@@ -527,7 +581,7 @@ const handleSubmit = async () => {
     margin-bottom: 0.5rem;
     font-weight: 500;
   }
-  input[type="file"] {
+  input[type='file'] {
     padding: 0.5rem 0;
   }
 }

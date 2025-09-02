@@ -1,18 +1,31 @@
 <template>
   <div class="form-field">
-    <label :for="id" class="form-label">{{ label }}</label>
+    <label
+      :for="id"
+      class="form-label"
+      >{{ label }}</label
+    >
     <div class="input-wrapper">
       <select
         :id="id"
         :value="modelValue"
-        @change="
-          $emit('update:modelValue', ($event.target as HTMLSelectElement).value)
-        "
         :required="required"
         class="form-select"
         :class="[size, { 'has-error': error }]"
+        :placeholder="placeholder"
+        @change="
+          $emit(
+            'update:modelValue',
+            ($event.target as HTMLSelectElement).value,
+          )
+        "
       >
-        <option disabled value="">{{ placeholder }}</option>
+        <option
+          disabled
+          value=""
+        >
+          {{ placeholder }}
+        </option>
         <option
           v-for="(option, index) in options"
           :key="index"
@@ -23,7 +36,12 @@
       </select>
       <IconsChevronDownIcon class="dropdown-icon" />
     </div>
-    <p v-if="error" class="input-error">{{ error }}</p>
+    <p
+      v-if="error"
+      class="input-error"
+    >
+      {{ error }}
+    </p>
   </div>
 </template>
 
@@ -36,18 +54,18 @@ withDefaults(
     options: { label: string; value: string }[];
     placeholder?: string;
     required?: boolean;
-    size?: "sm" | "md";
+    size?: 'sm' | 'md';
     error?: string;
   }>(),
   {
-    placeholder: "Select an option",
-    size: "md",
+    placeholder: 'Select an option',
+    size: 'md',
     error: undefined,
-  }
+  },
 );
 
 defineEmits<{
-  "update:modelValue": [value: string];
+  'update:modelValue': [value: string];
 }>();
 </script>
 
@@ -77,6 +95,10 @@ defineEmits<{
   background-color: white;
   appearance: none;
   padding-right: 2.5rem; // space for icon
+
+  &::placeholder {
+    color: #9ca3af;
+  }
 
   &:focus {
     outline: none;

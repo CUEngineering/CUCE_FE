@@ -10,11 +10,17 @@
     :disabled="disabled || loading"
     @click="$emit('click', $event)"
   >
-    <span v-if="loading" class="loading-spinner"></span>
-    <span v-if="$slots.icon" class="button-icon">
+    <span
+      v-if="loading"
+      class="loading-spinner"
+    ></span>
+    <span
+      v-if="$slots.icon"
+      class="button-icon"
+    >
       <slot name="icon" />
     </span>
-    <span :class="{ 'opacity-0': loading }">
+    <span :class="['text', { 'opacity-0': loading }]">
       <slot />
     </span>
   </button>
@@ -22,23 +28,23 @@
 
 <script setup lang="ts">
 interface Props {
-  type?: "button" | "submit" | "reset";
-  variant?: "primary" | "secondary" | "outline" | "danger" | "yellow";
-  size?: "sm" | "md" | "lg";
+  type?: 'button' | 'submit' | 'reset';
+  variant?: 'primary' | 'secondary' | 'outline' | 'danger' | 'yellow';
+  size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
   disabled?: boolean;
 }
 
 withDefaults(defineProps<Props>(), {
-  type: "button",
-  variant: "primary",
-  size: "md",
+  type: 'button',
+  variant: 'primary',
+  size: 'md',
   loading: false,
   disabled: false,
 });
 
 defineEmits<{
-  (e: "click", event: MouseEvent): void;
+  (e: 'click', event: MouseEvent): void;
 }>();
 </script>
 
@@ -152,6 +158,12 @@ defineEmits<{
     width: 100%;
     height: 100%;
   }
+}
+
+> .text {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
 .loading-spinner {

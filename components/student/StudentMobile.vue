@@ -2,43 +2,82 @@
   <div class="registrar-card card-active">
     <div class="registrar-header">
       <div class="registrar-avatar">
-        <img :src="selectedCourse.profile_picture" alt="Registrar avatar" />
+        <img
+          :src="
+            student.profile_picture ??
+            `https://lccvdfvlczhicqnrelsv.supabase.co/storage/v1/object/public/cuce/static/default.png`
+          "
+          alt="Registrar avatar"
+        />
       </div>
       <div class="registrar-info">
         <div class="name-status-wrapper">
           <h3 class="registrar-name">
-            {{ selectedCourse.first_name }}{{ " "
-            }}{{ selectedCourse.last_name }}
+            {{ student.first_name }}{{ ' ' }}{{ student.last_name }}
           </h3>
-          <div class="status-badge" :class="statusClass">
+          <div
+            class="status-badge"
+            :class="statusClass"
+          >
             <span class="status-dot"></span>
-            {{ capitalizeFirst(selectedCourse.program.program_type) }}
+            {{ capitalizeFirst(student.program.program_type) }}
           </div>
         </div>
-        <div class="">@{{ capitalizeFirst(selectedCourse.reg_number) }}</div>
+        <div class="">@{{ capitalizeFirst(student.reg_number) }}</div>
       </div>
       <div class="registrar-actions">
         <div class="dropdown">
           <button
-            @click.stop="toggleDropdown"
             class="action-button"
             aria-haspopup="true"
             :aria-expanded="dropdownOpen"
+            @click.stop="toggleDropdown"
           >
             <DotsVerticalIcon />
           </button>
           <transition name="dropdown">
-            <div v-if="dropdownOpen" class="dropdown-menu" @click.stop>
-              <button class="dropdown-item">
+            <div
+              v-if="dropdownOpen"
+              class="dropdown-menu"
+              @click.stop
+            >
+              <button
+                class="dropdown-item"
+                @click.stop="showStudent(student)"
+              >
                 <span class="dropdown-icon">
-                  <CloseCircleIcon />
+                  <IconsEyeIcon />
+                </span>
+                View Student
+              </button>
+
+              <button
+                v-if="student.can_claim"
+                class="dropdown-item"
+                @click.stop="showClaimDialog(student)"
+              >
+                <span class="dropdown-icon">
+                  <IconsAcademicCapIcon />
+                </span>
+                Claim Student
+              </button>
+
+              <button
+                class="dropdown-item"
+                @click.stop="showSuspendDialog(student)"
+              >
+                <span class="dropdown-icon">
+                  <IconsCloseCircleIcon />
                 </span>
                 Suspend Account
               </button>
 
-              <button class="dropdown-item">
+              <button
+                class="dropdown-item"
+                @click.stop="showDeleteDialog(student)"
+              >
                 <span class="dropdown-icon">
-                  <DeleteIcon />
+                  <IconsDeleteIcon />
                 </span>
                 Remove Account
               </button>
@@ -54,22 +93,23 @@
         <div class="stat-item">
           <div class="stat-label">Registrar</div>
           <div class="stat-value">
-            <template v-if="selectedCourse.enrollments[0]?.registrars?.email">
+            <template v-if="student.registrar?.email">
               <div
                 style="width: fit-content"
                 class="student-info status-badge profile-count pill p-grey"
               >
                 <img
                   :src="
-                    selectedCourse.enrollments[0].registrars.profile_picture
+                    student.registrar?.profile_picture ??
+                    `https://lccvdfvlczhicqnrelsv.supabase.co/storage/v1/object/public/cuce/static/default.png`
                   "
-                  :alt="selectedCourse.enrollments[0].registrars.first_name"
+                  :alt="`${student.registrar?.first_name}`"
                   class="avatar"
                 />
                 <div class="student-details">
                   <div class="student-name">
-                    {{ selectedCourse.enrollments[0].registrars.first_name }}
-                    {{ selectedCourse.enrollments[0].registrars.last_name }}
+                    {{ student.registrar?.first_name }}
+                    {{ student.registrar?.last_name }}
                   </div>
                 </div>
               </div>
@@ -87,7 +127,7 @@
         <div class="stat-item">
           <div class="stat-label">Programmes</div>
           <div class="stat-value">
-            {{ selectedCourse.program.program_name }}
+            {{ student.program.program_name }}
           </div>
         </div>
       </div>
@@ -96,57 +136,33 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
-import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
-import { capitalizeFirst } from "~/helper/formatData";
+import {
+  computed,
+  inject,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+} from 'vue';
+import DotsVerticalIcon from '~/components/icons/DotsVerticalIcon.vue';
+import { capitalizeFirst } from '~/helper/formatData';
+import type { StudentWithRegistrar } from '~/types/student';
 
-interface Student {
-  student_id: number;
-  reg_number: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  profile_picture: string;
-  program_id: number;
-  enrollments: Enrollment[];
-  program: Program;
-}
-
-interface Enrollment {
-  sessions: any | null;
-  registrar_id: number;
-  enrollment_id: number;
-  registrars: Registrar;
-}
-
-interface Registrar {
-  registrar_id: number;
-  first_name: string;
-  last_name: string;
-  email: string;
-  profile_picture: string;
-}
-
-interface Program {
-  program_name: string;
-  program_type: string;
-  total_credits: number;
-}
 interface Props {
-  selectedCourse: Student;
+  student: StudentWithRegistrar;
 }
 
 const props = defineProps<Props>();
 
-const emit = defineEmits<{
-  (e: "viewDetails"): void;
-}>();
+const studentStore = useStudentStore();
 
 // Create a unique ID for this card instance
-const cardId = Symbol("registrar-card");
+const cardId = Symbol('registrar-card');
 
 // Global registry of open dropdowns
-const openDropdownId = inject<Ref<Symbol | null>>("openDropdownId", ref(null));
+const openDropdownId = inject<Ref<symbol | null>>(
+  'openDropdownId',
+  ref(null),
+);
 const dropdownOpen = computed({
   get: () => openDropdownId.value === cardId,
   set: (value) => {
@@ -165,37 +181,57 @@ const toggleDropdown = (event: MouseEvent) => {
 };
 
 // Close dropdown when clicking outside
-const closeDropdown = (event: MouseEvent) => {
+const closeDropdown = (/* event: MouseEvent */) => {
   if (dropdownOpen.value) {
     dropdownOpen.value = false;
   }
 };
 
-const viewDetails = () => {
-  emit("viewDetails");
-};
-
 // Add and remove event listeners
 onMounted(() => {
-  document.addEventListener("click", closeDropdown);
+  document.addEventListener('click', closeDropdown);
 });
 
 onBeforeUnmount(() => {
-  document.removeEventListener("click", closeDropdown);
+  document.removeEventListener('click', closeDropdown);
 });
 
 // Status classes
 const statusClass = computed(() => {
-  switch (props.selectedCourse.program.program_type.toLowerCase()) {
-    case "undergraduate":
-    case "doctorate":
-      return "status-active";
-    case "masters":
-      return "status-suspended";
+  switch (props.student.program.program_type.toLowerCase()) {
+    case 'undergraduate':
+    case 'doctorate':
+      return 'status-active';
+    case 'masters':
+      return 'status-suspended';
     default:
-      return "";
+      return '';
   }
 });
+
+const showStudent = async (student: StudentWithRegistrar) => {
+  await navigateTo({
+    name: 'admin-students-studentId',
+    params: {
+      studentId: student.student_id,
+    },
+  });
+};
+
+const showClaimDialog = async (student: StudentWithRegistrar) => {
+  studentStore.selectedStudentId = student.student_id;
+  studentStore.isShowingClaimModal = true;
+};
+
+const showSuspendDialog = async (student: StudentWithRegistrar) => {
+  studentStore.selectedStudentId = student.student_id;
+  studentStore.isShowingSuspendModal = true;
+};
+
+const showDeleteDialog = async (student: StudentWithRegistrar) => {
+  studentStore.selectedStudentId = student.student_id;
+  studentStore.isShowingDeleteModal = true;
+};
 </script>
 
 <style lang="scss" scoped>
@@ -463,7 +499,8 @@ const statusClass = computed(() => {
   min-width: 180px;
   background-color: $white;
   border-radius: 8px;
-  box-shadow: 0px 12px 16px -4px rgba(16, 24, 40, 0.08),
+  box-shadow:
+    0px 12px 16px -4px rgba(16, 24, 40, 0.08),
     0px 4px 6px -2px rgba(16, 24, 40, 0.03);
   border: 1px solid $gray-200;
   overflow: hidden;
@@ -544,7 +581,9 @@ const statusClass = computed(() => {
 /* Dropdown transition styles */
 .dropdown-enter-active,
 .dropdown-leave-active {
-  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+  transition:
+    opacity 0.2s ease-in-out,
+    transform 0.2s ease-in-out;
 }
 
 .dropdown-enter-from,

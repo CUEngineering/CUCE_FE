@@ -1,15 +1,19 @@
 <template>
   <Teleport to="body">
     <Transition name="dialog-fade">
-      <div v-if="modelValue" class="dialog-overlay" @click="onOverlayClick">
+      <div
+        v-if="modelValue"
+        class="dialog-overlay"
+        @click="onOverlayClick"
+      >
         <div class="dialog-container">
           <Transition name="dialog-scale">
             <div
               v-if="modelValue"
               class="dialog"
-              @click.stop
               role="dialog"
               aria-modal="true"
+              @click.stop
             >
               <div class="dialog-header">
                 <div class="dialog-icon">
@@ -29,10 +33,18 @@
                 </div>
                 <div
                   class="status-badge"
-                  :class="getStatusClass(props.selectedEnrollment?.status)"
+                  :class="
+                    getStatusClass(
+                      props.selectedEnrollment?.status ?? '',
+                    )
+                  "
                 >
                   <span class="status-dot"></span>
-                  {{ capitalizeFirst(props.selectedEnrollment?.status) }}
+                  {{
+                    capitalizeFirst(
+                      props.selectedEnrollment?.status ?? '',
+                    )
+                  }}
                 </div>
                 <div class="registrar-stats">
                   <div class="stat-group">
@@ -46,9 +58,13 @@
                         </div>
                         <div
                           v-if="
-                            props.selectedEnrollment?.courseStatus === 'CLOSED'
+                            props.selectedEnrollment?.courseStatus ===
+                            'CLOSED'
                           "
-                          style="text-align: center; margin-left: 10px"
+                          style="
+                            text-align: center;
+                            margin-left: 10px;
+                          "
                           class="status-badge status-deactivated"
                         >
                           <span><StatusBadge /></span>
@@ -62,24 +78,37 @@
                       <div class="stat-label">Assigned Registrar</div>
                       <div class="stat-value">
                         <div
-                          v-if="props.selectedEnrollment?.assignedRegistrar"
+                          v-if="
+                            props.selectedEnrollment
+                              ?.assignedRegistrar
+                          "
                           style="display: flex"
                           class="student-info profile-count p-grey"
                         >
                           <img
                             :src="
-                              props.selectedEnrollment?.assignedRegistrarImage
+                              props.selectedEnrollment
+                                ?.assignedRegistrarImage
                             "
-                            :alt="props.selectedEnrollment?.assignedRegistrar"
+                            :alt="
+                              props.selectedEnrollment
+                                ?.assignedRegistrar
+                            "
                             class="avatar"
                           />
                           <div class="student-details">
                             <div class="student-name">
-                              {{ props.selectedEnrollment?.assignedRegistrar }}
+                              {{
+                                props.selectedEnrollment
+                                  ?.assignedRegistrar
+                              }}
                             </div>
                           </div>
                         </div>
-                        <div v-else class="status-badge status-unassigned">
+                        <div
+                          v-else
+                          class="status-badge status-unassigned"
+                        >
                           Unassigned
                         </div>
                       </div>
@@ -98,50 +127,86 @@
                   </div>
                 </div>
                 <div
+                  v-if="history.length"
                   class="rejection-history"
-                  v-if="props.rejectionHistory?.length"
                 >
-                  <h5 class="recon">Rejection History</h5>
+                  <h5 class="recon">Enrollment History</h5>
                   <table class="enrollments-table table-container">
                     <thead>
                       <tr>
                         <th class="table-header">S/N</th>
-                        <th class="table-header">Reason for Rejection</th>
                         <th class="table-header">Date</th>
+                        <th class="table-header">Message</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr
-                        v-for="(item, index) in props.rejectionHistory"
+                        v-for="(enrollment, index) in history"
                         :key="index"
-                        class="table-row"
+                        :class="[
+                          `table-row`,
+                          getStatusClass(
+                            enrollment.enrollment_status,
+                          ),
+                        ]"
                       >
-                        <td class="table-cell pill p-grey status-badg">
+                        <td
+                          class="table-cell pill p-grey status-badg"
+                        >
                           0{{ index + 1 }}
                         </td>
-                        <td class="table-cell">{{ item.reason }}</td>
                         <td class="table-cell">
-                          {{ formatDateToDMY(item.updatedAt) }}
+                          {{
+                            formatDateToDateAndTime(
+                              enrollment.updated_at,
+                            )
+                          }}
+                        </td>
+                        <td class="table-cell">
+                          <template
+                            v-if="
+                              enrollment.enrollment_status ===
+                              'PENDING'
+                            "
+                          >
+                            pending
+                          </template>
+                          <template
+                            v-else-if="
+                              enrollment.enrollment_status ===
+                              'REJECTED'
+                            "
+                          >
+                            {{ enrollment.rejection_reason }}
+                          </template>
+                          <template v-else> Enrolled </template>
                         </td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
-
-                <div style="margin-top: 20px" class="dialog-footer">
-                  <Button variant="danger" @click="cancel"> Reject </Button>
+                <div
+                  style="margin-top: 20px"
+                  class="dialog-footer"
+                >
+                  <Button
+                    variant="danger"
+                    @click="cancel"
+                  >
+                    Reject
+                  </Button>
                   <Button
                     variant="secondary"
-                    @click="confirm"
                     :loading="loading"
+                    @click="confirm"
                   >
                     Approve
                   </Button>
                 </div>
                 <button
                   class="dialog-close"
-                  @click="close"
                   aria-label="Close dialog"
+                  @click="close"
                 >
                   <CloseCircleIcon />
                 </button>
@@ -155,23 +220,27 @@
 </template>
 
 <script setup lang="ts">
-import { IconsCalendarIcon } from "#components";
-import CloseCircleIcon from "~/components/icons/CloseCircleIcon.vue";
-import StatusBadge from "~/components/icons/StatusBadge.vue";
+import { IconsCalendarIcon } from '#components';
+import CloseCircleIcon from '~/components/icons/CloseCircleIcon.vue';
+import StatusBadge from '~/components/icons/StatusBadge.vue';
 import {
   capitalizeFirst,
-  formatDateToDMY,
+  formatDateToDateAndTime,
   getStatusClass,
-} from "~/helper/formatData";
-import Button from "../ui/Button.vue";
-const toast = useToast();
+} from '~/helper/formatData';
+import Button from '../ui/Button.vue';
+import type { EnrollmentListType } from '~/types/enrollment';
+import { orderBy } from 'lodash-es';
+import type { StudentCourseListType } from '~/types/course';
+
+// const toast = useToast();
 
 interface Props {
   modelValue: boolean;
   persistent?: boolean;
   loading?: boolean;
-  selectedEnrollment?: any;
-  rejectionHistory?: any[];
+  selectedEnrollment?: EnrollmentListType;
+  enrollments?: StudentCourseListType['student_course_enrollements'];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -181,24 +250,27 @@ const props = withDefaults(defineProps<Props>(), {
 console.log(props.selectedEnrollment);
 
 const emit = defineEmits<{
-  (e: "update:modelValue", value: boolean): void;
-  (e: "cancel"): void;
-  (e: "confirm"): void;
+  (e: 'update:modelValue', value: boolean): void;
+  (e: 'cancel' | 'confirm'): void;
 }>();
 
 const close = () => {
-  emit("update:modelValue", false);
+  emit('update:modelValue', false);
 };
 
-const cancel = () => {
-  emit("cancel");
+const cancel = async () => {
+  emit('cancel');
+  await nextTick();
+
   if (!props.loading) {
     close();
   }
 };
 
-const confirm = () => {
-  emit("confirm");
+const confirm = async () => {
+  emit('confirm');
+  await nextTick();
+
   if (!props.loading) {
     close();
   }
@@ -206,9 +278,21 @@ const confirm = () => {
 
 const onOverlayClick = () => {
   if (!props.persistent && !props.loading) {
-    cancel();
+    close();
   }
 };
+
+const history = computed(() =>
+  orderBy(
+    props.enrollments ?? [],
+    [
+      (e) => (e.enrollment_status === 'PENDING' ? 0 : 1),
+      (e) => new Date(e.updated_at).getTime(),
+      (e) => new Date(e.created_at).getTime(),
+    ],
+    ['asc', 'desc', 'desc'],
+  ),
+);
 </script>
 
 <style lang="scss" scoped>
@@ -376,7 +460,8 @@ const onOverlayClick = () => {
 
 .dialog-scale-enter-active,
 .dialog-scale-leave-active {
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+  transition:
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
     opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 

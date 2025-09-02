@@ -16,11 +16,14 @@
           </div>
 
           <!-- Login Form -->
-          <form @submit.prevent="handleLogin" class="login-form">
+          <form
+            class="login-form"
+            @submit.prevent="handleLogin"
+          >
             <FormInput
               id="email"
-              label="Email address"
               v-model="email"
+              label="Email address"
               type="email"
               placeholder="Enter email address"
               required
@@ -29,8 +32,8 @@
 
             <FormInput
               id="password"
-              label="Password"
               v-model="password"
+              label="Password"
               :type="showPassword ? 'text' : 'password'"
               placeholder="Enter your password"
               required
@@ -50,19 +53,31 @@
 
             <div class="form-options">
               <label class="remember-me">
-                <input type="checkbox" v-model="rememberMe" />
+                <input
+                  v-model="rememberMe"
+                  type="checkbox"
+                />
                 <span>Remember me</span>
               </label>
-              <a href="forgotpassword" class="forgot-password"
+              <a
+                href="forgotpassword"
+                class="forgot-password"
                 >Forgot Password?</a
               >
             </div>
 
-            <Button type="submit" variant="primary" :loading="isLoading">
-              {{ isLoading ? "Signing in..." : "Sign In" }}
+            <Button
+              type="submit"
+              variant="primary"
+              :loading="isLoading"
+            >
+              {{ isLoading ? 'Signing in...' : 'Sign In' }}
             </Button>
 
-            <div v-if="authError" class="error-message">
+            <div
+              v-if="authError"
+              class="error-message"
+            >
               {{ authError }}
             </div>
           </form>
@@ -86,89 +101,55 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import EyeIcon from "~/components/icons/EyeIcon.vue";
-import EyeOffIcon from "~/components/icons/EyeOffIcon.vue";
-import Logo from "~/components/Logo.vue";
-import Button from "~/components/ui/Button.vue";
-import Carousel from "~/components/ui/Carousel.vue";
-import FormInput from "~/components/ui/FormInput.vue";
-import { useBackendService } from "~/composables/useBackendService";
+import { onMounted, ref } from 'vue';
+import EyeIcon from '~/components/icons/EyeIcon.vue';
+import EyeOffIcon from '~/components/icons/EyeOffIcon.vue';
+import Logo from '~/components/Logo.vue';
+import Button from '~/components/ui/Button.vue';
+import Carousel from '~/components/ui/Carousel.vue';
+import FormInput from '~/components/ui/FormInput.vue';
+import { useBackendService } from '~/composables/useBackendService';
 
 // State
-const email = ref("");
-const password = ref("");
+const email = ref('');
+const password = ref('');
 const rememberMe = ref(false);
 const showPassword = ref(false);
-const authError = ref("");
-const emailError = ref("");
-const passwordError = ref("");
+const authError = ref('');
+const emailError = ref('');
+const passwordError = ref('');
 
 // Store and router
 const authStore = useAuthStore();
-const router = useRouter();
 const toast = useToast();
 
 const validateEmail = (value: string) => {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return regex.test(value);
 };
-const clearAllCaches = () => {
-  useState("sessionDataCa").value = null;
-  useState("closedSessionCa").value = null;
-  useState("enrollments").value = null;
-  useState("courseCacheData").value = null;
-  useState("programDetailsDataCache").value = null;
-  useState("idCourse").value = null;
-  useState("studentLoad").value = null;
-  useState("sessionLoad").value = null;
-  useState("courseData").value = null;
-  useState("dashboard-stats").value = null;
-  useState("enrollmentsAdmin").value = null;
-  useState("coursesData").value = null;
-  useState("programDetailsData").value = null;
-  useState("id-stats").value = null;
-  useState("studentsData").value = null;
-  useState("programsDataCache").value = null;
-  useState("registrarData").value = null;
-  useState("inviteData").value = null;
-  useState("callCache").value = null;
-  useState("courseCallCache").value = null;
-  useState("studentCallCache").value = null;
-  useState("sessionDataCah").value = null;
-  useState("closedSessionCah").value = null;
-  useState("studentscachT").value = null;
-  useState("statsRTD").value = null;
-  useState("enrollmentsREG").value = null;
-  useState("studentscachTREG").value = null;
-  useState("courseDataSTD").value = null;
-};
-onMounted(() => {
-  authStore.logout();
-  clearAllCaches();
-});
 
 const { call, isLoading, error, data } = useBackendService(
-  "/auth/signin",
-  "post"
+  '/auth/signin',
+  'post',
 );
 
 const handleLogin = async () => {
-  emailError.value = "";
-  passwordError.value = "";
-  authError.value = "";
+  emailError.value = '';
+  passwordError.value = '';
+  authError.value = '';
 
   // Field validation
   if (!email.value) {
-    emailError.value = "Email is required.";
+    emailError.value = 'Email is required.';
   } else if (!validateEmail(email.value)) {
-    emailError.value = "Enter a valid email address.";
+    emailError.value = 'Enter a valid email address.';
   }
 
   if (!password.value) {
-    passwordError.value = "Password is required.";
+    passwordError.value = 'Password is required.';
   } else if (password.value.length < 8) {
-    passwordError.value = "Password must not be lesser than 8 characters.";
+    passwordError.value =
+      'Password must not be lesser than 8 characters.';
   }
 
   if (emailError.value || passwordError.value) return;
@@ -179,29 +160,35 @@ const handleLogin = async () => {
       password: password.value,
     });
 
-    authStore.setAuth(
+    await authStore.setAuth(
       data.value.session.access_token,
       data.value.role,
-      data.value.user
+      data.value.user,
     );
 
-    toast.success("Login successful!");
+    toast.success('Login successful!');
     switch (data.value.role) {
-      case "REGISTRAR":
-        router.push("/registrar/dashboard");
+      case 'REGISTRAR':
+        await navigateTo({
+          name: 'registrar-dashboard',
+        });
         break;
-      case "STUDENT":
-        router.push("/student/dashboard");
+      case 'STUDENT':
+        await navigateTo({
+          name: 'student-dashboard',
+        });
         break;
-      case "ADMIN":
-        router.push("/admin/dashboard");
+      case 'ADMIN':
+        await navigateTo({
+          name: 'admin-dashboard',
+        });
         break;
     }
-  } catch (err: any) {
-    console.log(err);
-    authError.value = "Invalid email or password";
-    emailError.value = " ";
-    passwordError.value = " ";
+  } catch (err) {
+    console.dir(err);
+    authError.value = 'Invalid email or password';
+    emailError.value = ' ';
+    passwordError.value = ' ';
   }
 };
 </script>
@@ -278,7 +265,7 @@ const handleLogin = async () => {
     gap: 0.5rem;
     font-family: $font-family;
     font-size: $text-sm;
-    input[type="checkbox"] {
+    input[type='checkbox'] {
       width: auto;
     }
   }
@@ -337,7 +324,8 @@ const handleLogin = async () => {
   position: absolute;
   inset: 0;
   opacity: 0.95;
-  background: url("@/assets/images/BG_Image.png") center/cover no-repeat;
+  background: url('@/assets/images/BG_Image.png') center/cover
+    no-repeat;
   mix-blend-mode: normal;
   pointer-events: none;
   filter: contrast(1.1) blur(20px);

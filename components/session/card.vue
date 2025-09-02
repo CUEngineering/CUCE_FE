@@ -1,101 +1,119 @@
 <template>
   <div
     style="cursor: pointer"
-    @click="$emit('view-session', session)"
     class="registrar-card"
     :class="cardClass"
+    @click="$emit('view', session)"
   >
-    <div class="registrar-header">
-      <div class="registrar-info">
-        <div class="name-status-wrapper">
-          <h3 class="registrar-name">{{ session.sessionName }}</h3>
-          <div
-            class="status-badge"
-            :class="getStatusClass(session.sessionStatus)"
-          >
-            <span class="status-dot"></span>
-            {{ getStatusText(session.sessionStatus) }}
+    <div>
+      <div class="registrar-header">
+        <div class="registrar-info">
+          <div class="name-status-wrapper">
+            <h3 class="registrar-name">{{ session.sessionName }}</h3>
+            <div
+              class="status-badge"
+              :class="getStatusClass(session.sessionStatus)"
+            >
+              <span class="status-dot"></span>
+              {{ getStatusText(session.sessionStatus) }}
+            </div>
+          </div>
+        </div>
+        <div
+          v-if="session.sessionStatus !== 'CLOSED'"
+          class="registrar-actions"
+        >
+          <div class="dropdown">
+            <button
+              class="action-button"
+              aria-haspopup="true"
+              :aria-expanded="dropdownOpen"
+              @click.stop="toggleDropdown"
+            >
+              <IconsDotsVerticalIcon />
+            </button>
+            <transition name="dropdown">
+              <div v-if="dropdownOpen" class="dropdown-menu" @click.stop>
+                <button class="dropdown-item" @click="$emit('view', session)">
+                  <span class="dropdown-icon">
+                    <IconsEyeIcon />
+                  </span>
+                  View Session
+                </button>
+
+                <button class="dropdown-item" @click="$emit('edit', session)">
+                  <span class="dropdown-icon">
+                    <IconsEditIcon />
+                  </span>
+                  Edit Session
+                </button>
+
+                <button
+                  class="dropdown-item"
+                  @click="$emit('adjust-enrollment', session)"
+                >
+                  <span class="dropdown-icon">
+                    <IconsAlarmIcon />
+                  </span>
+                  Adjust Enrollment
+                </button>
+
+                <button
+                  v-if="session.sessionStatus !== 'ACTIVE'"
+                  class="dropdown-item"
+                  @click="$emit('start', session)"
+                >
+                  <span class="dropdown-icon">
+                    <IconsPlayIcon />
+                  </span>
+                  Start Session
+                </button>
+
+                <button
+                  v-if="session.sessionStatus !== 'ACTIVE'"
+                  style="color: red"
+                  class="dropdown-item"
+                  @click="$emit('delete', session)"
+                >
+                  <span class="dropdown-icon">
+                    <IconsDeleteIcon />
+                  </span>
+                  Delete Session
+                </button>
+
+                <button
+                  v-if="session.sessionStatus === 'ACTIVE'"
+                  class="dropdown-item"
+                  @click="$emit('close', session)"
+                >
+                  <span class="dropdown-icon">
+                    <IconsCloseCircleIcon />
+                  </span>
+                  Close Session
+                </button>
+              </div>
+            </transition>
           </div>
         </div>
       </div>
-      <div v-if="session.sessionStatus !== 'CLOSED'" class="registrar-actions">
-        <div class="dropdown">
-          <button
-            @click.stop="toggleDropdown"
-            class="action-button"
-            aria-haspopup="true"
-            :aria-expanded="dropdownOpen"
-          >
-            <DotsVerticalIcon />
-          </button>
-          <transition name="dropdown">
-            <div v-if="dropdownOpen" class="dropdown-menu" @click.stop>
-              <button
-                class="dropdown-item"
-                @click="$emit('edit-session', session)"
-              >
-                <span class="dropdown-icon">
-                  <EditIcon />
-                </span>
-                Edit Session
-              </button>
-
-              <button
-                class="dropdown-item"
-                @click="$emit('adjust-enrollment', session)"
-              >
-                <span class="dropdown-icon">
-                  <AlarmIcon />
-                </span>
-                Adjust Enrollment
-              </button>
-
-              <button
-                v-if="session.sessionStatus !== 'ACTIVE'"
-                class="dropdown-item"
-                @click="$emit('start-session', session)"
-              >
-                <span class="dropdown-icon">
-                  <PlayIcon />
-                </span>
-                Start Session
-              </button>
-
-              <button
-                v-if="session.sessionStatus !== 'ACTIVE'"
-                style="color: red"
-                class="dropdown-item"
-                @click="$emit('delete-session', session)"
-              >
-                <span class="dropdown-icon">
-                  <DeleteIcon />
-                </span>
-                Delete Session
-              </button>
-
-              <button
-                v-if="session.sessionStatus === 'ACTIVE'"
-                class="dropdown-item"
-                @click="$emit('close-session', session)"
-              >
-                <span class="dropdown-icon">
-                  <CloseCircleIcon />
-                </span>
-                Close Session
-              </button>
-            </div>
-          </transition>
-        </div>
+      <div class="duration-row">
+        <span><IconsSessionIcon /></span>
+        <span class="duration-text">
+          {{ formatDateToDateAndTime(session.startDate) }} -
+          {{ formatDateToDateAndTime(session.endDate) }}
+        </span>
       </div>
     </div>
-
     <div class="registrar-stats" :class="boxClass">
       <div class="stat-group">
         <div class="stat-divider"></div>
-        <div class="stat-item">
+        <div
+          class="stat-item"
+          :title="formatDateToDateAndTime(session.enrollmentDeadline)"
+        >
           <div class="stat-label">Enrollment Deadline</div>
           <div class="stat-value">
-            {{ formatDate(session.enrollmentDeadline) }}
+            {{ formatDateToDateAndTime(session.enrollmentDeadline) }}
           </div>
         </div>
       </div>
@@ -103,7 +121,9 @@
         <div class="stat-divider"></div>
         <div class="stat-item">
           <div class="stat-label">Courses</div>
-          <div class="stat-value">{{ session.numberOfOpenCourses }}</div>
+          <div class="stat-value">
+            {{ session.numberOfOpenCourses }}
+          </div>
         </div>
       </div>
       <div class="stat-group">
@@ -114,36 +134,16 @@
         </div>
       </div>
     </div>
-    <div
-      style="
-        width: max-content;
-        padding: 10px;
-        margin-top: 10px;
-        display: flex;
-        flex-direction: column;
-      "
-      class="profile-count pill p-grey"
-    >
-      <p style="font-size: small">Duration</p>
-      <div>
-        <span><SessionIcon /></span>
-        {{ formatDate(session.startDate) }} -
-        {{ formatDate(session.endDate) }}
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
-import DotsVerticalIcon from "~/components/icons/DotsVerticalIcon.vue";
-import { formatDate, getStatusClass, getStatusText } from "~/helper/formatData";
-import AlarmIcon from "../icons/AlarmIcon.vue";
-import CloseCircleIcon from "../icons/CloseCircleIcon.vue";
-import DeleteIcon from "../icons/DeleteIcon.vue";
-import EditIcon from "../icons/EditIcon.vue";
-import PlayIcon from "../icons/PlayIcon.vue";
-import SessionIcon from "../icons/sessionIcon.vue";
+import {
+  formatDateToDateAndTime,
+  getStatusClass,
+  getStatusText,
+} from "~/helper/formatData";
 
 interface Session {
   sessionId: number;
@@ -161,20 +161,13 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-defineEmits([
-  "edit-session",
-  "adjust-enrollment",
-  "start-session",
-  "delete-session",
-  "close-session",
-  "view-session",
-]);
+defineEmits(["edit", "adjust-enrollment", "start", "delete", "close", "view"]);
 
 // Create a unique ID for this card instance
 const cardId = Symbol("registrar-card");
 
 // Global registry of open dropdowns
-const openDropdownId = inject<Ref<Symbol | null>>("openDropdownId", ref(null));
+const openDropdownId = inject<Ref<symbol | null>>("openDropdownId", ref(null));
 const dropdownOpen = computed({
   get: () => openDropdownId.value === cardId,
   set: (value) => {
@@ -194,6 +187,10 @@ const toggleDropdown = (event: MouseEvent) => {
 
 // Close dropdown when clicking outside
 const closeDropdown = (event: MouseEvent) => {
+  if (!event) {
+    //
+  }
+
   if (dropdownOpen.value) {
     dropdownOpen.value = false;
   }
@@ -222,6 +219,7 @@ const boxClass = computed(() => {
   return {
     "blue-box": status === "pending",
     "grey-box": status === "closed",
+    "blue-box": status === "upcoming",
     "green-box": status === "active",
   };
 });
@@ -236,11 +234,14 @@ const boxClass = computed(() => {
   border-radius: 12px;
   padding: 16px;
   box-shadow: none;
-  border: 1px solid rgb(210, 210, 210);
+  border: 1px solid rgb(227, 227, 227);
   position: relative;
   width: 100%;
   /* max-width: 400px; */
   transition: all 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 
   &.card-deactivated {
     background-color: $white;
@@ -260,9 +261,20 @@ const boxClass = computed(() => {
 .registrar-header {
   display: flex;
   align-items: flex-start;
-  margin-bottom: 10px;
   gap: 16px;
   width: 100%;
+}
+
+.duration-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 12px;
+
+  .duration-text {
+    font-size: 14px;
+    font-weight: 500;
+  }
 }
 
 .registrar-avatar {
@@ -300,8 +312,8 @@ const boxClass = computed(() => {
 }
 
 .registrar-name {
-  font-weight: 600;
-  font-size: $text-sm;
+  font-weight: 700;
+  font-size: 18px;
   line-height: 1.43;
   margin: 0;
   color: $black;
@@ -376,12 +388,14 @@ const boxClass = computed(() => {
 .green-box {
   background-color: $success-50;
   border: 1px solid $success-400;
-  border-radius: 10px;
+  border-left-width: 0;
+  border-right-width: 0;
 }
 .blue-box {
   background-color: $primary-color-25;
   border: 1px solid $primary-color-400;
-  border-radius: 10px;
+  border-right-width: 0;
+  border-left-width: 0;
 }
 .grey-box {
   background-color: $gray-50;
@@ -517,7 +531,8 @@ const boxClass = computed(() => {
   min-width: 180px;
   background-color: $white;
   border-radius: 8px;
-  box-shadow: 0px 12px 16px -4px rgba(16, 24, 40, 0.08),
+  box-shadow:
+    0px 12px 16px -4px rgba(16, 24, 40, 0.08),
     0px 4px 6px -2px rgba(16, 24, 40, 0.03);
   border: 1px solid $gray-200;
   overflow: hidden;
@@ -598,7 +613,9 @@ const boxClass = computed(() => {
 /* Dropdown transition styles */
 .dropdown-enter-active,
 .dropdown-leave-active {
-  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+  transition:
+    opacity 0.2s ease-in-out,
+    transform 0.2s ease-in-out;
 }
 
 .dropdown-enter-from,

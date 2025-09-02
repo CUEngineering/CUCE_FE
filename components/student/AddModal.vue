@@ -1,18 +1,29 @@
 <template>
   <Teleport to="body">
     <Transition name="modal-fade">
-      <div v-if="modelValue" class="modal-overlay" @click="onOverlayClick">
-        <div class="modal-container" @click.stop>
+      <div
+        v-if="modelValue"
+        class="modal-overlay"
+        @click="onOverlayClick"
+      >
+        <div
+          class="modal-container"
+          @click.stop
+        >
           <div class="modal o-visible">
             <div class="modal-header">
               <div class="header-content">
                 <h2 class="modal-title">Invite Students</h2>
                 <p>
-                  Invite students to streamline their support and enhance their
-                  academic experience.
+                  Invite students to streamline their support and
+                  enhance their academic experience.
                 </p>
               </div>
-              <button class="close-button" @click="close" aria-label="Close">
+              <button
+                class="close-button"
+                aria-label="Close"
+                @click="close"
+              >
                 <CloseCircleIcon />
               </button>
             </div>
@@ -21,8 +32,8 @@
               <div class="form-section">
                 <FormInput
                   id="student-id"
-                  label="Student ID"
                   v-model="form.data.studentId"
+                  label="Student ID"
                   placeholder="Enter student ID"
                   required
                   :error="form.errors.studentId"
@@ -31,82 +42,35 @@
                 <!-- Student Email -->
                 <FormInput
                   id="student-email"
-                  label="Student Email"
                   v-model="form.data.email"
+                  label="Student Email"
                   placeholder="Enter student email"
                   type="email"
                   required
                   :error="form.errors.email"
                 />
 
-                <div class="form-field">
-                  <!-- Course tags display -->
-                  <div class="form-tags" v-if="selectedCourse">
-                    <div class="form-tag">
-                      <span class="tag-text">{{ selectedCourse.name }}</span>
-                      <button
-                        class="remove-tag"
-                        @click="
-                          selectedCourse = null;
-                          form.data.programId = '';
-                        "
-                        aria-label="Remove course"
-                      >
-                        <CloseIcon />
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- Course selection dropdown -->
-                  <div
-                    class="course-dropdown-container"
-                    ref="dropdownContainer"
-                  >
-                    <FormInput
-                      id="course-search"
-                      ref="courseInput"
-                      :label="'Programs'"
-                      v-model="courseSearchQuery"
-                      :error="courseError"
-                      placeholder="Search for program"
-                      @focus="isDropdownOpen = true"
-                      @blur="handleBlur"
-                      @input="handleCourseSearch"
-                    >
-                      <template #button>
-                        <div class="dropdown-icon" @click="toggleDropdown">
-                          <ChevronDownIcon />
-                        </div>
-                      </template>
-                    </FormInput>
-
-                    <!-- Dropdown list -->
-                    <div v-if="isDropdownOpen" class="course-dropdown">
-                      <div
-                        v-for="course in filteredCourses"
-                        :key="course.id"
-                        class="course-option"
-                        :class="{ selected: isCourseSelected(course) }"
-                        @mousedown.prevent="selectCourse(course)"
-                      >
-                        <div class="course-option-content">
-                          <div class="course-name">{{ course.name }}</div>
-                        </div>
-                      </div>
-                      <div
-                        v-if="filteredCourses.length === 0"
-                        class="no-results"
-                      >
-                        No courses found
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <!-- Program to enroll student -->
+                <UiFormSelect
+                  id="student-program"
+                  v-model="form.data.programId"
+                  label="Program"
+                  placeholder="Select Student Program"
+                  type="string"
+                  :options="programs"
+                  required
+                  :error="form.errors.programId"
+                />
               </div>
             </div>
 
             <div class="modal-footer">
-              <Button variant="secondary" @click="close"> Cancel </Button>
+              <Button
+                variant="secondary"
+                @click="close"
+              >
+                Cancel
+              </Button>
               <Button
                 variant="primary"
                 :disabled="isLoading || !canSubmit"
@@ -124,19 +88,17 @@
 </template>
 
 <script setup lang="ts">
-import { onClickOutside } from "@vueuse/core";
-import { computed, nextTick, onMounted, reactive, ref, watch } from "vue";
-import { useToast } from "~/composables/useToast";
-import type { ProgramOutput } from "~/types/program";
-import ChevronDownIcon from "../icons/ChevronDownIcon.vue";
-import CloseCircleIcon from "../icons/CloseCircleIcon.vue";
-import CloseIcon from "../icons/CloseIcon.vue";
-import Button from "../ui/Button.vue";
-import FormInput from "../ui/FormInput.vue";
+import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { useToast } from '~/composables/useToast';
+import type { ProgramOutput } from '~/types/program';
+import CloseCircleIcon from '../icons/CloseCircleIcon.vue';
+import Button from '../ui/Button.vue';
+import FormInput from '../ui/FormInput.vue';
+import { cloneDeep, isArray, isEqual } from 'lodash-es';
 
-interface Course {
-  id: number;
-  name: string;
+interface ProgramType {
+  value: string;
+  label: string;
 }
 
 interface Props {
@@ -144,33 +106,22 @@ interface Props {
   loading?: boolean;
   persistent?: boolean;
   program?: ProgramOutput | null;
-  availableCourses?: Course[];
-  selectedProgramCourses?: Course[];
+  availablePrograms?: ProgramType[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
   loading: false,
   persistent: false,
   program: null,
-
-  selectedProgramCourses: () => [],
 });
 
 const emit = defineEmits<{
-  (e: "update:modelValue", value: boolean): void;
-  (e: "invite-success"): void;
-  (e: "invite-failure"): void;
+  (e: 'update:modelValue', value: boolean): void;
+  (e: 'invite-success' | 'invite-failure'): void;
 }>();
 
 const isLoading = ref(false);
 const toast = useToast();
-
-// Course selection state
-const selectedCourse = ref<Course | null>(null);
-const courseSearchQuery = ref("");
-const courseError = ref<string | undefined>(undefined);
-const isDropdownOpen = ref(false);
-const courseInput = ref<typeof FormInput | null>(null);
 
 const form = reactive<{
   data: {
@@ -185,73 +136,48 @@ const form = reactive<{
   };
 }>({
   data: {
-    studentId: "",
-    email: "",
-    programId: "",
+    studentId: '',
+    email: '',
+    programId: '',
   },
   errors: {},
-});
-
-const filteredCourses = computed(() => {
-  let courses = [...allCourses.value];
-  if (selectedCourse.value) {
-    courses = courses.filter((c) => c.id !== selectedCourse.value?.id);
-  }
-  if (courseSearchQuery.value.trim()) {
-    const query = courseSearchQuery.value.toLowerCase();
-    courses = courses.filter((c) => c.name.toLowerCase().includes(query));
-  }
-  return courses;
 });
 
 const canSubmit = computed(() => {
   return form.data.studentId && form.data.email;
 });
 
-// Course selection methods
-const handleCourseSearch = () => {
-  // Open dropdown when typing
-  isDropdownOpen.value = true;
-};
-
-const toggleDropdown = () => {
-  isDropdownOpen.value = !isDropdownOpen.value;
-  if (isDropdownOpen.value) {
-    nextTick(() => {
-      courseInput.value?.focus();
-    });
-  }
-};
-
-const handleBlur = () => {
-  // Delay closing to allow for click on dropdown items
-  setTimeout(() => {
-    isDropdownOpen.value = false;
-  }, 150);
-};
-
-const isCourseSelected = (course: Course) => {
-  return selectedCourse.value?.id === course.id;
-};
-
-const selectCourse = (course: Course) => {
-  selectedCourse.value = course;
-  courseSearchQuery.value = "";
-  form.data.programId = course.id.toString();
-};
-
 const validateForm = (): boolean => {
   form.errors = {};
-  if (!form.data.studentId) form.errors.studentId = "Student ID is required";
-  if (!form.data.email) form.errors.email = "Email is required";
+  if (!form.data.studentId)
+    form.errors.studentId = 'Student ID is required';
+  if (!form.data.email) form.errors.email = 'Email is required';
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.data.email)) {
-    form.errors.email = "Invalid email format";
+    form.errors.email = 'Invalid email format';
   }
-  if (!form.data.programId) form.errors.programId = "Program is required";
+  if (!form.data.programId)
+    form.errors.programId = 'Program is required';
   return !Object.values(form.errors).some(Boolean);
 };
 
-const { call: inviteStudent } = useBackendService("/students/invite", "post");
+// Ensure validation after updating any form field
+watch(
+  [
+    () => form.data.studentId,
+    () => form.data.email,
+    () => form.data.programId,
+  ],
+  (curr, prev) => {
+    if (!isEqual(curr, prev)) {
+      validateForm();
+    }
+  },
+);
+
+const { call: inviteStudent } = useBackendService(
+  '/students/invite',
+  'post',
+);
 
 const handleSubmit = async () => {
   if (!validateForm()) {
@@ -268,10 +194,10 @@ const handleSubmit = async () => {
     };
     await inviteStudent(payload);
 
-    emit("invite-success");
+    emit('invite-success');
     close();
   } catch (err) {
-    emit("invite-failure");
+    emit('invite-failure');
     console.error(err);
   } finally {
     isLoading.value = false;
@@ -279,19 +205,17 @@ const handleSubmit = async () => {
 };
 
 const resetForm = () => {
+  console.trace('Called reset form here');
   form.data = {
-    studentId: "",
-    email: "",
-    programId: "0",
+    studentId: '',
+    email: '',
+    programId: '',
   };
   form.errors = {};
-  selectedCourse.value = null;
-  courseSearchQuery.value = "";
-  courseError.value = undefined;
 };
 
 const close = () => {
-  emit("update:modelValue", false);
+  emit('update:modelValue', false);
 };
 
 const onOverlayClick = () => {
@@ -300,42 +224,40 @@ const onOverlayClick = () => {
   }
 };
 
-onMounted(() => {
-  fetchCourses();
-});
-
-const allCourses = ref<Course[]>([]);
+const programs = ref<ProgramType[]>([]);
 
 const {
   call: fetchPrograms,
-  isLoading: loading,
+  isLoading: isLoadingProgram,
   data: programsData,
-} = useBackendService("/programs", "get");
-const fetchCourses = async () => {
+} = useBackendService('/programs', 'get');
+
+const fetchAndSyncPrograms = async () => {
   try {
     await fetchPrograms();
-    allCourses.value = programsData.value.map((c: any) => ({
-      id: c.programId,
-      name: c.programName,
-    }));
+    const list = programsData as Ref<
+      {
+        programId: string | number;
+        programName: string;
+      }[]
+    >;
+
+    if (isArray(list.value)) {
+      programs.value = list.value.map((p) => ({
+        value: String(p.programId),
+        label: p.programName,
+      }));
+    }
   } catch (error) {
-    toast.error("Could not load courses. Please try again.");
+    toast.error('Could not load programs. Please try again.');
     console.error(error);
   }
 };
 
-watch(
-  () => props.modelValue,
-  (value) => {
-    resetForm();
-  }
-);
+watch(() => props.modelValue, resetForm);
 
-const dropdownContainer = ref<HTMLElement | null>(null);
-
-// Close dropdown when clicking outside
-onClickOutside(dropdownContainer, () => {
-  isDropdownOpen.value = false;
+onMounted(() => {
+  fetchAndSyncPrograms();
 });
 </script>
 

@@ -7,12 +7,15 @@
       <div class="title-and-filter">
         <h2 class="heading-txt">Enrollments</h2>
       </div>
-      <div v-if="enrollments.length > 0" class="search-and-actions">
+      <div
+        v-if="enrollments.length > 0"
+        class="search-and-actions"
+      >
         <div class="search-container">
           <FormInput
             id="program-search"
-            label=""
             v-model="searchQuery"
+            label=""
             placeholder="Find Enrollment"
             size="sm"
           >
@@ -27,8 +30,8 @@
     </div>
     <Loader v-if="loading" />
 
-    <!-- Empty state for when no enrollments exist -->
-    <EmptyState
+    <!-- enrollments table when enrollments exist -->
+    <!-- <EmptyState
       v-if="!loading && !enrollments.length"
       class="dashlet"
       title="No enrollments found"
@@ -41,11 +44,10 @@
           class="empty-state-illustration"
         />
       </template>
-    </EmptyState>
+    </EmptyState> -->
 
-    <!-- enrollments table when enrollments exist -->
     <div
-      v-if="!loading && enrollments.length"
+      v-if="!loading"
       class="enrollments-content dashlet program-tabs"
     >
       <div class="tabs-heading">
@@ -78,12 +80,21 @@
             style="margin: auto; margin-left: 20px"
             class="web profile-count pill p-grey pill-sm"
           >
-            ({{ startRecord }} - {{ endRecord }}) of {{ totalRecords }}
+            ({{ startRecord }} - {{ endRecord }}) of
+            {{ totalRecords }}
           </div>
         </div>
 
         <div class="web header-actions">
-          <FilterIcon class="avatar" />
+          <UiFormSelect
+            id="session-filter"
+            v-model="selectedSessionId"
+            label=""
+            placeholder="Select Session"
+            type="string"
+            :options="sessionFilterList"
+            required
+          />
         </div>
       </div>
       <div>
@@ -94,8 +105,8 @@
                 <th
                   v-for="header in table.getHeaderGroups()[0].headers"
                   :key="header.id"
-                  @click="header.column.getToggleSortingHandler()"
                   class="table-header"
+                  @click="header.column.getToggleSortingHandler()"
                 >
                   <div class="header-content">
                     {{ header.column.columnDef.header }}
@@ -103,7 +114,11 @@
                       v-if="header.column.getIsSorted()"
                       class="sort-indicator"
                     >
-                      {{ header.column.getIsSorted() === "desc" ? "▼" : "▲" }}
+                      {{
+                        header.column.getIsSorted() === 'desc'
+                          ? '▼'
+                          : '▲'
+                      }}
                     </span>
                   </div>
                 </th>
@@ -113,8 +128,8 @@
               <tr
                 v-for="row in table.getRowModel().rows"
                 :key="row.id"
-                @click="handleInfo(row.original)"
                 class="table-row"
+                @click="handleInfo(row.original)"
               >
                 <td
                   v-for="cell in row.getVisibleCells()"
@@ -122,33 +137,47 @@
                   class="table-cell"
                 >
                   <template
-                    v-if="typeof cell.column.columnDef.cell === 'function'"
+                    v-if="
+                      typeof cell.column.columnDef.cell === 'function'
+                    "
                   >
                     <div
                       v-if="cell.column.id === 'actions'"
                       class="action-cell"
                     >
-                      <button
-                        class="action-button delete-button"
-                        @click.stop="handleDelete(row.original)"
+                      <template
+                        v-if="
+                          row.original.status === 'pending' &&
+                          row.original.isActiveSession &&
+                          activeTab === 'toMe'
+                        "
                       >
-                        <ActionCancelIcon />
-                      </button>
-                      <button
-                        class="action-button edit-button"
-                        @click.stop="handleEdit(row.original)"
-                      >
-                        <ActionEditIcon />
-                      </button>
+                        <button
+                          class="action-button delete-button"
+                          @click.stop="handleDelete(row.original)"
+                        >
+                          <ActionCancelIcon />
+                        </button>
+                        <button
+                          class="action-button edit-button"
+                          @click.stop="handleEdit(row.original)"
+                        >
+                          <ActionEditIcon />
+                        </button>
+                      </template>
                     </div>
 
                     <div
                       v-else-if="cell.column.id === 'status'"
                       class="status-badge"
-                      :class="getStatusClass(cell.renderValue() as string)"
+                      :class="
+                        getStatusClass(cell.renderValue() as string)
+                      "
                     >
                       <span class="status-dot"></span>
-                      {{ capitalizeFirst(cell.renderValue() as string) }}
+                      {{
+                        capitalizeFirst(cell.renderValue() as string)
+                      }}
                     </div>
                     <div
                       v-else-if="cell.column.id === 'studentName'"
@@ -169,12 +198,16 @@
                       </div>
                     </div>
                     <div
-                      v-else-if="cell.column.id === 'assignedRegistrar'"
+                      v-else-if="
+                        cell.column.id === 'assignedRegistrar'
+                      "
                       class="student-info status-badge profile-count pill p-grey"
                       style="width: fit-content"
                     >
                       <img
-                        :src="cell.row.original.assignedRegistrarImage"
+                        :src="
+                          cell.row.original.assignedRegistrarImage
+                        "
                         :alt="cell.row.original.assignedRegistrar"
                         class="avatar"
                       />
@@ -196,7 +229,9 @@
                         {{ cell.renderValue() }}
                       </div>
                       <div
-                        v-if="cell.row.original.courseStatus === 'CLOSED'"
+                        v-if="
+                          cell.row.original.courseStatus === 'CLOSED'
+                        "
                         style="text-align: center; margin-left: 10px"
                         class="status-badge status-deactivated"
                       >
@@ -218,7 +253,7 @@
           <MobileEnrollment
             v-for="row in table.getRowModel().rows"
             :key="row.id"
-            :selectedEnrollment="row.original"
+            :selected-enrollment="row.original"
             @activate="
               () => {
                 selectedEnrollment = row.original;
@@ -237,9 +272,9 @@
         <div class="pagination">
           <div class="pagination-controls">
             <button
-              @click="table.previousPage()"
               :disabled="!table.getCanPreviousPage()"
               class="pagination-button"
+              @click="table.previousPage()"
             >
               <svg
                 width="16"
@@ -262,19 +297,21 @@
               <button
                 v-for="page in calculatePageRange()"
                 :key="page"
-                @click="goToPage(page - 1)"
                 class="page-button"
                 :class="{
-                  active: table.getState().pagination.pageIndex === page - 1,
+                  active:
+                    table.getState().pagination.pageIndex ===
+                    page - 1,
                 }"
+                @click="goToPage(page - 1)"
               >
                 {{ page }}
               </button>
             </div>
             <button
-              @click="table.nextPage()"
               :disabled="!table.getCanNextPage()"
               class="pagination-button"
+              @click="table.nextPage()"
             >
               Next
               <svg
@@ -298,38 +335,33 @@
       </div>
     </div>
 
-    <RejectDialog
+    <EnrollmentRejectDialog
       v-model="showDeleteModal"
       title="Confirm action!"
       :message="`Are you sure you want to reject this enrollment for <strong>${selectedEnrollment?.studentName}</strong> in ${selectedEnrollment?.courseCode}?`"
       variant="warning"
       :loading="isActionLoading"
       confirm-button-text="Yes, reject"
-      cancelButtonText="No, cancel"
+      cancel-button-text="No, cancel"
       @confirm="handleDeleteAction"
     />
-    <AcceptDialog
+    <EnrollmentAcceptDialog
       v-model="showEditModal"
       title="Course Enrollment"
       :message="`Are you sure you want to approve this enrollment for <strong>${selectedEnrollment?.studentName}</strong> in ${selectedEnrollment?.sessionName}?`"
       variant="warning"
       :loading="isActionLoading"
-      :rejectionCount="
-        getRejectionCount(
-          selectedEnrollment?.studentId || '',
-          selectedEnrollment?.sessionName || '',
-          selectedEnrollment?.courseCode || ''
-        )
-      "
+      :enrollments="selectedEnrollmentHistory"
       confirm-button-text="Yes, approve"
-      cancelButtonText="No"
+      cancel-button-text="No"
       @confirm="handleEditAction"
-      @viewDetails="handleInfo(selectedEnrollment as Enrollment)"
     />
-    <DetailsDialog
+    <EnrollmentDetailsDialog
+      v-if="selectedEnrollment"
       v-model="showInfoModal"
       :loading="isActionLoading"
-      :selectedEnrollment="selectedEnrollment"
+      :selected-enrollment="selectedEnrollment"
+      :enrollments="selectedEnrollmentHistory"
       @confirm="
         () => {
           selectedEnrollment = selectedEnrollment;
@@ -342,19 +374,12 @@
           showDeleteModal = true;
         }
       "
-      :rejectionHistory="
-        getRejectionHistory(
-          selectedEnrollment?.studentId || '',
-          selectedEnrollment?.sessionName || '',
-          selectedEnrollment?.courseCode || ''
-        )
-      "
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import type { ColumnSort } from "@tanstack/vue-table";
+import type { ColumnSort } from '@tanstack/vue-table';
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -362,193 +387,183 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useVueTable,
-} from "@tanstack/vue-table";
-import { computed, h, reactive, ref } from "vue";
-import AcceptDialog from "~/components/enrollment/AcceptDialog.vue";
-import DetailsDialog from "~/components/enrollment/DetailsDialog.vue";
-import MobileEnrollment from "~/components/enrollment/MobileEnrollment.vue";
-import RejectDialog from "~/components/enrollment/RejectDialog.vue";
-import ActionCancelIcon from "~/components/icons/ActionCancelIcon.vue";
-import ActionEditIcon from "~/components/icons/ActionEditIcon.vue";
-import FilterIcon from "~/components/icons/FilterIcon.vue";
-import StatusBadge from "~/components/icons/StatusBadge.vue";
-import EmptyState from "~/components/ui/EmptyState.vue";
-import FormInput from "~/components/ui/FormInput.vue";
-import { capitalizeFirst, getStatusClass } from "~/helper/formatData";
+} from '@tanstack/vue-table';
+import { orderBy } from 'lodash-es';
+import { computed, h, reactive, ref } from 'vue';
+import MobileEnrollment from '~/components/enrollment/MobileEnrollment.vue';
+import ActionCancelIcon from '~/components/icons/ActionCancelIcon.vue';
+import ActionEditIcon from '~/components/icons/ActionEditIcon.vue';
+import StatusBadge from '~/components/icons/StatusBadge.vue';
+import FormInput from '~/components/ui/FormInput.vue';
+import { capitalizeFirst, getStatusClass } from '~/helper/formatData';
+import type { EnrollmentListType } from '~/types/enrollment';
 
-interface Enrollment {
-  enrollmentId?: number;
-  studentName: string;
-  studentId: string;
-  studentImage: string;
-  courseCode: string;
-  courseStatus: string;
-  program: string;
-  status: "approved" | "pending" | "rejected";
-  assignedRegistrar?: string;
-  assignedRegistrarImage?: string;
-  assignedStatus: "unassigned" | "toOthers" | "toMe";
-  sessionName: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-  reason?: string;
+interface Enrollment extends EnrollmentListType {
+  unknown: unknown;
 }
+
 const toast = useToast();
 const loading = ref(false);
 
-const { call, data } = useBackendService("/enrollments", "get");
+const sessionFilter = useSessionsFilter();
+const sessionFilterList = computed(() =>
+  (sessionFilter.data.value ?? []).map((s) => ({
+    value: String(s.session_id),
+    label: s.session_name,
+  })),
+);
+const selectedSessionId = ref<string>('');
+
+watch(sessionFilter.data, (list) => {
+  const selectedSession = orderBy(
+    list ?? [],
+    [
+      (s) => (s.session_status === 'ACTIVE' ? 1 : 0),
+      (s) => new Date(s.created_at).getTime(),
+    ],
+    ['desc', 'asc'],
+  )[0];
+
+  if (selectedSession) {
+    selectedSessionId.value = String(selectedSession.session_id);
+  }
+});
+
+const activeTab = ref<'unassigned' | 'toMe' | 'toOthers'>(
+  'unassigned',
+);
+const { call, data } = useBackendService('/enrollments', 'get');
 const enrollments = ref<Enrollment[]>([]);
-const enrollmentsDataCache = useState("enrollmentsAdmin", () => null);
+const enrollmentsDataCache = useState('enrollmentsAdmin', () => null);
 const fetchData = async () => {
-  await call();
+  await call({
+    session_id: selectedSessionId.value || undefined,
+    assigned_to:
+      activeTab.value === 'unassigned'
+        ? 'none'
+        : activeTab.value === 'toMe'
+          ? 'me'
+          : activeTab.value === 'toOthers'
+            ? 'others'
+            : undefined,
+  });
   enrollmentsDataCache.value = data.value;
   enrollments.value = data.value || [];
 };
-onMounted(async () => {
-  if (!enrollmentsDataCache.value) {
-    try {
-      loading.value = true;
-      await fetchData();
-      loading.value = false;
-    } catch (err) {
-      console.error("Failed to fetch dashboard stats", err);
+
+watch(
+  activeTab,
+  async (newTab, prevTab) => {
+    if (prevTab && newTab !== prevTab) {
+      enrollmentsDataCache.value = null;
     }
-  }
 
-  if (enrollmentsDataCache.value) {
-    enrollments.value = enrollmentsDataCache.value || [];
-  }
-});
+    if (!enrollmentsDataCache.value) {
+      try {
+        loading.value = true;
+        await fetchData();
+        loading.value = false;
+      } catch (err) {
+        console.error('Failed to fetch admin enrollments', err);
+      }
+    }
 
-interface RejectionHistory {
-  enrollmentId?: number;
-  reason?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
+    if (enrollmentsDataCache.value) {
+      enrollments.value = enrollmentsDataCache.value || [];
+    }
+  },
+  {
+    immediate: true,
+  },
+);
 
-const getRejectionHistory = (
-  studentId: string,
-  sessionName: string,
-  courseCode: string
-): RejectionHistory[] => {
-  return table
-    .getRowModel()
-    .rows.filter((row) => {
-      const original = row.original;
-      return (
-        original.studentId === studentId &&
-        original.sessionName === sessionName &&
-        original.courseCode === courseCode &&
-        original.status?.toLowerCase() === "rejected"
-      );
-    })
-    .map((row) => {
-      const original = row.original;
-      return {
-        enrollmentId: original.enrollmentId,
-        reason: original.reason,
-        createdAt: original.createdAt,
-        updatedAt: original.updatedAt,
-      };
-    });
-};
-
-const getRejectionCount = (
-  studentId: string,
-  sessionName: string,
-  courseCode: string
-): number => {
-  return table.getRowModel().rows.filter((row) => {
-    const original = row.original;
-    return (
-      original.studentId === studentId &&
-      original.sessionName === sessionName &&
-      original.courseCode === courseCode &&
-      original.status?.toLowerCase() === "rejected"
-    );
-  }).length;
-};
+watch(selectedSessionId, fetchData);
 
 const filteredEnrollments = computed(() => {
-  if (activeTab.value === "unass") {
-    return enrollments.value;
-  } else if (activeTab.value === "toOthers") {
-    return enrollments.value.filter((e) => e.assignedStatus === "toOthers");
-  } else {
-    return enrollments.value.filter(
-      (e) => e.assignedStatus === activeTab.value
-    );
-  }
+  return orderBy(
+    enrollments.value,
+    [
+      (e) => (e.status === 'pending' ? 0 : 1),
+      (e) =>
+        new Date(e.updatedAt as unknown as string | Date).getTime(),
+    ],
+    ['asc', 'asc'],
+  );
 });
-
-const activeTab = ref("unassigned");
 
 const columnHelper = createColumnHelper<Enrollment>();
 
 const columns = computed(() => {
   const cols: any[] = [
-    columnHelper.accessor("studentName", {
-      header: "Student Name",
+    columnHelper.accessor('studentName', {
+      header: 'Student Name',
       cell: (props) => {
         const student = props.row.original;
-        return h("div", { class: "student-info" }, [
-          h("img", {
+        return h('div', { class: 'student-info' }, [
+          h('img', {
             src: student.studentImage,
             alt: student.studentName,
-            class: "avatar",
+            class: 'avatar',
           }),
-          h("div", { class: "student-details" }, [
-            h("div", { class: "student-name" }, student.studentName),
-            h("div", { class: "student-id" }, `ID: ${student.studentId}`),
+          h('div', { class: 'student-details' }, [
+            h('div', { class: 'student-name' }, student.studentName),
+            h(
+              'div',
+              { class: 'student-id' },
+              `ID: ${student.studentId}`,
+            ),
           ]),
         ]);
       },
     }),
-    columnHelper.accessor("courseCode", {
-      header: "Course",
+    columnHelper.accessor('courseCode', {
+      header: 'Course',
       cell: (props) => props.getValue(),
     }),
-    columnHelper.accessor("program", {
-      header: "Enrolled Programme",
+    columnHelper.accessor('program', {
+      header: 'Enrolled Programme',
       cell: (props) => props.getValue(),
     }),
   ];
 
-  if (activeTab.value === "toOthers") {
+  if (activeTab.value === 'toOthers') {
     cols.push(
-      columnHelper.accessor("assignedRegistrar", {
-        header: "Assigned Registrar",
+      columnHelper.accessor('assignedRegistrar', {
+        header: 'Assigned Registrar',
         cell: (props) => {
           const student = props.row.original;
-          return h("div", { class: "student-info" }, [
-            h("img", {
+          return h('div', { class: 'student-info' }, [
+            h('img', {
               src: student.assignedRegistrarImage,
               alt: student.studentName,
-              class: "avatar",
+              class: 'avatar',
             }),
-            h("div", { class: "student-details" }, [
-              h("div", { class: "student-name" }, student.assignedRegistrar),
+            h('div', { class: 'student-details' }, [
+              h(
+                'div',
+                { class: 'student-name' },
+                student.assignedRegistrar,
+              ),
             ]),
           ]);
         },
-      })
+      }),
     );
   }
 
   cols.push(
-    columnHelper.accessor("status" as keyof Enrollment, {
-      header: "Status",
+    columnHelper.accessor('status' as keyof Enrollment, {
+      header: 'Status',
       cell: (props) => props.getValue() as string,
-    })
+    }),
   );
 
   cols.push(
     columnHelper.display({
-      id: "actions",
-      header: "Action",
+      id: 'actions',
+      header: 'Action',
       cell: () => {},
-    })
+    }),
   );
 
   return cols;
@@ -560,7 +575,7 @@ const tableState = reactive({
     pageSize: 10,
   },
   sorting: [] as ColumnSort[],
-  globalFilter: "",
+  globalFilter: '',
 });
 
 const searchQuery = computed({
@@ -583,12 +598,16 @@ const table = useVueTable({
   },
   onSortingChange: (updater) => {
     const newValue =
-      typeof updater === "function" ? updater(tableState.sorting) : updater;
+      typeof updater === 'function'
+        ? updater(tableState.sorting)
+        : updater;
     tableState.sorting = newValue;
   },
   onPaginationChange: (updater) => {
     const newValue =
-      typeof updater === "function" ? updater(tableState.pagination) : updater;
+      typeof updater === 'function'
+        ? updater(tableState.pagination)
+        : updater;
     tableState.pagination = newValue;
   },
   getCoreRowModel: getCoreRowModel(),
@@ -607,7 +626,10 @@ const calculatePageRange = () => {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }
 
-  let startPage = Math.max(currentPage - Math.floor(maxVisiblePages / 2), 1);
+  let startPage = Math.max(
+    currentPage - Math.floor(maxVisiblePages / 2),
+    1,
+  );
   let endPage = startPage + maxVisiblePages - 1;
 
   if (endPage > totalPages) {
@@ -617,7 +639,7 @@ const calculatePageRange = () => {
 
   return Array.from(
     { length: endPage - startPage + 1 },
-    (_, i) => startPage + i
+    (_, i) => startPage + i,
   );
 };
 
@@ -627,9 +649,24 @@ const showInfoModal = ref(false);
 const isActionLoading = ref(false);
 const selectedEnrollment = ref<Enrollment | null>(null);
 
+const selectedEnrollmentCourse = computed(() =>
+  selectedEnrollment.value
+    ? getEnrollmentAsCourseListData(
+        selectedEnrollment.value,
+        filteredEnrollments.value,
+      )
+    : undefined,
+);
+
+const selectedEnrollmentHistory = computed(() =>
+  selectedEnrollmentCourse.value
+    ? selectedEnrollmentCourse.value.student_course_enrollements
+    : [],
+);
+
 const handleEdit = async (rowData: Enrollment) => {
-  if (rowData.status !== "pending") {
-    toast.info("Enrollment cannot be edited");
+  if (rowData.status !== 'pending') {
+    toast.info('Enrollment cannot be edited');
     return;
   } else {
     selectedEnrollment.value = rowData;
@@ -638,8 +675,8 @@ const handleEdit = async (rowData: Enrollment) => {
 };
 
 const handleDelete = async (rowData: Enrollment) => {
-  if (rowData.status !== "pending") {
-    toast.info("Enrollment cannot be edited");
+  if (rowData.status !== 'pending') {
+    toast.info('Enrollment cannot be edited');
     return;
   } else {
     selectedEnrollment.value = rowData;
@@ -659,23 +696,25 @@ const handleDeleteAction = async ({
 }) => {
   const { call } = useBackendService(
     `/enrollments/${selectedEnrollment.value?.enrollmentId}`,
-    "patch"
+    'patch',
   );
-  const finalReason = reason === "Other reason" ? customReason : reason;
+  const finalReason =
+    reason === 'Other reason' ? customReason : reason;
 
   isActionLoading.value = true;
   try {
     await call({
-      enrollment_status: "REJECTED",
+      enrollment_status: 'REJECTED',
       rejection_reason: finalReason,
     });
-    toast.success("Enrollment rejected successfully");
+    toast.success('Enrollment rejected successfully');
     fetchData();
 
     showDeleteModal.value = false;
     selectedEnrollment.value = null;
   } catch (error) {
-    toast.error("Failed to reject enrollment");
+    console.dir(error);
+    toast.error('Failed to reject enrollment');
   } finally {
     isActionLoading.value = false;
   }
@@ -683,21 +722,22 @@ const handleDeleteAction = async ({
 const handleEditAction = async () => {
   const { call } = useBackendService(
     `/enrollments/${selectedEnrollment.value?.enrollmentId}`,
-    "patch"
+    'patch',
   );
 
   isActionLoading.value = true;
   try {
     await call({
-      enrollment_status: "APPROVED",
+      enrollment_status: 'APPROVED',
     });
-    toast.success("Enrollment accepted successfully");
+    toast.success('Enrollment accepted successfully');
     fetchData();
 
     showEditModal.value = false;
     selectedEnrollment.value = null;
   } catch (error) {
-    toast.error("Failed to reject enrollment");
+    console.dir(error);
+    toast.error('Failed to reject enrollment');
   } finally {
     isActionLoading.value = false;
   }
@@ -708,7 +748,7 @@ const goToPage = (pageIndex: number) => {
 };
 
 definePageMeta({
-  layout: "dashboard",
+  layout: 'dashboard',
 });
 
 const totalRecords = computed(() => filteredEnrollments.value.length);
@@ -724,7 +764,9 @@ const endRecord = computed(() => {
   const possibleEnd =
     (table.getState().pagination.pageIndex + 1) *
     table.getState().pagination.pageSize;
-  return possibleEnd > totalRecords.value ? totalRecords.value : possibleEnd;
+  return possibleEnd > totalRecords.value
+    ? totalRecords.value
+    : possibleEnd;
 });
 </script>
 

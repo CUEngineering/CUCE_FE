@@ -1,37 +1,49 @@
-export default defineNuxtRouteMiddleware((to) => {
-  const token = useCookie("token").value;
-  const role = useCookie("role").value;
+export default defineNuxtRouteMiddleware(async (to) => {
+  const token = useCookie('token').value;
+  const role = useCookie('role').value;
 
   // const auth = useAuthStore();
   // console.log("Auth Middleware", auth);
 
-  const roleRoutes: Record<string, { roles: string[]; exclude?: string[] }> = {
-    "/admin": {
-      roles: ["ADMIN"],
+  const roleRoutes: Record<
+    string,
+    { roles: string[]; exclude?: string[] }
+  > = {
+    '/admin': {
+      roles: ['ADMIN'],
     },
-    "/student": {
-      roles: ["STUDENT"],
-      exclude: ["/student/create"],
+    '/student': {
+      roles: ['STUDENT'],
+      exclude: ['/student/create'],
     },
-    "/registrar": {
-      roles: ["REGISTRAR"],
+    '/registrar': {
+      roles: ['REGISTRAR'],
     },
   };
 
+  console.log(`Auth global middleware =====> `, {
+    roleRoutePrefix: Object.keys(roleRoutes).find((prefix) =>
+      to.path.startsWith(prefix),
+    ),
+    hasToken: !!token,
+  });
+
   if (
-    Object.keys(roleRoutes).some((prefix) => to.path.startsWith(prefix)) &&
+    Object.keys(roleRoutes).some((prefix) =>
+      to.path.startsWith(prefix),
+    ) &&
     !token
   ) {
-    return navigateTo("/login");
+    return navigateTo('/login');
   }
 
   for (const [prefix, config] of Object.entries(roleRoutes)) {
     if (
       to.path.startsWith(prefix) &&
       !config.exclude?.includes(to.path) &&
-      !config.roles.includes(role || "")
+      !config.roles.includes(role || '')
     ) {
-      return navigateTo("/unauthorized");
+      return navigateTo('/unauthorized');
     }
   }
 });

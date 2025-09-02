@@ -1,25 +1,29 @@
 <template>
-  <div style="height: fit-content" class="registrars-page">
-    <StudentReq />
+  <div
+    style="height: fit-content"
+    class="registrars-page"
+  >
+    <DashboardStudentReq />
     <div class="pending-invites dashlet-wrapper">
       <div class="invites-list dashlet">
-        <SessionCard v-if="session" :session="session" />
+        <DashboardSessionCard
+          v-if="session"
+          :session="session"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { provide, ref } from "vue";
-import SessionCard from "./sessionCard.vue";
-import StudentReq from "./StudentReq.vue";
+import { provide, ref } from 'vue';
 
 definePageMeta({
-  layout: "student",
+  layout: 'student',
 });
 
-const openDropdownId = ref<Symbol | null>(null);
-provide("openDropdownId", openDropdownId);
+const openDropdownId = ref<symbol | null>(null);
+provide('openDropdownId', openDropdownId);
 interface Session {
   sessionId: number;
   sessionName: string;
@@ -35,22 +39,24 @@ const loading = ref(false);
 const sessionIndex = ref(0);
 const session = computed(() => sessions.value[sessionIndex.value]); // Current session
 const { call: fetchSessions, data: currentData } = useBackendService(
-  "/sessions",
-  "get"
+  '/sessions',
+  'get',
 );
-const registrarDataCache = useState("sessionDataCa", () => null);
-const closedDataCche = useState("closedSessionCa", () => null);
+const registrarDataCache = useState('sessionDataCa', () => null);
+const closedDataCche = useState('closedSessionCa', () => null);
 
 const fetchData = async () => {
-  await fetchSessions({ status: "not_closed" });
+  await fetchSessions({ status: 'not_closed' });
   registrarDataCache.value = currentData.value;
   sessions.value = currentData.value || [];
   sessionIndex.value = 0;
 };
-const handleNextSession = () => {
-  if (sessions.value.length === 0) return;
-  sessionIndex.value = (sessionIndex.value + 1) % sessions.value.length;
-};
+
+// const handleNextSession = () => {
+//   if (sessions.value.length === 0) return;
+//   sessionIndex.value =
+//     (sessionIndex.value + 1) % sessions.value.length;
+// };
 
 onMounted(async () => {
   if (!closedDataCche.value && !registrarDataCache.value) {
@@ -59,7 +65,7 @@ onMounted(async () => {
       await fetchData();
       loading.value = false;
     } catch (err) {
-      console.error("Failed to fetch dashboard stats", err);
+      console.error('Failed to fetch dashboard stats', err);
     }
   }
 

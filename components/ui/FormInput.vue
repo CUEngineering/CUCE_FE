@@ -1,58 +1,87 @@
 <template>
   <div class="form-field">
-    <label :for="id" class="form-label">{{ label }}</label>
+    <label
+      :for="id"
+      class="form-label"
+      >{{ label }}</label
+    >
     <div
       class="input-wrapper"
-      :class="{ 'with-button': !!$slots.button, 'with-icon': type === 'date' }"
+      :class="{
+        'with-button': !!$slots.button,
+        'with-icon': type === 'date',
+      }"
     >
       <input
         :id="id"
         :type="type"
         :value="modelValue"
-        @input="
-          $emit('update:modelValue', ($event.target as HTMLInputElement).value)
-        "
         :placeholder="placeholder"
         :required="required"
         :disabled="disabled"
+        :min="min"
+        :max="max"
         class="form-input"
         :class="[
           size,
-          { 'has-error': error, 'with-icon-padding': type === 'date' },
+          {
+            'has-error': error,
+            'with-icon-padding': type === 'date',
+          },
         ]"
+        @input="
+          $emit(
+            'update:modelValue',
+            ($event.target as HTMLInputElement).value,
+          )
+        "
       />
 
-      <div class="form-icon" v-if="$slots.button">
+      <div
+        v-if="$slots.button"
+        class="form-icon"
+      >
         <slot name="button"></slot>
       </div>
     </div>
-    <p v-if="error" class="input-error">{{ error }}</p>
+    <p
+      v-if="error"
+      class="input-error"
+    >
+      {{ error }}
+    </p>
   </div>
 </template>
 
 <script setup lang="ts">
+defineOptions({
+  inheritAttrs: true,
+});
+
 withDefaults(
   defineProps<{
     id: string;
     label: string;
     modelValue: string;
     type?: string;
+    min?: string;
+    max?: string;
     placeholder?: string;
     required?: boolean;
-    size?: "sm" | "md";
+    size?: 'sm' | 'md';
     error?: string;
     disabled?: boolean;
   }>(),
   {
-    type: "text",
-    size: "md",
+    type: 'text',
+    size: 'md',
     error: undefined,
     disabled: false,
-  }
+  },
 );
 
 defineEmits<{
-  "update:modelValue": [value: string];
+  'update:modelValue': [value: string];
 }>();
 </script>
 
@@ -79,6 +108,11 @@ defineEmits<{
 
   &::placeholder {
     color: #9ca3af;
+  }
+
+  &:disabled {
+    background-color: #d7dff0 !important;
+    cursor: not-allowed !important;
   }
 
   &:focus {
