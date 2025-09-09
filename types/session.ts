@@ -1,4 +1,4 @@
-export interface SessionFilterType {
+export interface SessionType {
   session_id: number;
   session_name: string;
   start_date: string | Date;
@@ -8,6 +8,8 @@ export interface SessionFilterType {
   created_at: string | Date;
   updated_at: string | Date;
 }
+
+export type SessionFilterType = SessionType;
 
 export interface SessionCourseType {
   session_id: string | number;

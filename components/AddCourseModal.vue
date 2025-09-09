@@ -39,8 +39,10 @@
                       <div
                         v-for="option in [
                           'UNDERGRADUATE',
+                          'GRADUATE',
                           'MASTERS',
                           'DOCTORATE',
+                          'GENERAL',
                         ]"
                         :key="option"
                         class="radio-option"
@@ -158,8 +160,10 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void;
-  (e: 'program-added', program: ProgramOutput): void;
-  (e: 'program-updated', program: ProgramOutput): void;
+  (
+    e: 'program-added' | 'program-updated',
+    program: ProgramOutput,
+  ): void;
   (e: 'courses-added', courses: Course[]): void;
 }>();
 
