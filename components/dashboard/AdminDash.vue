@@ -1,15 +1,21 @@
 <template>
-  <div class="registrar-card" :style="cardStyle">
+  <div
+    class="registrar-card"
+    :style="cardStyle"
+  >
     <div class="registrar-header">
       <div
         v-if="clickType === 'text'"
-        @click="handleRoute"
         class="registrar-avatar"
         :style="{ color: color }"
+        @click="handleRoute"
       >
         {{ clickLabel }}
       </div>
-      <div v-else class="registrar-avatar">
+      <div
+        v-else
+        class="registrar-avatar"
+      >
         {{ clickLabel }}
       </div>
     </div>
@@ -18,10 +24,21 @@
       <div class="stat-group">
         <div class="stat-item">
           <div class="stat-label">{{ statLabel }}</div>
-          <div style="display: flex; align-items: center" class="stat-value">
-            <span style="margin-right: 5px; color: gray"> {{ statValue }}</span>
-            <Question style="margin-right: 5px" v-if="showQuestionIcon" />
-            <Dot style="margin-right: 5px" v-if="showDotIcon" />
+          <div
+            style="display: flex; align-items: center"
+            class="stat-value"
+          >
+            <span style="margin-right: 5px; color: gray">
+              {{ statValue }}</span
+            >
+            <Question
+              v-if="showQuestionIcon"
+              style="margin-right: 5px"
+            />
+            <Dot
+              v-if="showDotIcon"
+              style="margin-right: 5px"
+            />
             {{ number }}
           </div>
         </div>
@@ -42,11 +59,11 @@
       message="Your invitation have been sent to the provided email address. The invited student will receive an email with a link to join the platform."
       variant="success"
       :icon="true"
-      cancelButtonText="Awesome 🎉"
-      confirmButtonText=""
-      :showCancelButton="true"
-      :showConfirmButton="false"
-      :showCloseButton="true"
+      cancel-button-text="Awesome 🎉"
+      confirm-button-text=""
+      :show-cancel-button="true"
+      :show-confirm-button="false"
+      :show-close-button="true"
       :persistent="false"
       :loading="false"
     />
@@ -56,11 +73,11 @@
       message="There was an issue, We’re unable to send your invite to the provided email address. Please try again."
       variant="danger"
       :icon="true"
-      cancelButtonText="Try again!"
-      confirmButtonText=""
-      :showCancelButton="true"
-      :showConfirmButton="false"
-      :showCloseButton="true"
+      cancel-button-text="Try again!"
+      confirm-button-text=""
+      :show-cancel-button="true"
+      :show-confirm-button="false"
+      :show-close-button="true"
       :persistent="false"
       :loading="false"
     />
@@ -80,22 +97,22 @@
     <InviteModal
       v-model="showRegistrarModal"
       :loading="isInviteSending"
-      :pendingInvites="pendingInvites"
+      :pending-invites="pendingInvites"
       @send="sendInvites"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import Dot from "../icons/Dot.vue";
-import Question from "../icons/Question.vue";
-import AddModal from "../student/AddModal.vue";
-import Dialog from "../ui/Dialog.vue";
+import { computed } from 'vue';
+import Dot from '../icons/Dot.vue';
+import Question from '../icons/Question.vue';
+import AddModal from '../student/AddModal.vue';
+import Dialog from '../ui/Dialog.vue';
 
 // Props
 const props = defineProps<{
-  clickType?: "text" | "button";
+  clickType?: 'text' | 'button';
   clickLabel?: string;
   statLabel?: string;
   statValue?: string;
@@ -117,24 +134,24 @@ const isInviteSending = ref(false);
 const toast = useToast();
 const handleRoute = () => {
   switch (props.route) {
-    case "/admin/students":
+    case '/admin/students':
       showStudentModal.value = true;
       break;
-    case "/admin/courses":
+    case '/admin/courses':
       showCourseModal.value = true;
       break;
-    case "/admin/programs":
+    case '/admin/programs':
       showProgramModal.value = true;
       break;
-    case "/admin/registrars":
+    case '/admin/registrars':
       showRegistrarModal.value = true;
       break;
     default:
-      console.warn("No modal mapped to this route.");
+      console.warn('No modal mapped to this route.');
   }
 };
 const handleInviteSuccess = () => {
-  emit("newData", true);
+  emit('newData', true);
   showStudentModal.value = false;
   showInviteSuccessDialog.value = true;
 };
@@ -143,12 +160,14 @@ const handleInviteFailure = () => {
   showStudentModal.value = false;
   showInviteFailureDialog.value = true;
 };
+
 const handleProgramAdded = async (programOutput: any) => {
-  emit("newData", true);
+  emit('newData', true);
   showCourseModal.value = false;
 };
+
 const emit = defineEmits<{
-  (e: "newData", value: boolean): void;
+  (e: 'newData', value: boolean): void;
 }>();
 
 interface Invite {
@@ -157,27 +176,32 @@ interface Invite {
 }
 const pendingInvites = ref<Invite[]>([]);
 const sendInvites = async (emails: string[]) => {
-  const { call: sendInvites } = useBackendService("/registrars/invite", "post");
+  const { call: sendInvites } = useBackendService(
+    '/registrars/invite',
+    'post',
+  );
   isInviteSending.value = true;
 
   try {
     await sendInvites({ emails });
-    toast.success("Invite sent successfully");
-    emit("newData", true);
+    toast.success('Invite sent successfully');
+    emit('newData', true);
     isInviteSending.value = false;
     showRegistrarModal.value = false;
   } catch (error) {
-    toast.error("Failed to send invites");
+    console.dir(error);
+    toast.error('Failed to send invites');
   } finally {
+    //
   }
 };
 const cardStyle = computed(() => {
   return props.bgImage
     ? {
         backgroundImage: `url(${props.bgImage})`,
-        backgroundRepeat: "no-repeat",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
       }
     : {};
 });
@@ -290,7 +314,9 @@ const cardStyle = computed(() => {
 /* Dropdown transition styles */
 .dropdown-enter-active,
 .dropdown-leave-active {
-  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+  transition:
+    opacity 0.2s ease-in-out,
+    transform 0.2s ease-in-out;
 }
 
 .dropdown-enter-from,

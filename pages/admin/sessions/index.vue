@@ -22,7 +22,11 @@
               </div>
             </template>
           </UiFormInput>
-          <UiButton variant="secondary" size="sm" @click="addNewSession">
+          <UiButton
+            variant="secondary"
+            size="sm"
+            @click="addNewSession"
+          >
             <template #icon>
               <IconsPlusIcon />
             </template>
@@ -51,7 +55,11 @@
             />
           </template>
           <template #action>
-            <UiButton variant="outline" size="sm" @click="addNewSession">
+            <UiButton
+              variant="outline"
+              size="sm"
+              @click="addNewSession"
+            >
               <template #icon>
                 <IconsPlusIcon />
               </template>
@@ -95,7 +103,7 @@
             {{
               filteredSessions.length > 0
                 ? `${filteredSessions.length}`
-                : "No past sessions"
+                : 'No past sessions'
             }}
           </div>
         </div>
@@ -103,7 +111,7 @@
           <thead>
             <tr>
               <th
-                v-for="header in table.getHeaderGroups()[0].headers"
+                v-for="header in tableHeaders"
                 :key="header.id"
                 class="table-header"
                 @click="header.column.getToggleSortingHandler()"
@@ -114,7 +122,11 @@
                     v-if="header.column.getIsSorted()"
                     class="sort-indicator"
                   >
-                    {{ header.column.getIsSorted() === "desc" ? "▼" : "▲" }}
+                    {{
+                      header.column.getIsSorted() === 'desc'
+                        ? '▼'
+                        : '▲'
+                    }}
                   </span>
                 </div>
               </th>
@@ -132,9 +144,14 @@
                 class="table-cell"
               >
                 <template
-                  v-if="typeof cell.column.columnDef.cell === 'function'"
+                  v-if="
+                    typeof cell.column.columnDef.cell === 'function'
+                  "
                 >
-                  <div v-if="cell.column.id === 'actions'" class="action-cell">
+                  <div
+                    v-if="cell.column.id === 'actions'"
+                    class="action-cell"
+                  >
                     <button class="action-button delete-button">
                       <IconsActionCancelIcon />
                     </button>
@@ -154,11 +171,21 @@
                     class="profile-count pill p-grey"
                   >
                     <span><IconsSessionIcon /></span>
-                    {{ formatDateToDateAndTime(cell.row.original.startDate) }}-
-                    {{ formatDateToDateAndTime(cell.row.original.endDate) }}
+                    {{
+                      formatDateToDateAndTime(
+                        cell.row.original.startDate,
+                      )
+                    }}-
+                    {{
+                      formatDateToDateAndTime(
+                        cell.row.original.endDate,
+                      )
+                    }}
                   </div>
                   <div
-                    v-else-if="cell.column.id === 'numberOfOpenCourses'"
+                    v-else-if="
+                      cell.column.id === 'numberOfOpenCourses'
+                    "
                     style="text-align: center; margin-left: 10px"
                     class="profile-count pill p-grey custompill"
                   >
@@ -172,14 +199,16 @@
                     {{ cell.row.original.numberOfStudents }}
                   </div>
                   <div
-                    v-else-if="cell.column.id === 'enrollmentDeadline'"
+                    v-else-if="
+                      cell.column.id === 'enrollmentDeadline'
+                    "
                     style="text-align: center; margin-left: 10px"
                     class="profile-count pill p-grey"
                   >
                     <span><IconsSessionIcon /></span>
                     {{
                       formatDateToDateAndTime(
-                        cell.row.original.enrollmentDeadline
+                        cell.row.original.enrollmentDeadline,
                       )
                     }}
                   </div>
@@ -192,7 +221,10 @@
             </tr>
           </tbody>
         </table>
-        <div class="mobile-table" style="padding: 10px">
+        <div
+          class="mobile-table"
+          style="padding: 10px"
+        >
           <SessionCard
             v-for="row in table.getRowModel().rows"
             :key="row.id"
@@ -237,7 +269,9 @@
                 :key="page"
                 class="page-button"
                 :class="{
-                  active: table.getState().pagination.pageIndex === page - 1,
+                  active:
+                    table.getState().pagination.pageIndex ===
+                    page - 1,
                 }"
                 @click="goToPage(page - 1)"
               >
@@ -330,13 +364,13 @@ import {
   getSortedRowModel,
   useVueTable,
   type ColumnSort,
-} from "@tanstack/vue-table";
-import { useToast } from "~/composables/useToast";
-import { formatDateToDateAndTime } from "~/helper/formatData";
-import type { SessionCourse, SessionStudent } from "./[id].vue";
+} from '@tanstack/vue-table';
+import { useToast } from '~/composables/useToast';
+import { formatDateToDateAndTime } from '~/helper/formatData';
+import type { SessionCourse, SessionStudent } from './[id].vue';
 
 definePageMeta({
-  layout: "dashboard",
+  layout: 'dashboard',
 });
 
 interface Session {
@@ -364,9 +398,9 @@ interface CamelCAse {
 const toast = useToast();
 
 const selectedSession = ref<Session | undefined>(undefined);
-const showSessionMode = ref<"add" | "edit" | undefined>(undefined);
+const showSessionMode = ref<'add' | 'edit' | undefined>(undefined);
 const sessionEditData = computed(() =>
-  selectedSession.value && showSessionMode.value === "edit"
+  selectedSession.value && showSessionMode.value === 'edit'
     ? {
         session_id: Number(selectedSession.value.sessionId),
         session_name: selectedSession.value.sessionName,
@@ -374,12 +408,12 @@ const sessionEditData = computed(() =>
         end_date: selectedSession.value.endDate,
         enrollment_deadline: selectedSession.value.enrollmentDeadline,
         session_status: selectedSession.value.sessionStatus,
-        created_at: "",
-        updated_at: "",
+        created_at: '',
+        updated_at: '',
         session_courses: [],
         session_students: [],
       }
-    : null
+    : null,
 );
 const showEditSessionCard = computed({
   get() {
@@ -400,25 +434,23 @@ const handleAddStudentFromModal = () => {
   showAddStudent.value = true;
 };
 
-const { call: create } = useBackendService(`/sessions`, "post");
+const { call: create } = useBackendService(`/sessions`, 'post');
 const { call: createWstudents } = useBackendService(
   `/sessions/with-students`,
-  "post"
+  'post',
 );
 
 const addNewSession = () => {
-  showSessionMode.value = "add";
+  showSessionMode.value = 'add';
 };
 
 const loading = ref(false);
 const { call: fetchSessions, data: currentData } = useBackendService(
-  "/sessions",
-  "get"
+  '/sessions',
+  'get',
 );
-const { call: fetchClosedSessions, data: closedData } = useBackendService(
-  "/sessions",
-  "get"
-);
+const { call: fetchClosedSessions, data: closedData } =
+  useBackendService('/sessions', 'get');
 
 const sessions = ref<Session[]>([]);
 const closedSessions = ref<Session[]>([]);
@@ -426,7 +458,7 @@ const filteredSessions = computed(() => {
   if (!searchQuery.value.trim()) return sessions.value;
   const query = searchQuery.value.toLowerCase();
   return sessions.value.filter((registrar) =>
-    registrar.sessionName.toLowerCase().includes(query)
+    registrar.sessionName.toLowerCase().includes(query),
   );
 });
 
@@ -438,24 +470,25 @@ const ignoredSessionDateRangeList = computed(() => {
   }));
 });
 
-const registrarDataCache = useState("sessionDataCah", () => null);
-const closedDataCche = useState("closedSessionCah", () => null);
+const registrarDataCache = useState('sessionDataCah', () => null);
+const closedDataCche = useState('closedSessionCah', () => null);
 
 const fetchData = async () => {
-  await fetchSessions({ status: "not_closed" });
+  await fetchSessions({ status: 'not_closed' });
   registrarDataCache.value = currentData.value;
   // sessions.value = currentData.value || [];
 
-  //Addie's Update Starts Here
+  // Addie's Update Starts Here
   const all = (currentData.value ?? []) as Session[];
 
   // Split sessions
-  const active = all.find((s) => s.sessionStatus === "ACTIVE");
+  const active = all.find((s) => s.sessionStatus === 'ACTIVE');
   const upcoming = all
-    .filter((s) => s.sessionStatus === "UPCOMING")
+    .filter((s) => s.sessionStatus === 'UPCOMING')
     .sort(
       (a, b) =>
-        new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+        new Date(a.startDate).getTime() -
+        new Date(b.startDate).getTime(),
     );
 
   // Build final result
@@ -467,9 +500,9 @@ const fetchData = async () => {
   }
 
   sessions.value = selected;
-  //Addie's Update Ends Here
+  // Addie's Update Ends Here
 
-  await fetchClosedSessions({ status: "closed" });
+  await fetchClosedSessions({ status: 'closed' });
   closedDataCche.value = closedData.value;
   closedSessions.value = closedData.value || [];
 };
@@ -491,7 +524,7 @@ const fetchData = async () => {
 //   }
 // });
 
-//Addie's Update Starts Here
+// Addie's Update Starts Here
 onMounted(async () => {
   try {
     loading.value = true;
@@ -504,12 +537,13 @@ onMounted(async () => {
 
       // Still filter registrarDataCache before assigning to sessions
       const all = (registrarDataCache.value ?? []) as Session[];
-      const active = all.find((s) => s.sessionStatus === "ACTIVE");
+      const active = all.find((s) => s.sessionStatus === 'ACTIVE');
       const upcoming = all
-        .filter((s) => s.sessionStatus === "UPCOMING")
+        .filter((s) => s.sessionStatus === 'UPCOMING')
         .sort(
           (a, b) =>
-            new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+            new Date(a.startDate).getTime() -
+            new Date(b.startDate).getTime(),
         );
 
       const selected: Session[] = [];
@@ -524,12 +558,12 @@ onMounted(async () => {
 
     loading.value = false;
   } catch (err) {
-    console.error("Failed to fetch dashboard stats", err);
+    console.error('Failed to fetch dashboard stats', err);
     loading.value = false;
   }
 });
 
-//Addie's Update Ends Here
+// Addie's Update Ends Here
 
 const tableState = reactive({
   pagination: {
@@ -537,30 +571,30 @@ const tableState = reactive({
     pageSize: 10,
   },
   sorting: [] as ColumnSort[],
-  globalFilter: "",
+  globalFilter: '',
 });
 
 const columnHelper = createColumnHelper<Session>();
 
 const columns = [
-  columnHelper.accessor("sessionName", {
-    header: "Session Name",
+  columnHelper.accessor('sessionName', {
+    header: 'Session Name',
     cell: (props) => props.getValue(),
   }),
-  columnHelper.accessor("startDate", {
-    header: "Duration",
+  columnHelper.accessor('startDate', {
+    header: 'Duration',
     cell: (props) => props.getValue(),
   }),
-  columnHelper.accessor("numberOfStudents", {
-    header: "Enrolled Students",
+  columnHelper.accessor('numberOfStudents', {
+    header: 'Enrolled Students',
     cell: (props) => props.getValue(),
   }),
-  columnHelper.accessor("numberOfOpenCourses", {
-    header: "Open Courses",
+  columnHelper.accessor('numberOfOpenCourses', {
+    header: 'Open Courses',
     cell: (props) => props.getValue(),
   }),
-  columnHelper.accessor("enrollmentDeadline", {
-    header: "Enrollment Deadline",
+  columnHelper.accessor('enrollmentDeadline', {
+    header: 'Enrollment Deadline',
     cell: (props) => props.getValue(),
   }),
 ];
@@ -570,6 +604,7 @@ const searchQuery = computed({
     tableState.globalFilter = value;
   },
 });
+
 const table = useVueTable({
   get data() {
     return closedSessions.value;
@@ -581,12 +616,16 @@ const table = useVueTable({
   },
   onSortingChange: (updater) => {
     const newValue =
-      typeof updater === "function" ? updater(tableState.sorting) : updater;
+      typeof updater === 'function'
+        ? updater(tableState.sorting)
+        : updater;
     tableState.sorting = newValue;
   },
   onPaginationChange: (updater) => {
     const newValue =
-      typeof updater === "function" ? updater(tableState.pagination) : updater;
+      typeof updater === 'function'
+        ? updater(tableState.pagination)
+        : updater;
     tableState.pagination = newValue;
   },
   getCoreRowModel: getCoreRowModel(),
@@ -594,6 +633,11 @@ const table = useVueTable({
   getPaginationRowModel: getPaginationRowModel(),
   getSortedRowModel: getSortedRowModel(),
 });
+
+const tableHeaders = computed(
+  () => table.getHeaderGroups()[0]?.headers ?? [],
+);
+
 const calculatePageRange = () => {
   const currentPage = table.getState().pagination.pageIndex + 1;
   const totalPages = table.getPageCount();
@@ -603,7 +647,10 @@ const calculatePageRange = () => {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }
 
-  let startPage = Math.max(currentPage - Math.floor(maxVisiblePages / 2), 1);
+  let startPage = Math.max(
+    currentPage - Math.floor(maxVisiblePages / 2),
+    1,
+  );
   let endPage = startPage + maxVisiblePages - 1;
 
   if (endPage > totalPages) {
@@ -613,7 +660,7 @@ const calculatePageRange = () => {
 
   return Array.from(
     { length: endPage - startPage + 1 },
-    (_, i) => startPage + i
+    (_, i) => startPage + i,
   );
 };
 const goToPage = (pageIndex: number) => {
@@ -626,13 +673,13 @@ const handleViewSession = (session: Session) => {
 
 const handleEditSession = (session: Session) => {
   selectedSession.value = session;
-  showSessionMode.value = "edit";
+  showSessionMode.value = 'edit';
 };
 
 const handleAddStudentSubmit = async (formData: any) => {
   newSessionFormData.value = {
     ...formData,
-    session_status: "UPCOMING",
+    session_status: 'UPCOMING',
   };
   await fetchData();
 };
@@ -652,13 +699,13 @@ const handleAddStudentFinal = async (formData: any) => {
 
 const handleSessionUpdate = async (session: Partial<CamelCAse>) => {
   switch (showSessionMode.value) {
-    case "add": {
+    case 'add': {
       await create({
         session_name: session.session_name,
         start_date: session.start_date,
         end_date: session.end_date,
         enrollment_deadline: session.enrollment_deadline,
-        session_status: "UPCOMING",
+        session_status: 'UPCOMING',
       });
 
       await fetchData();
@@ -666,10 +713,10 @@ const handleSessionUpdate = async (session: Partial<CamelCAse>) => {
       break;
     }
 
-    case "edit": {
+    case 'edit': {
       const { call: updateSessionData } = useBackendService(
         `/sessions/${selectedSession.value?.sessionId}`,
-        "patch"
+        'patch',
       );
 
       await updateSessionData({
@@ -680,7 +727,7 @@ const handleSessionUpdate = async (session: Partial<CamelCAse>) => {
       });
       await fetchData();
 
-      toast.success("Session updated successfully");
+      toast.success('Session updated successfully');
       break;
     }
   }
@@ -695,7 +742,7 @@ const isActionLoading = ref(false);
 
 const handleAdjustEnrollment = (session: Session) => {
   selectedSession.value = session;
-  showSessionMode.value = "edit";
+  showSessionMode.value = 'edit';
 };
 
 const handleStartSession = (session: Session) => {
@@ -714,22 +761,30 @@ const handleCloseSession = (session: Session) => {
 };
 
 const confirmStart = async () => {
-  const { call: confirmDeactivate } = useBackendService(
-    `/sessions/${selectedSession.value?.sessionId}`,
-    "patch"
-  );
-
   if (!selectedSession.value) return;
-
   isActionLoading.value = true;
-  try {
-    await confirmDeactivate({ session_status: "ACTIVE" });
 
-    toast.success(`${selectedSession.value.sessionName} has now started`);
+  try {
+    const resp = await useBackendRequest({
+      url: `/sessions/${selectedSession.value?.sessionId}/start`,
+      method: 'post',
+      validateStatus(status) {
+        return status < 400;
+      },
+    });
+
+    if (resp.status !== 204) {
+      throw new Error('An error occurred while starting session');
+    }
+
+    toast.success(
+      `${selectedSession.value.sessionName} has now started`,
+    );
     await fetchData();
   } catch (error) {
+    console.dir(error);
     // Error case
-    toast.error("Failed to process");
+    toast.error('Failed to process');
   } finally {
     isActionLoading.value = false;
     showStartConfirm.value = false;
@@ -737,22 +792,30 @@ const confirmStart = async () => {
 };
 
 const confirmClose = async () => {
-  const { call: confirmDeactivate } = useBackendService(
-    `/sessions/${selectedSession.value?.sessionId}`,
-    "patch"
-  );
-
   if (!selectedSession.value) return;
-
   isActionLoading.value = true;
   try {
-    await confirmDeactivate({ session_status: "CLOSED" });
+    const resp = await useBackendRequest({
+      url: `/sessions/${selectedSession.value?.sessionId}/close`,
+      method: 'post',
+      validateStatus(status) {
+        return status < 400;
+      },
+    });
 
-    toast.success(`${selectedSession.value.sessionName} is now closed`);
+    if (resp.status !== 204) {
+      throw new Error('An error occurred while starting session');
+    }
+
+    toast.success(
+      `${selectedSession.value.sessionName} is now closed`,
+    );
     await fetchData();
   } catch (error) {
+    console.dir(error);
+
     // Error case
-    toast.error("Failed to process");
+    toast.error('Failed to process');
   } finally {
     isActionLoading.value = false;
     showSuspendConfirm.value = false;
@@ -762,7 +825,7 @@ const confirmClose = async () => {
 const confirmDelete = async () => {
   const { call: confirmDeactivate } = useBackendService(
     `/sessions/${selectedSession.value?.sessionId}`,
-    "delete"
+    'delete',
   );
 
   if (!selectedSession.value) return;
@@ -771,11 +834,15 @@ const confirmDelete = async () => {
   try {
     await confirmDeactivate();
 
-    toast.success(`${selectedSession.value.sessionName} is now deleted`);
+    toast.success(
+      `${selectedSession.value.sessionName} is now deleted`,
+    );
     await fetchData();
   } catch (error) {
+    console.dir(error);
+
     // Error case
-    toast.error("Course has active students, cannot delete");
+    toast.error('Course has active students, cannot delete');
   } finally {
     isActionLoading.value = false;
     showDeleteConfirm.value = false;

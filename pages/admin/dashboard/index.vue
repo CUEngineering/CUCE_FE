@@ -11,73 +11,71 @@
       style="background-color: white"
       class="registrars-list dashlet-wrapper"
     >
-      <AdminDash
-        clickType="text"
-        clickLabel="+ Invite Student"
-        statLabel="Students"
-        statValue="Total No"
+      <DashboardAdminDash
+        click-type="text"
+        click-label="+ Invite Student"
+        stat-label="Students"
+        stat-value="Total No"
         :number="totalStudents"
-        :showDotIcon="true"
-        :showQuestionIcon="true"
-        :bgImage="AdminBlue"
+        :show-dot-icon="true"
+        :show-question-icon="true"
+        :bg-image="AdminBlue"
         color="#2A50AD"
         route="/admin/students"
         @new-data="fetchStats"
       />
-      <AdminDash
-        clickType="text"
-        clickLabel="+ Create Course"
-        statLabel="Courses"
-        statValue="Total No"
+      <DashboardAdminDash
+        click-type="text"
+        click-label="+ Create Course"
+        stat-label="Courses"
+        stat-value="Total No"
         :number="totalCourses"
-        :showDotIcon="true"
-        :showQuestionIcon="true"
-        :bgImage="AdminOrange"
+        :show-dot-icon="true"
+        :show-question-icon="true"
+        :bg-image="AdminOrange"
         color="#E04F16"
         route="/admin/courses"
         @new-data="fetchStats"
       />
-      <AdminDash
-        clickType="text"
-        clickLabel="+ Invite Registrar"
-        statLabel="Registrars"
-        statValue="Total No"
+      <DashboardAdminDash
+        click-type="text"
+        click-label="+ Invite Registrar"
+        stat-label="Registrars"
+        stat-value="Total No"
         :number="totalRegistrars"
-        :showDotIcon="true"
-        :showQuestionIcon="true"
-        :bgImage="AdminPink"
+        :show-dot-icon="true"
+        :show-question-icon="true"
+        :bg-image="AdminPink"
         color="#C11574"
         route="/admin/registrars"
         @new-data="fetchStats"
       />
-      <AdminDash
-        clickType="text"
-        clickLabel="+ Add Program"
-        statLabel="Programmes"
-        statValue="Total No"
+      <DashboardAdminDash
+        click-type="text"
+        click-label="+ Add Program"
+        stat-label="Programmes"
+        stat-value="Total No"
         :number="totalPrograms"
-        :showDotIcon="true"
-        :showQuestionIcon="true"
-        :bgImage="AdminGreen"
+        :show-dot-icon="true"
+        :show-question-icon="true"
+        :bg-image="AdminGreen"
         color="#099250"
         route="/admin/programs"
         @new-data="fetchStats"
       />
     </div>
     <div v-if="!loading">
-      <AdminEnroll />
+      <DashboardAdminEnroll />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import AdminBlue from "~/assets/images/AdminBlue.svg";
-import AdminGreen from "~/assets/images/AdminGreen.svg";
-import AdminOrange from "~/assets/images/AdminOrange.svg";
-import AdminPink from "~/assets/images/AdminPink.svg";
-import AdminDash from "~/components/dashboard/AdminDash.vue";
-import AdminEnroll from "~/components/dashboard/AdminEnroll.vue";
+import { ref } from 'vue';
+import AdminBlue from '~/assets/images/AdminBlue.svg';
+import AdminGreen from '~/assets/images/AdminGreen.svg';
+import AdminOrange from '~/assets/images/AdminOrange.svg';
+import AdminPink from '~/assets/images/AdminPink.svg';
 
 const loading = ref(false);
 
@@ -93,13 +91,13 @@ interface DashboardStats {
 }
 
 const cachedStats = useState<DashboardStats | null>(
-  "dashboard-stats",
-  () => null
+  'admin-dashboard-stats',
+  () => null,
 );
 
 const { call, error, data } = useBackendService(
-  "/dashboard/admin/stats",
-  "get"
+  '/dashboard/admin/stats',
+  'get',
 );
 
 const fetchStats = async () => {
@@ -118,7 +116,7 @@ onMounted(async () => {
       await fetchStats();
       loading.value = false;
     } catch (err) {
-      console.error("Failed to fetch dashboard stats", err);
+      console.error('Failed to fetch dashboard stats', err);
     }
   }
 
@@ -131,7 +129,7 @@ onMounted(async () => {
 });
 
 definePageMeta({
-  layout: "dashboard",
+  layout: 'dashboard',
 });
 </script>
 

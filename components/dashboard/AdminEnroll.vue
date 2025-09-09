@@ -18,9 +18,8 @@
           "
           @click="handleNextSession"
         >
-          <IconsPlayIcon /><span style="padding-left: 5px"
-            >Next Session</span
-          >
+          <IconsPlayIcon />
+          <span style="padding-left: 5px"> Next Session </span>
         </p>
         <DashboardSessionCard
           v-if="session"

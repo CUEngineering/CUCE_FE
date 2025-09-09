@@ -188,7 +188,7 @@
           <thead>
             <tr>
               <th
-                v-for="header in table.getHeaderGroups()[0].headers"
+                v-for="header in tableHeaders"
                 :key="header.id"
                 class="table-header"
                 @click="header.column.getToggleSortingHandler()"
@@ -230,7 +230,12 @@
                     class="action-cell"
                   >
                     <div v-if="activeTab === 'courses'">
-                      <label class="switch">
+                      <label
+                        v-if="
+                          !sessionStore.hasSessionEnrollmentDeadlinePassed
+                        "
+                        class="switch"
+                      >
                         <!-- <input type="checkbox" id="toggle" /> -->
                         <input
                           :id="`toggle-${cell.row.original.courseId}`"
@@ -547,6 +552,7 @@ const showEditModal = ref(false);
 const back = () => {
   navigateTo('/admin/sessions');
 };
+
 const edit = () => {
   showEditModal.value = true;
 };
@@ -597,6 +603,7 @@ export interface Course {
   status: 'OPEN' | 'CLOSED';
 }
 
+const sessionStore = useSessionStore();
 const toast = useToast();
 const showAddStudent = ref(false);
 const showInviteStudent = ref(false);
@@ -1023,6 +1030,10 @@ const table = useVueTable({
   getPaginationRowModel: getPaginationRowModel(),
   getSortedRowModel: getSortedRowModel(),
 });
+
+const tableHeaders = computed(
+  () => table.getHeaderGroups()[0]?.headers ?? [],
+);
 
 const calculatePageRange = () => {
   const currentPage = table.getState().pagination.pageIndex + 1;

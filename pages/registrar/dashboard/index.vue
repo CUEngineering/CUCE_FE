@@ -11,91 +11,105 @@
       style="background-color: white"
       class="registrars-list dashlet-wrapper"
     >
-      <AdminDash
-        clickType="button"
-        clickLabel="Students"
-        statLabel="."
-        statValue="Total No"
+      <DashboardAdminDash
+        click-type="button"
+        click-label="Students"
+        stat-label="."
+        stat-value="Total No"
         :number="totalStudents"
-        :showDotIcon="true"
-        :showQuestionIcon="true"
-        :bgImage="AdminBlue"
+        :show-dot-icon="true"
+        :show-question-icon="true"
+        :bg-image="AdminBlue"
         color="#2A50AD"
-        route="/admin/students"
+        route="/registrar/students"
         @new-data="fetchStats"
       />
-      <AdminDash
-        clickType="button"
-        clickLabel="Courses"
-        statLabel="."
-        statValue="Total No"
-        :number="totalCourses"
-        :showDotIcon="true"
-        :showQuestionIcon="true"
-        :bgImage="AdminOrange"
+      <DashboardAdminDash
+        click-type="button"
+        click-label="Pending"
+        stat-label="."
+        stat-value="Total No"
+        :number="totalPendingEnrollments"
+        :show-dot-icon="true"
+        :show-question-icon="true"
+        :bg-image="AdminOrange"
         color="#E04F16"
-        route="/admin/courses"
+        route="/registrar/enrollments"
         @new-data="fetchStats"
       />
-
-      <AdminDash
-        clickType="button"
-        clickLabel="Programmes"
-        statLabel=" ."
-        statValue="Total No"
-        :number="totalPrograms"
-        :showDotIcon="true"
-        :showQuestionIcon="true"
-        :bgImage="AdminGreen"
+      <DashboardAdminDash
+        click-type="button"
+        click-label="Approved"
+        stat-label=" ."
+        stat-value="Total No"
+        :number="totalRejectedEnrollments"
+        :show-dot-icon="true"
+        :show-question-icon="true"
+        :bg-image="AdminPink"
+        color="#fef6fb"
+        route="/registrar/enrollments"
+        @new-data="fetchStats"
+      />
+      <DashboardAdminDash
+        click-type="button"
+        click-label="Approved"
+        stat-label=" ."
+        stat-value="Total No"
+        :number="totalApprovedEnrollments"
+        :show-dot-icon="true"
+        :show-question-icon="true"
+        :bg-image="AdminGreen"
         color="#099250"
-        route="/admin/programs"
+        route="/registrar/enrollments"
         @new-data="fetchStats"
       />
     </div>
     <div v-if="!loading">
-      <AdminEnroll />
+      <DashboardAdminEnroll />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import AdminBlue from "~/assets/images/AdminBlue.svg";
-import AdminGreen from "~/assets/images/AdminGreen.svg";
-import AdminOrange from "~/assets/images/AdminOrange.svg";
-import AdminDash from "~/components/dashboard/AdminDash.vue";
-import AdminEnroll from "~/components/dashboard/AdminEnroll.vue";
+import { ref } from 'vue';
+import AdminBlue from '~/assets/images/AdminBlue.svg';
+import AdminGreen from '~/assets/images/AdminGreen.svg';
+import AdminOrange from '~/assets/images/AdminOrange.svg';
+import AdminPink from '~/assets/images/AdminPink.svg';
 
 const loading = ref(false);
 
-const totalRegistrars = ref(0);
 const totalStudents = ref(0);
-const totalPrograms = ref(0);
-const totalCourses = ref(0);
+const totalPendingEnrollments = ref(0);
+const totalRejectedEnrollments = ref(0);
+const totalApprovedEnrollments = ref(0);
+
 interface DashboardStats {
-  totalRegistrars: number;
   totalStudents: number;
-  totalPrograms: number;
-  totalCourses: number;
+  totalPendingEnrollments: number;
+  totalRejectedEnrollments: number;
+  totalApprovedEnrollments: number;
 }
 
 const cachedStats = useState<DashboardStats | null>(
-  "dashboard-statsRTD",
-  () => null
+  'registrar-dashboard-stats',
+  () => null,
 );
 
 const { call, error, data } = useBackendService(
-  "/dashboard/admin/stats",
-  "get"
+  '/dashboard/registrar/stats',
+  'get',
 );
 
 const fetchStats = async () => {
   await call();
   cachedStats.value = data.value;
-  totalRegistrars.value = data.value.totalRegistrars;
   totalStudents.value = data.value.totalStudents;
-  totalPrograms.value = data.value.totalPrograms;
-  totalCourses.value = data.value.totalCourses;
+  totalPendingEnrollments.value = data.value.totalPendingEnrollments;
+  totalRejectedEnrollments.value =
+    data.value.totalRejectedEnrollments;
+  totalApprovedEnrollments.value =
+    data.value.totalApprovedEnrollments;
 };
 
 onMounted(async () => {
@@ -105,20 +119,23 @@ onMounted(async () => {
       await fetchStats();
       loading.value = false;
     } catch (err) {
-      console.error("Failed to fetch dashboard stats", err);
+      console.error('Failed to fetch dashboard stats', err);
     }
   }
 
   if (cachedStats.value) {
-    totalRegistrars.value = cachedStats.value.totalRegistrars;
     totalStudents.value = cachedStats.value.totalStudents;
-    totalPrograms.value = cachedStats.value.totalPrograms;
-    totalCourses.value = cachedStats.value.totalCourses;
+    totalPendingEnrollments.value =
+      cachedStats.value.totalPendingEnrollments;
+    totalRejectedEnrollments.value =
+      cachedStats.value.totalRejectedEnrollments;
+    totalApprovedEnrollments.value =
+      cachedStats.value.totalApprovedEnrollments;
   }
 });
 
 definePageMeta({
-  layout: "dashboard",
+  layout: 'dashboard',
 });
 </script>
 

@@ -59,6 +59,7 @@
 
       <!-- Main Content -->
       <main class="dashboard-content">
+        <StickyBanner />
         <slot />
       </main>
     </div>

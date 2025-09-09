@@ -14,8 +14,15 @@
       >
         ({{ startRecord }} - {{ endRecord }}) of {{ totalRecords }}
       </div>
-      <div v-if="enrollments.length > 0" class="search-and-actions">
-        <Button variant="outline" size="sm" @click="goToEnrollments">
+      <div
+        v-if="enrollments.length > 0"
+        class="search-and-actions"
+      >
+        <Button
+          variant="outline"
+          size="sm"
+          @click="goToEnrollments"
+        >
           View all
         </Button>
       </div>
@@ -48,7 +55,7 @@
             <thead>
               <tr>
                 <th
-                  v-for="header in table.getHeaderGroups()[0].headers"
+                  v-for="header in tableHeaders"
                   :key="header.id"
                   class="table-header"
                   @click="header.column.getToggleSortingHandler()"
@@ -59,7 +66,11 @@
                       v-if="header.column.getIsSorted()"
                       class="sort-indicator"
                     >
-                      {{ header.column.getIsSorted() === "desc" ? "▼" : "▲" }}
+                      {{
+                        header.column.getIsSorted() === 'desc'
+                          ? '▼'
+                          : '▲'
+                      }}
                     </span>
                   </div>
                 </th>
@@ -78,7 +89,9 @@
                   class="table-cell"
                 >
                   <template
-                    v-if="typeof cell.column.columnDef.cell === 'function'"
+                    v-if="
+                      typeof cell.column.columnDef.cell === 'function'
+                    "
                   >
                     <!-- <div
                       v-if="cell.column.id === 'actions'"
@@ -108,10 +121,14 @@
                     <div
                       v-if="cell.column.id === 'status'"
                       class="status-badge"
-                      :class="getStatusClass(cell.renderValue() as string)"
+                      :class="
+                        getStatusClass(cell.renderValue() as string)
+                      "
                     >
                       <span class="status-dot"></span>
-                      {{ capitalizeFirst(cell.renderValue() as string) }}
+                      {{
+                        capitalizeFirst(cell.renderValue() as string)
+                      }}
                     </div>
                     <div
                       v-else-if="cell.column.id === 'studentName'"
@@ -132,12 +149,16 @@
                       </div>
                     </div>
                     <div
-                      v-else-if="cell.column.id === 'assignedRegistrar'"
+                      v-else-if="
+                        cell.column.id === 'assignedRegistrar'
+                      "
                       class="student-info status-badge profile-count pill p-grey"
                       style="width: fit-content"
                     >
                       <img
-                        :src="cell.row.original.assignedRegistrarImage"
+                        :src="
+                          cell.row.original.assignedRegistrarImage
+                        "
                         :alt="cell.row.original.assignedRegistrar"
                         class="avatar"
                       />
@@ -159,7 +180,9 @@
                         {{ cell.renderValue() }}
                       </div>
                       <div
-                        v-if="cell.row.original.courseStatus === 'CLOSED'"
+                        v-if="
+                          cell.row.original.courseStatus === 'CLOSED'
+                        "
                         style="text-align: center; margin-left: 10px"
                         class="status-badge status-deactivated"
                       >
@@ -227,7 +250,9 @@
                 :key="page"
                 class="page-button"
                 :class="{
-                  active: table.getState().pagination.pageIndex === page - 1,
+                  active:
+                    table.getState().pagination.pageIndex ===
+                    page - 1,
                 }"
                 @click="goToPage(page - 1)"
               >
@@ -305,7 +330,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ColumnSort } from "@tanstack/vue-table";
+import type { ColumnSort } from '@tanstack/vue-table';
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -313,16 +338,16 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useVueTable,
-} from "@tanstack/vue-table";
-import { computed, h, reactive, ref } from "vue";
-import MobileEnrollment from "~/components/enrollment/MobileEnrollment.vue";
-import ActionCancelIcon from "~/components/icons/ActionCancelIcon.vue";
-import ActionEditIcon from "~/components/icons/ActionEditIcon.vue";
-import StatusBadge from "~/components/icons/StatusBadge.vue";
-import EmptyState from "~/components/ui/EmptyState.vue";
-import { capitalizeFirst, getStatusClass } from "~/helper/formatData";
-import Button from "../ui/Button.vue";
-import type { EnrollmentListType } from "~/types/enrollment";
+} from '@tanstack/vue-table';
+import { computed, h, reactive, ref } from 'vue';
+import MobileEnrollment from '~/components/enrollment/MobileEnrollment.vue';
+import ActionCancelIcon from '~/components/icons/ActionCancelIcon.vue';
+import ActionEditIcon from '~/components/icons/ActionEditIcon.vue';
+import StatusBadge from '~/components/icons/StatusBadge.vue';
+import EmptyState from '~/components/ui/EmptyState.vue';
+import { capitalizeFirst, getStatusClass } from '~/helper/formatData';
+import Button from '../ui/Button.vue';
+import type { EnrollmentListType } from '~/types/enrollment';
 
 interface Enrollment extends EnrollmentListType {
   unknwon: unknown;
@@ -330,17 +355,29 @@ interface Enrollment extends EnrollmentListType {
 
 const toast = useToast();
 const loading = ref(false);
-const router = useRouter();
 const authStore = useAuthStore();
+
 function goToEnrollments() {
-  router.push("/admin/enrollments");
+  switch (authStore.role) {
+    case 'ADMIN': {
+      return navigateTo({
+        name: 'admin-enrollments',
+      });
+    }
+
+    case 'REGISTRAR': {
+      return navigateTo({
+        name: 'registrar-enrollments',
+      });
+    }
+  }
 }
 
-const { call, data } = useBackendService("/enrollments", "get");
+const { call, data } = useBackendService('/enrollments', 'get');
 const enrollments = ref<Enrollment[]>([]);
-const enrollmentsDataCache = useState("enrollments", () => null);
+const enrollmentsDataCache = useState('enrollments', () => null);
 const fetchData = async () => {
-  if (authStore.role === "REGISTRAR") {
+  if (authStore.role === 'REGISTRAR') {
     await call({ registrar_id: authStore.user?.registrar_id });
   } else {
     await call();
@@ -356,7 +393,7 @@ onMounted(async () => {
       await fetchData();
       loading.value = false;
     } catch (err) {
-      console.error("Failed to fetch dashboard stats", err);
+      console.error('Failed to fetch dashboard stats', err);
     }
   }
 
@@ -369,48 +406,52 @@ const columnHelper = createColumnHelper<Enrollment>();
 
 const columns = computed(() => {
   const cols: any[] = [
-    columnHelper.accessor("studentName", {
-      header: "Student Name",
+    columnHelper.accessor('studentName', {
+      header: 'Student Name',
       cell: (props) => {
         const student = props.row.original;
-        return h("div", { class: "student-info" }, [
-          h("img", {
+        return h('div', { class: 'student-info' }, [
+          h('img', {
             src: student.studentImage,
             alt: student.studentName,
-            class: "avatar",
+            class: 'avatar',
           }),
-          h("div", { class: "student-details" }, [
-            h("div", { class: "student-name" }, student.studentName),
-            h("div", { class: "student-id" }, `ID: ${student.studentId}`),
+          h('div', { class: 'student-details' }, [
+            h('div', { class: 'student-name' }, student.studentName),
+            h(
+              'div',
+              { class: 'student-id' },
+              `ID: ${student.studentId}`,
+            ),
           ]),
         ]);
       },
     }),
 
-    columnHelper.accessor("courseCode", {
-      header: "Course",
+    columnHelper.accessor('courseCode', {
+      header: 'Course',
       cell: (props) => props.getValue(),
     }),
-    columnHelper.accessor("program", {
-      header: "Enrolled Programme",
+    columnHelper.accessor('program', {
+      header: 'Enrolled Programme',
       cell: (props) => props.getValue(),
     }),
   ];
 
   cols.push(
-    columnHelper.accessor("status" as keyof Enrollment, {
-      header: "Status",
+    columnHelper.accessor('status' as keyof Enrollment, {
+      header: 'Status',
       cell: (props) => props.getValue() as string,
-    })
+    }),
   );
 
-  // cols.push(
-  //   columnHelper.display({
-  //     id: "actions",
-  //     header: "Action",
-  //     cell: () => {},
-  //   })
-  // );
+  cols.push(
+    columnHelper.display({
+      id: 'actions',
+      header: 'Action',
+      cell: () => {},
+    }),
+  );
 
   return cols;
 });
@@ -421,7 +462,7 @@ const tableState = reactive({
     pageSize: 10,
   },
   sorting: [] as ColumnSort[],
-  globalFilter: "",
+  globalFilter: '',
 });
 
 const table = useVueTable({
@@ -437,12 +478,16 @@ const table = useVueTable({
   },
   onSortingChange: (updater) => {
     const newValue =
-      typeof updater === "function" ? updater(tableState.sorting) : updater;
+      typeof updater === 'function'
+        ? updater(tableState.sorting)
+        : updater;
     tableState.sorting = newValue;
   },
   onPaginationChange: (updater) => {
     const newValue =
-      typeof updater === "function" ? updater(tableState.pagination) : updater;
+      typeof updater === 'function'
+        ? updater(tableState.pagination)
+        : updater;
     tableState.pagination = newValue;
   },
   getCoreRowModel: getCoreRowModel(),
@@ -450,6 +495,10 @@ const table = useVueTable({
   getPaginationRowModel: getPaginationRowModel(),
   getSortedRowModel: getSortedRowModel(),
 });
+
+const tableHeaders = computed(
+  () => table.getHeaderGroups()[0]?.headers ?? [],
+);
 
 // Pagination helpers
 const calculatePageRange = () => {
@@ -461,7 +510,10 @@ const calculatePageRange = () => {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }
 
-  let startPage = Math.max(currentPage - Math.floor(maxVisiblePages / 2), 1);
+  let startPage = Math.max(
+    currentPage - Math.floor(maxVisiblePages / 2),
+    1,
+  );
   let endPage = startPage + maxVisiblePages - 1;
 
   if (endPage > totalPages) {
@@ -471,7 +523,7 @@ const calculatePageRange = () => {
 
   return Array.from(
     { length: endPage - startPage + 1 },
-    (_, i) => startPage + i
+    (_, i) => startPage + i,
   );
 };
 
@@ -483,19 +535,22 @@ const selectedEnrollment = ref<Enrollment | null>(null);
 
 const selectedEnrollmentCourse = computed(() =>
   selectedEnrollment.value
-    ? getEnrollmentAsCourseListData(selectedEnrollment.value, enrollments.value)
-    : undefined
+    ? getEnrollmentAsCourseListData(
+        selectedEnrollment.value,
+        enrollments.value,
+      )
+    : undefined,
 );
 
 const selectedEnrollmentHistory = computed(() =>
   selectedEnrollmentCourse.value
     ? selectedEnrollmentCourse.value.student_course_enrollements
-    : []
+    : [],
 );
 
 const handleEdit = async (rowData: Enrollment) => {
-  if (rowData.status !== "pending") {
-    toast.info("Enrollment cannot be edited");
+  if (rowData.status !== 'pending') {
+    toast.info('Enrollment cannot be edited');
     return;
   } else {
     selectedEnrollment.value = rowData;
@@ -504,8 +559,8 @@ const handleEdit = async (rowData: Enrollment) => {
 };
 
 const handleDelete = async (rowData: Enrollment) => {
-  if (rowData.status !== "pending") {
-    toast.info("Enrollment cannot be edited");
+  if (rowData.status !== 'pending') {
+    toast.info('Enrollment cannot be edited');
     return;
   } else {
     selectedEnrollment.value = rowData;
@@ -525,23 +580,24 @@ const handleDeleteAction = async ({
 }) => {
   const { call } = useBackendService(
     `/enrollments/${selectedEnrollment.value?.enrollmentId}`,
-    "patch"
+    'patch',
   );
-  const finalReason = reason === "Other reason" ? customReason : reason;
+  const finalReason =
+    reason === 'Other reason' ? customReason : reason;
 
   isActionLoading.value = true;
   try {
     await call({
-      enrollment_status: "REJECTED",
+      enrollment_status: 'REJECTED',
       rejection_reason: finalReason,
     });
-    toast.success("Enrollment rejected successfully");
+    toast.success('Enrollment rejected successfully');
     fetchData();
 
     showDeleteModal.value = false;
     selectedEnrollment.value = null;
   } catch (error) {
-    toast.error("Failed to reject enrollment");
+    toast.error('Failed to reject enrollment');
   } finally {
     isActionLoading.value = false;
   }
@@ -549,21 +605,21 @@ const handleDeleteAction = async ({
 const handleEditAction = async () => {
   const { call } = useBackendService(
     `/enrollments/${selectedEnrollment.value?.enrollmentId}`,
-    "patch"
+    'patch',
   );
 
   isActionLoading.value = true;
   try {
     await call({
-      enrollment_status: "APPROVED",
+      enrollment_status: 'APPROVED',
     });
-    toast.success("Enrollment accepted successfully");
+    toast.success('Enrollment accepted successfully');
     fetchData();
 
     showEditModal.value = false;
     selectedEnrollment.value = null;
   } catch (error) {
-    toast.error("Failed to reject enrollment");
+    toast.error('Failed to reject enrollment');
   } finally {
     isActionLoading.value = false;
   }
@@ -574,7 +630,7 @@ const goToPage = (pageIndex: number) => {
 };
 
 definePageMeta({
-  layout: "dashboard",
+  layout: 'dashboard',
 });
 
 const totalRecords = computed(() => enrollments.value.length);
@@ -590,7 +646,9 @@ const endRecord = computed(() => {
   const possibleEnd =
     (table.getState().pagination.pageIndex + 1) *
     table.getState().pagination.pageSize;
-  return possibleEnd > totalRecords.value ? totalRecords.value : possibleEnd;
+  return possibleEnd > totalRecords.value
+    ? totalRecords.value
+    : possibleEnd;
 });
 </script>
 

@@ -103,7 +103,7 @@
             <thead>
               <tr>
                 <th
-                  v-for="header in table.getHeaderGroups()[0].headers"
+                  v-for="header in tableHeaders"
                   :key="header.id"
                   class="table-header"
                   @click="header.column.getToggleSortingHandler()"
@@ -379,7 +379,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ColumnSort } from '@tanstack/vue-table';
+import type { ColumnSort, CoreOptions } from '@tanstack/vue-table';
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -494,7 +494,7 @@ const filteredEnrollments = computed(() => {
 const columnHelper = createColumnHelper<Enrollment>();
 
 const columns = computed(() => {
-  const cols: any[] = [
+  const cols: CoreOptions<Enrollment>['columns'] = [
     columnHelper.accessor('studentName', {
       header: 'Student Name',
       cell: (props) => {
@@ -615,6 +615,10 @@ const table = useVueTable({
   getPaginationRowModel: getPaginationRowModel(),
   getSortedRowModel: getSortedRowModel(),
 });
+
+const tableHeaders = computed(
+  () => table.getHeaderGroups()[0]?.headers ?? [],
+);
 
 // Pagination helpers
 const calculatePageRange = () => {

@@ -25,7 +25,12 @@ export interface EnrollmentListType {
   courseCode: string;
   courseCredit: string;
   courseName: string;
-  courseType: 'UNDERGRADUATE' | 'GRADUATE' | 'MASTERS' | 'DOCTORATE';
+  courseType:
+    | 'UNDERGRADUATE'
+    | 'GRADUATE'
+    | 'MASTERS'
+    | 'DOCTORATE'
+    | 'GENERAL';
   courseDescription: string;
   sessionId: string | number;
   isActiveSession: boolean;

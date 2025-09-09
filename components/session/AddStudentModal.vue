@@ -1,8 +1,15 @@
 <template>
   <Teleport to="body">
     <Transition name="modal-fade">
-      <div v-if="modelValue" class="modal-overlay" @click="onOverlayClick">
-        <div class="modal-container" @click.stop>
+      <div
+        v-if="modelValue"
+        class="modal-overlay"
+        @click="onOverlayClick"
+      >
+        <div
+          class="modal-container"
+          @click.stop
+        >
           <div class="modal o-visible">
             <div class="modal-header">
               <div class="header-content">
@@ -11,7 +18,11 @@
                   Select students you have verified to this session
                 </p>
               </div>
-              <button class="close-button" @click="close" aria-label="Close">
+              <button
+                class="close-button"
+                aria-label="Close"
+                @click="close"
+              >
                 <CloseCircleIcon />
               </button>
             </div>
@@ -23,22 +34,32 @@
                   <FormInput
                     id="student-search"
                     ref="studentInput"
-                    label=""
                     v-model="studentSearchQuery"
+                    label=""
                     placeholder="Enter student name(s)"
                   />
                 </div>
-                <div style="display: flex; justify-content: space-between">
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                  "
+                >
                   <div>({{ selectedStudents.length }} SELECTED)</div>
                   <div>
                     <div>
                       <div class="select-all">
                         <CheckBoxChecked
-                          @click="toggleSelectAll"
                           v-if="isAllSelected"
+                          @click="toggleSelectAll"
                         />
-                        <CheckBox @click="toggleSelectAll" v-else />
-                        <label for="select-all" class="checkbox-label"
+                        <CheckBox
+                          v-else
+                          @click="toggleSelectAll"
+                        />
+                        <label
+                          for="select-all"
+                          class="checkbox-label"
                           >All students</label
                         >
                       </div>
@@ -48,16 +69,26 @@
 
                 <div class="students-container">
                   <!-- Loading state -->
-                  <div v-if="loadingStudents" class="loading-state">
-                    <div class="loading-message">Loading students...</div>
+                  <div
+                    v-if="loadingStudents"
+                    class="loading-state"
+                  >
+                    <div class="loading-message">
+                      Loading students...
+                    </div>
                   </div>
 
-                  <div v-else class="students-list">
+                  <div
+                    v-else
+                    class="students-list"
+                  >
                     <div
                       v-for="student in filteredStudents"
                       :key="student.studentId"
                       class="student-item"
-                      :class="{ selected: isStudentSelected(student) }"
+                      :class="{
+                        selected: isStudentSelected(student),
+                      }"
                       @click="toggleStudent(student)"
                     >
                       <div
@@ -70,11 +101,15 @@
                         "
                       >
                         <img
-                          :src="student.profilePicture || '/default-avatar.png'"
+                          :src="
+                            student.profilePicture ||
+                            '/default-avatar.png'
+                          "
                           class="avatar"
                         />
                         <div class="student-name">
-                          {{ student.firstName }} {{ student.lastName }}
+                          {{ student.firstName }}
+                          {{ student.lastName }}
                         </div>
                       </div>
                       <div
@@ -82,7 +117,9 @@
                         @click.stop="toggleStudent(student)"
                       >
                         <div class="checkbox-wrapper">
-                          <CheckBoxChecked v-if="isStudentSelected(student)" />
+                          <CheckBoxChecked
+                            v-if="isStudentSelected(student)"
+                          />
                           <CheckBox v-else />
                         </div>
                       </div>
@@ -90,7 +127,10 @@
 
                     <!-- Empty state -->
                     <div
-                      v-if="filteredStudents.length === 0 && !loadingStudents"
+                      v-if="
+                        filteredStudents.length === 0 &&
+                        !loadingStudents
+                      "
                     >
                       <EmptyState
                         v-if="filteredStudents.length === 0"
@@ -108,9 +148,9 @@
                         </template>
                         <template #action>
                           <Button
-                            @click="$router.push('/admin/students')"
                             variant="outline"
                             size="sm"
+                            @click="$router.push('/admin/students')"
                           >
                             <template #icon>
                               <PlusIcon />
@@ -125,10 +165,17 @@
               </div>
             </div>
 
-            <div style="justify-content: space-between" class="modal-footer">
+            <div
+              style="justify-content: space-between"
+              class="modal-footer"
+            >
               <div
+                style="
+                  cursor: pointer;
+                  color: #254383;
+                  font-weight: 600;
+                "
                 @click="$router.push('/admin/students')"
-                style="cursor: pointer; color: #254383; font-weight: 600"
               >
                 Invite new student?
               </div>
@@ -137,8 +184,8 @@
                 variant="primary"
                 :disabled="isLoading || selectedStudents.length === 0"
                 :loading="isLoading"
-                @click="handleFinishClick"
                 style="width: 5vw"
+                @click="handleFinishClick"
               >
                 Finish
               </Button>
@@ -151,15 +198,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
-import { useToast } from "~/composables/useToast";
-import CheckBox from "../icons/CheckBox.vue";
-import CheckBoxChecked from "../icons/CheckBoxChecked.vue";
-import CloseCircleIcon from "../icons/CloseCircleIcon.vue";
-import PlusIcon from "../icons/PlusIcon.vue";
-import Button from "../ui/Button.vue";
-import EmptyState from "../ui/EmptyState.vue";
-import FormInput from "../ui/FormInput.vue";
+import { computed, onMounted, ref, watch } from 'vue';
+import { useToast } from '~/composables/useToast';
+import CheckBox from '../icons/CheckBox.vue';
+import CheckBoxChecked from '../icons/CheckBoxChecked.vue';
+import CloseCircleIcon from '../icons/CloseCircleIcon.vue';
+import PlusIcon from '../icons/PlusIcon.vue';
+import Button from '../ui/Button.vue';
+import EmptyState from '../ui/EmptyState.vue';
+import FormInput from '../ui/FormInput.vue';
+import type { StudentType } from '~/types/student';
 
 interface Student {
   firstName: string;
@@ -169,28 +217,13 @@ interface Student {
   profilePicture: string;
 }
 
-interface BackendStudent {
-  student_id: number;
-  reg_number: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  profile_picture: string | null;
-  program_id: number;
-  program: {
-    program_name: string;
-    program_type: string;
-    total_credits: number;
-  };
-}
-
 interface Props {
   modelValue: boolean;
   loading?: boolean;
   persistent?: boolean;
   availableStudents?: Student[];
-  sessionId?: any;
-  mode?: "single" | "main";
+  sessionId?: string | number;
+  mode?: 'single' | 'main';
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -200,18 +233,17 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-  (e: "update:modelValue", value: boolean): void;
-  (e: "students-added", students: Student[]): void;
-  (e: "submit-session-form", students: Student[]): void;
-  (e: "click"): void;
+  (e: 'update:modelValue', value: boolean): void;
+  (
+    e: 'students-added' | 'submit-session-form',
+    students: Student[],
+  ): void;
+  (e: 'click'): void;
 }>();
-const click = () => {
-  emit("click");
-};
 
 const isLoading = ref(false);
 const selectedStudents = ref<Student[]>([]);
-const studentSearchQuery = ref("");
+const studentSearchQuery = ref('');
 const studentInput = ref<typeof FormInput | null>(null);
 const toast = useToast();
 
@@ -219,25 +251,36 @@ const {
   call: fetchStudents,
   isLoading: loadingStudents,
   data: studentsData,
-} = useBackendService("/students", "get");
+} = useBackendService('/students', 'get');
 
-const transformBackendStudent = (backendStudent: BackendStudent): Student => {
+const transformBackendStudent = (
+  backendStudent: StudentType,
+): Student => {
   return {
     studentId: backendStudent.student_id,
-    firstName: backendStudent.first_name,
-    lastName: backendStudent.last_name,
+    firstName: backendStudent.first_name ?? '',
+    lastName: backendStudent.last_name ?? '',
     email: backendStudent.email,
-    profilePicture: backendStudent.profile_picture || "/default-avatar.png",
+    profilePicture:
+      backendStudent.profile_picture ||
+      `https://lccvdfvlczhicqnrelsv.supabase.co/storage/v1/object/public/cuce/static/default.png`,
   };
 };
 
 const availableStudentsForSelection = computed(() => {
-  if (!studentsData.value) return [];
+  if (!studentsData.value) return [] as Student[];
 
-  const availableStudentIds = props.availableStudents.map((s) => s.studentId);
+  const availableStudentIds = props.availableStudents.map(
+    (s) => s.studentId,
+  );
 
-  return studentsData.value
-    .filter((student: any) => !availableStudentIds.includes(student.student_id))
+  const studentList = studentsData.value as unknown as StudentType[];
+
+  return studentList
+    .filter(
+      (student: StudentType) =>
+        !availableStudentIds.includes(student.student_id),
+    )
     .map(transformBackendStudent);
 });
 
@@ -247,28 +290,39 @@ const filteredStudents = computed(() => {
   }
 
   const query = studentSearchQuery.value.toLowerCase();
+
   return availableStudentsForSelection.value.filter(
-    (student: any) =>
-      student.firstName.toLowerCase().includes(query) ||
-      student.email.toLowerCase().includes(query) ||
-      student.lastName.toLowerCase().includes(query)
+    (student) =>
+      String(student.firstName ?? '')
+        .toLowerCase()
+        .includes(query) ||
+      String(student.email ?? '')
+        .toLowerCase()
+        .includes(query) ||
+      String(student.lastName ?? '')
+        .toLowerCase()
+        .includes(query),
   );
 });
 
 const isAllSelected = computed(() => {
   return (
     filteredStudents.value.length > 0 &&
-    filteredStudents.value.every((student: any) => isStudentSelected(student))
+    filteredStudents.value.every((student) =>
+      isStudentSelected(student),
+    )
   );
 });
 
 const isStudentSelected = (student: Student) => {
-  return selectedStudents.value.some((s) => s.studentId === student.studentId);
+  return selectedStudents.value.some(
+    (s) => s.studentId === student.studentId,
+  );
 };
 
 const toggleStudent = (student: Student) => {
   const index = selectedStudents.value.findIndex(
-    (s) => s.studentId === student.studentId
+    (s) => s.studentId === student.studentId,
   );
   if (index === -1) {
     selectedStudents.value.push(student);
@@ -279,47 +333,51 @@ const toggleStudent = (student: Student) => {
 
 const toggleSelectAll = () => {
   if (isAllSelected.value) {
-    filteredStudents.value.forEach((student: any) => {
+    filteredStudents.value.forEach((student) => {
       const index = selectedStudents.value.findIndex(
-        (s) => s.studentId === student.studentId
+        (s) => s.studentId === student.studentId,
       );
       if (index !== -1) {
         selectedStudents.value.splice(index, 1);
       }
     });
   } else {
-    filteredStudents.value.forEach((student: any) => {
+    filteredStudents.value.forEach((student) => {
       if (!isStudentSelected(student)) {
         selectedStudents.value.push(student);
       }
     });
   }
 };
-const sessionId = props.sessionId;
-const { call: addStudentsToSession } = useBackendService(
-  `/sessions/${sessionId}/students`,
-  "post"
-);
 
 const handleSubmit = async () => {
-  if (selectedStudents.value.length === 0) {
+  if (selectedStudents.value.length === 0 || !props.sessionId) {
     return;
   }
 
   isLoading.value = true;
 
+  const sessionId = props.sessionId;
+  const { call: addStudentsToSession } = useBackendService(
+    `/sessions/${sessionId}/students`,
+    'post',
+  );
+
   try {
     await addStudentsToSession({
-      studentIds: selectedStudents.value.map((student) => student.studentId),
+      studentIds: selectedStudents.value.map(
+        (student) => student.studentId,
+      ),
     });
     toast.success(
       `${selectedStudents.value.length} student${
-        selectedStudents.value.length !== 1 ? "s" : ""
-      } added successfully`
+        selectedStudents.value.length !== 1 ? 's' : ''
+      } added successfully`,
     );
-    emit("submit-session-form", selectedStudents.value);
+    emit('submit-session-form', selectedStudents.value);
   } catch (error) {
-    toast.error("Failed to add students. Please try again.");
+    console.dir(error);
+    toast.error('Failed to add students. Please try again.');
   } finally {
     isLoading.value = false;
   }
@@ -327,14 +385,14 @@ const handleSubmit = async () => {
 
 const resetForm = () => {
   selectedStudents.value = [];
-  studentSearchQuery.value = "";
+  studentSearchQuery.value = '';
 };
 
 const close = () => {
-  emit("update:modelValue", false);
+  emit('update:modelValue', false);
 };
 const handleFinishClick = () => {
-  if (props.mode === "main") {
+  if (props.mode === 'main') {
     handleAddStudentClick();
   } else {
     handleSubmit();
@@ -342,8 +400,8 @@ const handleFinishClick = () => {
 };
 
 const handleAddStudentClick = () => {
-  const selectedIds = selectedStudents.value.map((s: any) => s.studentId);
-  emit("submit-session-form", selectedIds);
+  const selectedIds = selectedStudents.value.map((s) => s.studentId);
+  emit('submit-session-form', selectedIds);
 };
 
 const onOverlayClick = () => {
@@ -356,8 +414,8 @@ const loadStudents = async () => {
   try {
     await fetchStudents();
   } catch (error) {
-    console.error("Error fetching students:", error);
-    toast.error("Failed to load students. Please try again.");
+    console.error('Error fetching students:', error);
+    toast.error('Failed to load students. Please try again.');
   }
 };
 
@@ -369,7 +427,7 @@ watch(
     } else {
       resetForm();
     }
-  }
+  },
 );
 
 onMounted(() => {
