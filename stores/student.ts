@@ -103,17 +103,20 @@ export const useStudentStore = defineStore(
       ),
     );
 
-    const selectedStudentSessionId = ref('all');
+    const selectedStudentSessionId = ref('');
     const selectedStudentAssignedTo = ref<
       'all' | 'me' | 'others' | 'none'
     >('all');
-    const studentsResp = markRaw(
+    const sessionStudentsResp = markRaw(
       useAsyncData(
+        getCacheKeyFor('session-student-list'),
         async function () {
           if (
             !(
               authStore.role &&
-              ['ADMIN', 'REGISTRAR'].includes(authStore.role)
+              ['ADMIN', 'REGISTRAR'].includes(authStore.role) &&
+              selectedStudentSessionId.value &&
+              !isNaN(Number(selectedStudentSessionId.value))
             )
           ) {
             return [];
@@ -123,14 +126,9 @@ export const useStudentStore = defineStore(
             status: 'success';
             data: StudentWithRegistrar[];
           }>({
-            url: `/students`,
+            url: `/students/sessions/${selectedStudentSessionId.value}`,
             params: {
               assigned_to: selectedStudentAssignedTo.value || 'all',
-              session_id: selectedStudentSessionId.value
-                ? selectedStudentSessionId.value === 'all'
-                  ? undefined
-                  : String(selectedStudentSessionId.value)
-                : undefined,
             },
             validateStatus(status) {
               return status < 400;
@@ -146,6 +144,62 @@ export const useStudentStore = defineStore(
             selectedStudentSessionId,
             selectedStudentAssignedTo,
           ],
+          deep: false,
+          lazy: false,
+          immediate: false,
+          default() {
+            return [] as StudentWithRegistrar[];
+          },
+          transform(list) {
+            return orderBy(
+              list,
+              [
+                (s) => (s.can_claim ? 1 : 0),
+                (s) => new Date(s.updated_at).getTime(),
+                (s) => new Date(s.created_at).getTime(),
+              ],
+              ['desc', 'desc', 'desc'],
+            );
+          },
+          getCachedData(key) {
+            const students =
+              getCacheFromState<StudentWithRegistrar[]>(key);
+
+            if (isArray(students)) {
+              return students;
+            }
+
+            return undefined;
+          },
+        },
+      ),
+    );
+
+    const allStudentsResp = markRaw(
+      useAsyncData(
+        getCacheKeyFor('all-student-list'),
+        async function () {
+          if (
+            !(authStore.role && ['ADMIN'].includes(authStore.role))
+          ) {
+            return [];
+          }
+
+          const resp = await useBackendRequest<{
+            status: 'success';
+            data: StudentWithRegistrar[];
+          }>({
+            url: `/students`,
+            validateStatus(status) {
+              return status < 400;
+            },
+          });
+
+          const students = resp.data?.data ?? [];
+          return students;
+        },
+        {
+          watch: [() => authStore.token],
           deep: false,
           lazy: false,
           immediate: false,
@@ -434,6 +488,7 @@ export const useStudentStore = defineStore(
       ),
     );
 
+    const isShowingInviteModal = ref(false);
     const isShowingSuspendModal = ref(false);
     const isShowingClaimModal = ref(false);
     const isShowingDeleteModal = ref(false);
@@ -443,12 +498,14 @@ export const useStudentStore = defineStore(
       coursesInProgramResp,
       selectedStudentSessionId,
       selectedStudentAssignedTo,
-      studentsResp,
+      sessionStudentsResp,
+      allStudentsResp,
       selectedStudentId,
       studentResp,
       studentSessionsResp,
       studentSessionCoursesResp,
       studentProgramCoursesResp,
+      isShowingInviteModal,
       isShowingSuspendModal,
       isShowingClaimModal,
       isShowingDeleteModal,
@@ -459,6 +516,7 @@ export const useStudentStore = defineStore(
       omit: [
         'coursesInCurrentSessionResp',
         'coursesInProgramResp',
+        'isShowingInviteModal',
         'isShowingSuspendModal',
         'isShowingClaimModal',
         'isShowingDeleteModal',

@@ -94,7 +94,7 @@ import type { ProgramOutput } from '~/types/program';
 import CloseCircleIcon from '../icons/CloseCircleIcon.vue';
 import Button from '../ui/Button.vue';
 import FormInput from '../ui/FormInput.vue';
-import { cloneDeep, isArray, isEqual } from 'lodash-es';
+import { isArray, isEqual } from 'lodash-es';
 
 interface ProgramType {
   value: string;
@@ -116,11 +116,22 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: boolean): void;
+  (e: 'update:modelValue' | 'update:loading', value: boolean): void;
   (e: 'invite-success' | 'invite-failure'): void;
 }>();
 
-const isLoading = ref(false);
+const localIsLoading = ref(false);
+const isLoading = computed({
+  get() {
+    return localIsLoading.value
+      ? localIsLoading.value
+      : props.loading;
+  },
+  set(val: boolean) {
+    localIsLoading.value = val;
+    emit('loading', val);
+  },
+});
 const toast = useToast();
 
 const form = reactive<{

@@ -1,6 +1,43 @@
 <template>
   <NuxtPage />
 
+  <StudentAddModal
+    v-model="studentStore.isShowingInviteModal"
+    v-model:loading="isActionLoading"
+    @invite-success="handleInviteSuccess"
+    @invite-failure="handleInviteFailure"
+  />
+
+  <UiDialog
+    v-model="showInviteSuccessDialog"
+    title="Invites Sent!"
+    message="Your invitation have been sent to the provided email address. The invited student will receive an email with a link to join the platform."
+    variant="success"
+    :icon="true"
+    cancel-button-text="Awesome 🎉"
+    confirm-button-text=""
+    :show-cancel-button="true"
+    :show-confirm-button="false"
+    :show-close-button="true"
+    :persistent="false"
+    :loading="false"
+  />
+
+  <UiDialog
+    v-model="showInviteFailureDialog"
+    title="Invite failed!"
+    message="There was an issue, We’re unable to send your invite to the provided email address. Please try again."
+    variant="danger"
+    :icon="true"
+    cancel-button-text="Try again!"
+    confirm-button-text=""
+    :show-cancel-button="true"
+    :show-confirm-button="false"
+    :show-close-button="true"
+    :persistent="false"
+    :loading="false"
+  />
+
   <template v-if="studentStore.selectedStudentId">
     <UiDialog
       v-model="studentStore.isShowingDeleteModal"
@@ -62,9 +99,8 @@ const confirmDeleteStudent = async () => {
     );
 
     await Promise.all([
-      studentStore.studentsResp.refresh({
-        dedupe: 'cancel',
-      }),
+      studentStore.sessionStudentsResp.refresh({ dedupe: true }),
+      studentStore.allStudentsResp.refresh({ dedupe: true }),
       studentStore.studentResp.refresh({
         dedupe: 'cancel',
       }),
@@ -103,9 +139,8 @@ const confirmSuspendStudent = async () => {
     );
 
     await Promise.all([
-      studentStore.studentsResp.refresh({
-        dedupe: 'cancel',
-      }),
+      studentStore.sessionStudentsResp.refresh({ dedupe: true }),
+      studentStore.allStudentsResp.refresh({ dedupe: true }),
       studentStore.studentResp.refresh({
         dedupe: 'cancel',
       }),
@@ -118,6 +153,32 @@ const confirmSuspendStudent = async () => {
     isActionLoading.value = false;
     studentStore.isShowingSuspendModal = false;
   }
+};
+
+const showInviteSuccessDialog = ref(false);
+const showInviteFailureDialog = ref(false);
+const handleInviteSuccess = async () => {
+  await nextTick();
+  isActionLoading.value = true;
+  await Promise.all([
+    studentStore.sessionStudentsResp.refresh({ dedupe: true }),
+    studentStore.allStudentsResp.refresh({ dedupe: true }),
+  ]);
+
+  studentStore.isShowingInviteModal = false;
+  showInviteSuccessDialog.value = true;
+};
+
+const handleInviteFailure = async () => {
+  await nextTick();
+  isActionLoading.value = true;
+  await Promise.all([
+    studentStore.sessionStudentsResp.refresh({ dedupe: true }),
+    studentStore.allStudentsResp.refresh({ dedupe: true }),
+  ]);
+
+  studentStore.isShowingInviteModal = false;
+  showInviteFailureDialog.value = true;
 };
 </script>
 
